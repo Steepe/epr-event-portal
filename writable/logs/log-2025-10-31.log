@@ -1,0 +1,17 @@
+CRITICAL - 2025-10-31 20:00:26 --> CodeIgniter\View\Exceptions\ViewException: Invalid file: "App\Modules\Web\Views\past_conferences.php"
+[Method: GET, Route: attendees/past_conferences]
+in SYSTEMPATH/Exceptions/FrameworkException.php on line 39.
+ 1 SYSTEMPATH/View/View.php(212): CodeIgniter\Exceptions\FrameworkException::forInvalidFile('App\\Modules\\Web\\Views\\past_conferences.php')
+ 2 SYSTEMPATH/Common.php(1173): CodeIgniter\View\View->render('App\\Modules\\Web\\Views\\past_conferences', [], true)
+ 3 APPPATH/Helpers/module_helper.php(26): view('App\\Modules\\Web\\Views\\past_conferences', [...], [])
+ 4 APPPATH/Modules/Web/Controllers/PastConferencesController.php(23): module_view('Web', 'past_conferences', [...])
+ 5 SYSTEMPATH/CodeIgniter.php(933): App\Modules\Web\Controllers\PastConferencesController->index()
+ 6 SYSTEMPATH/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Modules\Web\Controllers\PastConferencesController))
+ 7 SYSTEMPATH/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 8 SYSTEMPATH/Boot.php(334): CodeIgniter\CodeIgniter->run()
+ 9 SYSTEMPATH/Boot.php(67): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+10 FCPATH/index.php(56): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
+CRITICAL - 2025-10-31 20:18:08 --> ErrorException: Maximum execution time of 30 seconds exceeded
+[Method: POST, Route: api/register]
+in SYSTEMPATH/Debug/Exceptions.php on line 208.
+ 1 [internal function]: CodeIgniter\Debug\Exceptions->shutdownHandler()

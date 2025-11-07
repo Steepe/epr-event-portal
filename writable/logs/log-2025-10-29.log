@@ -1,0 +1,9 @@
+CRITICAL - 2025-10-29 22:38:17 --> Error: Call to a member function where() on null
+[Method: GET, Route: attendees/sessions/1]
+in APPPATH/Modules/Web/Controllers/SessionsController.php on line 43.
+ 1 SYSTEMPATH/CodeIgniter.php(933): App\Modules\Web\Controllers\SessionsController->view('1')
+ 2 SYSTEMPATH/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Modules\Web\Controllers\SessionsController))
+ 3 SYSTEMPATH/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 4 SYSTEMPATH/Boot.php(334): CodeIgniter\CodeIgniter->run()
+ 5 SYSTEMPATH/Boot.php(67): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+ 6 FCPATH/index.php(56): CodeIgniter\Boot::bootWeb(Object(Config\Paths))

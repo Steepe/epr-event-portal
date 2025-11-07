@@ -1,0 +1,14 @@
+ERROR - 2025-11-01 09:30:24 --> Failed to load sponsors: syntax error, unexpected token "<", expecting end of file
+CRITICAL - 2025-11-01 09:30:24 --> ParseError: syntax error, unexpected token "<", expecting end of file
+[Method: GET, Route: attendees/sponsors]
+in APPPATH/Modules/Web/Views/sponsors.php on line 10.
+ 1 SYSTEMPATH/View/View.php(227): CodeIgniter\View\View->{closure:CodeIgniter\View\View::render():221}()
+ 2 SYSTEMPATH/Common.php(1173): CodeIgniter\View\View->render('App\\Modules\\Web\\Views\\sponsors', [], true)
+ 3 APPPATH/Helpers/module_helper.php(26): view('App\\Modules\\Web\\Views\\sponsors', [...], [])
+ 4 APPPATH/Modules/Web/Controllers/SponsorsController.php(38): module_view('Web', 'sponsors', [...])
+ 5 SYSTEMPATH/CodeIgniter.php(933): App\Modules\Web\Controllers\SponsorsController->index()
+ 6 SYSTEMPATH/CodeIgniter.php(507): CodeIgniter\CodeIgniter->runController(Object(App\Modules\Web\Controllers\SponsorsController))
+ 7 SYSTEMPATH/CodeIgniter.php(354): CodeIgniter\CodeIgniter->handleRequest(null, Object(Config\Cache), false)
+ 8 SYSTEMPATH/Boot.php(334): CodeIgniter\CodeIgniter->run()
+ 9 SYSTEMPATH/Boot.php(67): CodeIgniter\Boot::runCodeIgniter(Object(CodeIgniter\CodeIgniter))
+10 FCPATH/index.php(56): CodeIgniter\Boot::bootWeb(Object(Config\Paths))
