@@ -14,7 +14,7 @@ use CodeIgniter\Model;
 class SpeakersModel extends Model
 {
     protected string $table = 'tbl_speakers';
-    protected string $primaryKey = 'id';
+    protected string $primaryKey = 'speaker_id';
 
     protected array $allowedFields = [
         'speaker_name',

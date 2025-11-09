@@ -50,7 +50,7 @@ class SpeakersController extends BaseController
         if ($photo && $photo->isValid() && !$photo->hasMoved()) {
             $newName = $photo->getRandomName();
             $photo->move(FCPATH . 'uploads/speakers/', $newName);
-            $photoPath = 'uploads/speakers/' . $newName;
+            $photoPath = $newName; // ✅ only filename in DB
         }
 
         $data = [
@@ -91,7 +91,7 @@ class SpeakersController extends BaseController
         if ($photo && $photo->isValid() && !$photo->hasMoved()) {
             $newName = $photo->getRandomName();
             $photo->move(FCPATH . 'uploads/speakers/', $newName);
-            $photoPath = 'uploads/speakers/' . $newName;
+            $photoPath = $newName; // ✅ only filename in DB
         }
 
         $data = [

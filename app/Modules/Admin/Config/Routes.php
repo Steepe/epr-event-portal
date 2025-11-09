@@ -65,6 +65,23 @@ $routes->group('admin', ['namespace' => 'App\Modules\Admin\Controllers'], functi
             $routes->get('(:num)/delete', 'SpeakersController::delete/$1');
         });
 
+        // Exhibitors
+        $routes->get('exhibitors', 'ExhibitorsController::index');
+        $routes->get('exhibitors/create', 'ExhibitorsController::create');
+        $routes->post('exhibitors/store', 'ExhibitorsController::store');
+        $routes->get('exhibitors/(:num)/edit', 'ExhibitorsController::edit/$1');
+        $routes->post('exhibitors/(:num)/update', 'ExhibitorsController::update/$1');
+        $routes->get('exhibitors/(:num)/delete', 'ExhibitorsController::delete/$1');
+
+        // Sponsors
+        $routes->get('sponsors', 'SponsorsController::index');
+        $routes->get('sponsors/create', 'SponsorsController::create');
+        $routes->post('sponsors/store', 'SponsorsController::store');
+        $routes->get('sponsors/(:num)/edit', 'SponsorsController::edit/$1');
+        $routes->post('sponsors/(:num)/update', 'SponsorsController::update/$1');
+        $routes->get('sponsors/(:num)/delete', 'SponsorsController::delete/$1');
+
+
 
         // Messages (admin inbox)
         $routes->get('messages', 'MessagesController::index');

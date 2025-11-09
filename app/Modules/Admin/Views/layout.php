@@ -49,6 +49,17 @@
         <a href="<?php echo base_url('admin/speakers'); ?>" class="flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-700">
             <i class="bx bx-video text-lg"></i> Speakers
         </a>
+
+        <!-- ✅ New Exhibitors link -->
+        <a href="<?php echo base_url('admin/exhibitors'); ?>" class="flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-700">
+            <i class="bx bx-store text-lg"></i> Exhibitors
+        </a>
+
+        <a href="<?php echo base_url('admin/sponsors'); ?>" class="flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-700">
+            <i class="bx bx-award text-lg"></i> Sponsors
+        </a>
+
+
         <a href="<?php echo base_url('admin/messages'); ?>" class="flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-700">
             <i class="bx bx-chat text-lg"></i> Messages
         </a>
@@ -56,6 +67,7 @@
             <i class="bx bx-credit-card text-lg"></i> Payments
         </a>
     </nav>
+
 
     <div class="border-t border-gray-700 p-4 text-sm">
         <a href="<?php echo base_url('admin/logout'); ?>" class="flex items-center gap-2 text-red-400 hover:text-red-300">

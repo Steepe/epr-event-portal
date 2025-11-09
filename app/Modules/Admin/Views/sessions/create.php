@@ -11,108 +11,122 @@ $this->extend('App\Modules\Admin\Views\layout');
 $this->section('content');
 ?>
 
-<h1 class="text-2xl font-semibold text-gray-200 mb-6">Add Session — <?php echo esc($conference['title']); ?></h1>
-
-<form method="post" enctype="multipart/form-data"
-      action="<?php echo site_url('admin/conferences/' . $conference['conference_id'] . '/sessions/store'); ?>"
-      class="space-y-6 bg-gray-800 p-6 rounded-lg border border-gray-700">
-
-  <?php echo csrf_field(); ?>
-
-  <div class="grid md:grid-cols-2 gap-4">
+<div class="max-w-5xl mx-auto bg-gray-800 border border-gray-700 rounded-lg p-8 shadow">
+  <div class="flex items-center justify-between mb-6">
     <div>
-      <label class="block text-sm text-gray-400 mb-1">Session Name</label>
-      <input type="text" name="sessions_name" required
-             class="w-full p-2 bg-gray-900 border border-gray-700 text-gray-200 rounded">
+      <h1 class="text-2xl font-semibold text-gray-100">Add Session</h1>
+      <p class="text-sm text-gray-400">Conference: <?php echo esc($conference['title']); ?></p>
+    </div>
+    <a href="<?php echo site_url('admin/conferences/' . $conference['conference_id'] . '/sessions'); ?>"
+       class="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-gray-100 rounded text-sm">← Back</a>
+  </div>
+
+  <?php if (session()->getFlashdata('error')): ?>
+    <div class="mb-4 text-red-400 bg-gray-900 border border-red-700 p-3 rounded">
+      <?php echo session()->getFlashdata('error'); ?>
+    </div>
+  <?php elseif (session()->getFlashdata('success')): ?>
+    <div class="mb-4 text-green-400 bg-gray-900 border border-green-700 p-3 rounded">
+      <?php echo session()->getFlashdata('success'); ?>
+    </div>
+  <?php endif; ?>
+
+  <form method="post" enctype="multipart/form-data"
+        action="<?php echo site_url('admin/conferences/' . $conference['conference_id'] . '/sessions/store'); ?>"
+        class="space-y-6">
+    <?php echo csrf_field(); ?>
+
+    <div class="grid md:grid-cols-2 gap-6">
+      <div>
+        <label class="block text-sm text-gray-400 mb-2">Session Name</label>
+        <input type="text" name="sessions_name" required
+               class="w-full p-2 rounded bg-gray-900 border border-gray-700 text-gray-200 focus:ring-blue-500 focus:border-blue-500">
+      </div>
+
+      <div>
+        <label class="block text-sm text-gray-400 mb-2">Event Date</label>
+        <input type="date" name="event_date" required
+               class="w-full p-2 rounded bg-gray-900 border border-gray-700 text-gray-200 focus:ring-blue-500 focus:border-blue-500">
+      </div>
+
+      <div>
+        <label class="block text-sm text-gray-400 mb-2">Start Time</label>
+        <input type="time" name="start_time" required
+               class="w-full p-2 rounded bg-gray-900 border border-gray-700 text-gray-200 focus:ring-blue-500 focus:border-blue-500">
+      </div>
+
+      <div>
+        <label class="block text-sm text-gray-400 mb-2">End Time</label>
+        <input type="time" name="end_time" required
+               class="w-full p-2 rounded bg-gray-900 border border-gray-700 text-gray-200 focus:ring-blue-500 focus:border-blue-500">
+      </div>
     </div>
 
     <div>
-      <label class="block text-sm text-gray-400 mb-1">Access Level</label>
-      <select name="access_level" class="w-full p-2 bg-gray-900 border border-gray-700 text-gray-200 rounded">
+      <label class="block text-sm text-gray-400 mb-2">Access Level</label>
+      <select name="access_level" required
+              class="w-full p-2 rounded bg-gray-900 border border-gray-700 text-gray-200 focus:ring-blue-500 focus:border-blue-500">
         <option value="1">Free</option>
         <option value="2">Paid</option>
       </select>
     </div>
-  </div>
-
-  <div class="grid md:grid-cols-3 gap-4">
-    <div>
-      <label class="block text-sm text-gray-400 mb-1">Event Date</label>
-      <input type="date" name="event_date" required
-             class="w-full p-2 bg-gray-900 border border-gray-700 text-gray-200 rounded">
-    </div>
-    <div>
-      <label class="block text-sm text-gray-400 mb-1">Start Time</label>
-      <input type="time" name="start_time" required
-             class="w-full p-2 bg-gray-900 border border-gray-700 text-gray-200 rounded">
-    </div>
-    <div>
-      <label class="block text-sm text-gray-400 mb-1">End Time</label>
-      <input type="time" name="end_time" required
-             class="w-full p-2 bg-gray-900 border border-gray-700 text-gray-200 rounded">
-    </div>
-  </div>
-
-  <div>
-    <label class="block text-sm text-gray-400 mb-1">Description</label>
-    <textarea name="description" rows="4"
-              class="w-full p-2 bg-gray-900 border border-gray-700 text-gray-200 rounded"></textarea>
-  </div>
-
-  <div>
-    <label class="block text-sm text-gray-400 mb-1">Workbook (PDF/DOC)</label>
-    <input type="file" name="workbook"
-           class="w-full text-gray-200 border border-gray-700 bg-gray-900 rounded cursor-pointer p-2">
-  </div>
 
     <div>
-        <label class="block text-sm text-gray-400 mb-1">Vimeo ID</label>
-        <input type="text" name="vimeo_id"
-               value="<?php echo esc($session['vimeo_id'] ?? ''); ?>"
-               class="w-full p-2 bg-gray-900 border border-gray-700 text-gray-200 rounded"
-               placeholder="e.g. 987654321">
-
-        <div id="vimeoPreview" class="mt-3">
-            <?php if (!empty($session['vimeo_id'])): ?>
-                <img src="https://vumbnail.com/<?php echo esc($session['vimeo_id']); ?>.jpg"
-                     alt="Vimeo Thumbnail"
-                     class="w-48 rounded border border-gray-700 shadow">
-            <?php endif; ?>
-        </div>
+      <label class="block text-sm text-gray-400 mb-2">Description</label>
+      <textarea name="description" rows="5" required
+                class="w-full p-2 rounded bg-gray-900 border border-gray-700 text-gray-200 focus:ring-blue-500 focus:border-blue-500"></textarea>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const vimeoInput = document.querySelector('input[name="vimeo_id"]');
-            const previewDiv = document.getElementById('vimeoPreview');
-
-            if (vimeoInput) {
-                vimeoInput.addEventListener('input', () => {
-                    const id = vimeoInput.value.trim();
-                    if (id.length > 0) {
-                        previewDiv.innerHTML = `<img src="https://vumbnail.com/${id}.jpg" class='w-48 rounded border border-gray-700 shadow' alt='Preview'>`;
-                    } else {
-                        previewDiv.innerHTML = '';
-                    }
-                });
-            }
-        });
-    </script>
-
-
-    <div class="grid md:grid-cols-2 gap-4">
     <div>
-      <label class="block text-sm text-gray-400 mb-1">Tags</label>
+      <label class="block text-sm text-gray-400 mb-2">Vimeo ID</label>
+      <input type="text" name="vimeo_id"
+             class="w-full p-2 rounded bg-gray-900 border border-gray-700 text-gray-200 focus:ring-blue-500 focus:border-blue-500"
+             placeholder="Enter Vimeo video ID (e.g., 123456789)">
+    </div>
+
+    <div>
+      <label class="block text-sm text-gray-400 mb-2">Tags</label>
       <input type="text" name="tags"
-             class="w-full p-2 bg-gray-900 border border-gray-700 text-gray-200 rounded"
-             placeholder="e.g. Leadership, Innovation">
+             class="w-full p-2 rounded bg-gray-900 border border-gray-700 text-gray-200 focus:ring-blue-500 focus:border-blue-500"
+             placeholder="Comma-separated tags (e.g., Leadership, Innovation)">
     </div>
-  </div>
 
-  <div class="flex justify-end">
-    <button type="submit"
-            class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded">Create Session</button>
-  </div>
-</form>
+    <div>
+      <label class="block text-sm text-gray-400 mb-2">Workbook (PDF)</label>
+      <input type="file" name="workbook" accept=".pdf,.docx,.pptx"
+             class="w-full text-gray-300 text-sm">
+    </div>
+
+    <?php if ($isLive): ?>
+      <div>
+        <label class="block text-sm text-gray-400 mb-2">Assign Speakers</label>
+        <select name="speakers[]" multiple
+                class="w-full p-2 rounded bg-gray-900 border border-gray-700 text-gray-200 focus:ring-blue-500 focus:border-blue-500">
+          <?php foreach ($speakers as $sp): ?>
+            <option value="<?php echo $sp['speaker_id']; ?>">
+              <?php echo esc($sp['speaker_name']); ?>
+              <?php if ($sp['speaker_company']): ?>
+                — <?php echo esc($sp['speaker_company']); ?>
+              <?php endif; ?>
+            </option>
+          <?php endforeach; ?>
+        </select>
+        <p class="text-xs text-gray-500 mt-1">Hold Ctrl or Cmd to select multiple speakers.</p>
+      </div>
+    <?php else: ?>
+      <div class="p-4 bg-gray-900 border border-gray-700 rounded">
+        <p class="text-sm text-gray-400">
+          ⚠️ This conference is <strong class="text-yellow-400"><?php echo esc($conference['status']); ?></strong>.
+          Speaker assignment is disabled.
+        </p>
+      </div>
+    <?php endif; ?>
+
+    <div class="flex justify-end">
+      <button type="submit"
+              class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded">Save Session</button>
+    </div>
+  </form>
+</div>
 
 <?php $this->endSection(); ?>

@@ -47,118 +47,184 @@ class ConferenceSessionsController extends BaseController
     public function create($conference_id = null)
     {
         $conference = $this->conferenceModel->find($conference_id);
-        if (!$conference) {
+        if (! $conference) {
             throw new PageNotFoundException('Conference not found.');
+        }
+
+        // Check if this is a live conference
+        $isLive = ($conference['status'] === 'live');
+
+        // Only fetch speakers if live
+        $speakers = [];
+        if ($isLive) {
+            $speakers = db_connect()->table('tbl_speakers')
+                ->orderBy('speaker_name', 'ASC')
+                ->get()
+                ->getResultArray();
         }
 
         echo module_view('Admin', 'sessions/create', [
             'conference' => $conference,
-            'pageTitle' => 'Add Session to ' . $conference['title']
+            'speakers'   => $speakers,
+            'isLive'     => $isLive,
+            'pageTitle'  => 'Add Session to ' . $conference['title']
         ]);
     }
 
     public function store($conference_id = null)
     {
-        helper(['form', 'url']);
-
         $conference = $this->conferenceModel->find($conference_id);
-        if (!$conference) {
+        if (! $conference) {
             throw new PageNotFoundException('Conference not found.');
         }
 
+        helper(['form', 'url']);
+        $isLive = ($conference['status'] === 'live');
+
+        // Handle workbook upload
         $file = $this->request->getFile('workbook');
-        $workbookName = null;
+        $workbookPath = null;
 
         if ($file && $file->isValid() && !$file->hasMoved()) {
-            // Validate allowed file types
-            $ext = strtolower($file->getClientExtension());
-            if (!in_array($ext, ['pdf', 'doc', 'docx', 'ppt', 'pptx'])) {
-                return redirect()->back()->with('error', 'Invalid workbook file type.');
-            }
-
-            $workbookName = $file->getRandomName();
-            $file->move(FCPATH . 'uploads/workbooks', $workbookName);
+            $newName = $file->getRandomName();
+            $file->move(FCPATH . 'uploads/workbooks/', $newName);
+            $workbookPath = 'uploads/workbooks/' . $newName;
         }
 
+        // Insert session
         $data = [
             'conference_id' => $conference_id,
             'sessions_name' => $this->request->getPost('sessions_name'),
-            'event_date' => $this->request->getPost('event_date'),
-            'start_time' => $this->request->getPost('start_time'),
-            'end_time' => $this->request->getPost('end_time'),
-            'access_level' => $this->request->getPost('access_level'),
-            'description' => $this->request->getPost('description'),
-            'vimeo_id' => $this->request->getPost('vimeo_id'),
-            'workbook' => $workbookName,
-            'tags' => $this->request->getPost('tags'),
-            'tags_meta' => $this->request->getPost('tags_meta'),
+            'event_date'    => $this->request->getPost('event_date'),
+            'start_time'    => $this->request->getPost('start_time'),
+            'end_time'      => $this->request->getPost('end_time'),
+            'access_level'  => $this->request->getPost('access_level'),
+            'description'   => $this->request->getPost('description'),
+            'vimeo_id'      => $this->request->getPost('vimeo_id'),
+            'workbook'      => $workbookPath,
+            'tags'          => $this->request->getPost('tags'),
         ];
 
         $this->sessionModel->insert($data);
+        $sessionId = $this->sessionModel->getInsertID();
 
-        return redirect()
-            ->to(site_url('admin/conferences/' . $conference_id . '/sessions'))
+        // Handle speaker assignments (only for live conferences)
+        if ($isLive && $this->request->getPost('speakers')) {
+            $speakers = $this->request->getPost('speakers');
+            $db = db_connect();
+            $builder = $db->table('tbl_session_speakers');
+
+            foreach ($speakers as $speakerId) {
+                $builder->insert([
+                    'sessions_id' => $sessionId,
+                    'speaker_id'  => $speakerId
+                ]);
+            }
+        }
+
+        return redirect()->to(site_url('admin/conferences/' . $conference_id . '/sessions'))
             ->with('success', 'Session created successfully.');
     }
 
     public function edit($id = null)
     {
         $session = $this->sessionModel->find($id);
-        if (!$session) {
+        if (! $session) {
             throw new PageNotFoundException('Session not found.');
         }
 
         $conference = $this->conferenceModel->find($session['conference_id']);
+        if (! $conference) {
+            throw new PageNotFoundException('Conference not found.');
+        }
+
+        $isLive = ($conference['status'] === 'live');
+        $db = db_connect();
+
+        // Fetch all speakers (only for live conferences)
+        $speakers = [];
+        if ($isLive) {
+            $speakers = $db->table('tbl_speakers')
+                ->orderBy('speaker_name', 'ASC')
+                ->get()
+                ->getResultArray();
+        }
+
+        // Fetch already assigned speaker IDs
+        $assignedSpeakers = [];
+        $assigned = $db->table('tbl_session_speakers')
+            ->where('sessions_id', $id)
+            ->get()
+            ->getResultArray();
+
+        foreach ($assigned as $a) {
+            $assignedSpeakers[] = $a['speaker_id'];
+        }
 
         echo module_view('Admin', 'sessions/edit', [
-            'session' => $session,
-            'conference' => $conference,
-            'pageTitle' => 'Edit Session - ' . $conference['title']
+            'session'          => $session,
+            'conference'       => $conference,
+            'speakers'         => $speakers,
+            'assignedSpeakers' => $assignedSpeakers,
+            'isLive'           => $isLive,
+            'pageTitle'        => 'Edit Session - ' . $conference['title']
         ]);
     }
 
     public function update($id = null)
     {
         $session = $this->sessionModel->find($id);
-        if (!$session) {
+        if (! $session) {
             throw new PageNotFoundException('Session not found.');
         }
 
+        $conference = $this->conferenceModel->find($session['conference_id']);
+        $isLive = ($conference['status'] === 'live');
+
         $file = $this->request->getFile('workbook');
-        $workbookName = $session['workbook'];
+        $workbookPath = $session['workbook'];
 
         if ($file && $file->isValid() && !$file->hasMoved()) {
-            $ext = strtolower($file->getClientExtension());
-            if (!in_array($ext, ['pdf', 'doc', 'docx', 'ppt', 'pptx'])) {
-                return redirect()->back()->with('error', 'Invalid workbook file type.');
-            }
-
-            // Remove old workbook
-            if (!empty($session['workbook']) && file_exists(FCPATH . 'uploads/workbooks/' . $session['workbook'])) {
-                unlink(FCPATH . 'uploads/workbooks/' . $session['workbook']);
-            }
-
-            $workbookName = $file->getRandomName();
-            $file->move(FCPATH . 'uploads/workbooks', $workbookName);
+            $newName = $file->getRandomName();
+            $file->move(FCPATH . 'uploads/workbooks/', $newName);
+            $workbookPath = 'uploads/workbooks/' . $newName;
         }
 
         $data = [
             'sessions_name' => $this->request->getPost('sessions_name'),
-            'event_date' => $this->request->getPost('event_date'),
-            'start_time' => $this->request->getPost('start_time'),
-            'end_time' => $this->request->getPost('end_time'),
-            'access_level' => $this->request->getPost('access_level'),
-            'description' => $this->request->getPost('description'),
-            'vimeo_id' => $this->request->getPost('vimeo_id'),
-            'workbook' => $workbookName,
-            'tags' => $this->request->getPost('tags'),
-            'tags_meta' => $this->request->getPost('tags_meta'),
+            'event_date'    => $this->request->getPost('event_date'),
+            'start_time'    => $this->request->getPost('start_time'),
+            'end_time'      => $this->request->getPost('end_time'),
+            'access_level'  => $this->request->getPost('access_level'),
+            'description'   => $this->request->getPost('description'),
+            'vimeo_id'      => $this->request->getPost('vimeo_id'),
+            'workbook'      => $workbookPath,
+            'tags'          => $this->request->getPost('tags'),
         ];
 
         $this->sessionModel->update($id, $data);
 
-        return redirect()
-            ->to(site_url('admin/conferences/' . $session['conference_id'] . '/sessions'))
+        // Reassign speakers (only for live conferences)
+        if ($isLive) {
+            $db = db_connect();
+            $builder = $db->table('tbl_session_speakers');
+
+            // clear existing assignments
+            $builder->where('sessions_id', $id)->delete();
+
+            // insert new ones
+            $speakers = $this->request->getPost('speakers');
+            if ($speakers && is_array($speakers)) {
+                foreach ($speakers as $speakerId) {
+                    $builder->insert([
+                        'sessions_id' => $id,
+                        'speaker_id'  => $speakerId
+                    ]);
+                }
+            }
+        }
+
+        return redirect()->to(site_url('admin/conferences/' . $session['conference_id'] . '/sessions'))
             ->with('success', 'Session updated successfully.');
     }
 
