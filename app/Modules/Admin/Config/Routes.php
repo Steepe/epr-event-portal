@@ -81,6 +81,17 @@ $routes->group('admin', ['namespace' => 'App\Modules\Admin\Controllers'], functi
         $routes->post('sponsors/(:num)/update', 'SponsorsController::update/$1');
         $routes->get('sponsors/(:num)/delete', 'SponsorsController::delete/$1');
 
+// Admin Users Management
+        $routes->group('admins', ['namespace' => 'App\Modules\Admin\Controllers'], static function ($routes) {
+            $routes->get('/', 'AdminsController::index');           // List all admins
+            $routes->get('create', 'AdminsController::create');     // Add new admin
+            $routes->post('store', 'AdminsController::store');      // Save new admin
+            $routes->get('(:num)/edit', 'AdminsController::edit/$1'); // Edit admin
+            $routes->post('(:num)/update', 'AdminsController::update/$1'); // Update admin
+            $routes->get('(:num)/toggle', 'AdminsController::toggle/$1'); // Activate/deactivate
+            $routes->get('(:num)/delete', 'AdminsController::delete/$1'); // Delete admin
+        });
+
 
 
         // Messages (admin inbox)

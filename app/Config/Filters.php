@@ -30,7 +30,8 @@ class Filters extends BaseFilters
         'apiauth'       => \App\Filters\ApiAuth::class,
         'auth'          => \App\Filters\AuthFilter::class,
         'adminAuth' => \App\Filters\AdminAuth::class,
-    ];
+        'role' => \App\Filters\RoleFilter::class,
+        ];
 
     public array $required = [
         'before' => [

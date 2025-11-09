@@ -59,6 +59,12 @@
             <i class="bx bx-award text-lg"></i> Sponsors
         </a>
 
+        <?php if (session('admin_role') === 'superadmin'): ?>
+            <a href="<?php echo base_url('admin/admins'); ?>"
+               class="flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-700">
+                <i class="bx bx-shield-quarter text-lg"></i> Admin Users
+            </a>
+        <?php endif; ?>
 
         <a href="<?php echo base_url('admin/messages'); ?>" class="flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-700">
             <i class="bx bx-chat text-lg"></i> Messages
