@@ -213,7 +213,7 @@ abstract class BaseModel
      *
      * @var array<string, array<string, array<string, string>|string>|string>|string
      */
-    protected $validationRules = [];
+    protected array $validationRules = [];
 
     /**
      * Contains any custom error messages to be
@@ -221,7 +221,7 @@ abstract class BaseModel
      *
      * @var array<string, array<string, string>>
      */
-    protected $validationMessages = [];
+    protected array $validationMessages = [];
 
     /**
      * Skip the model's validation. Used in conjunction with skipValidation()

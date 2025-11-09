@@ -43,5 +43,6 @@ $routes->group('attendees', ['namespace' => 'App\Modules\Web\Controllers', 'filt
     $routes->get('exhibitors/(:num)', 'ExhibitorsController::booth/$1'); // "Enter Booth" page
 
     $routes->get('emergence_booth', 'EmergenceBoothController::index');
+    $routes->get('envision', 'EnvisionController::index');
 
 });

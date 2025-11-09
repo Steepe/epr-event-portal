@@ -29,6 +29,7 @@ class Filters extends BaseFilters
         // ✅ Your custom filters
         'apiauth'       => \App\Filters\ApiAuth::class,
         'auth'          => \App\Filters\AuthFilter::class,
+        'adminAuth' => \App\Filters\AdminAuth::class,
     ];
 
     public array $required = [
