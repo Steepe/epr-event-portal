@@ -9,12 +9,15 @@
 
 //var_dump($new_messages_count);
 //exit;
-    if ($global_attendee_details['profile_picture'] != ""){
-        $profile_picture = base_url('uploads/attendee_pictures/').$global_attendee_details['profile_picture'];
-    }
-    else{
-        $profile_picture = asset_url('images/user.png');
-    }
+// ✅ Default fallback image
+$profile_picture = asset_url('images/user.png');
+
+// ✅ Only use attendee image if the variable exists and isn't empty
+if (isset($global_attendee_details)
+    && !empty($global_attendee_details['profile_picture'])) {
+    $profile_picture = base_url('uploads/attendee_pictures/')
+        . $global_attendee_details['profile_picture'];
+}
 ?>
 
 <body class="lobby-bg">
