@@ -13,15 +13,15 @@ use CodeIgniter\Router\RouteCollection;
 /**
  * @var RouteCollection $routes
  */
-$routes->group('api', [
-    'namespace' => 'App\Modules\Api\Controllers',
-    'filter'    => 'apiauth', // ✅ unified filter
-], function ($routes) {
+$routes->group('api', ['namespace' => 'App\Modules\Api\Controllers', 'filter'    => 'apiauth'], function ($routes) {
 
     // 🔐 Authentication
     $routes->post('login', 'LoginController::login');
     $routes->post('logout', 'LoginController::logout');
     $routes->post('register', 'RegistrationController::register');
+    $routes->post('password/forgot', 'AuthController::forgotPassword');
+    $routes->post('password/reset', 'AuthController::resetPassword');
+
 
     // 🌍 Countries
     $routes->get('countries', 'CountriesController::index');

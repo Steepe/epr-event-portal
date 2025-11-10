@@ -19,6 +19,8 @@ $routes->group('attendees', ['namespace' => 'App\Modules\Web\Controllers'], func
     $routes->get('register', 'RegistrationController::index');
     $routes->get('login', 'LoginController::index');
     $routes->post('logout', 'LoginController::logout');
+    $routes->get('reset-password', 'LoginController::resetPassword');
+
 });
 
 

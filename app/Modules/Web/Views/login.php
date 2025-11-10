@@ -7,40 +7,46 @@
  * Time: 05:07
  */
 
- echo module_view('Web', 'includes/auth_header');
- ?>
+
+echo module_view('Web', 'includes/auth_header');
+?>
 
 <style>
-    .form-control{
-        background: transparent !important;
-        border-radius: 10px;
-        font-size: 13px;
-        padding-left: 35px;
-    }
+.form-control {
+    background: transparent !important;
+    border-radius: 10px;
+    font-size: 13px;
+    padding-left: 35px;
+    color: #fff;
+}
+::placeholder {
+    color: #ffffff !important;
+    opacity: 1;
+}
+::-webkit-input-placeholder { color: #ffffff !important; }
+::-moz-placeholder { color: #ffffff !important; }
+:-ms-input-placeholder { color: #ffffff !important; }
+:-moz-placeholder { color: #ffffff !important; }
 
-    /* Placeholder text color (cross-browser support) */
-    ::placeholder {
-        color: #ffffff !important;
-        opacity: 1; /* Ensure full visibility in Firefox */
-    }
-
-    /* For older browsers */
-    ::-webkit-input-placeholder {
-        color: #ffffff !important;
-    }
-
-    ::-moz-placeholder {
-        color: #ffffff !important;
-    }
-
-    :-ms-input-placeholder {
-        color: #ffffff !important;
-    }
-
-    :-moz-placeholder {
-        color: #ffffff !important;
-    }
-
+a.text-link {
+    color: #EFB11E;
+    cursor: pointer;
+}
+a.text-link:hover {
+    text-decoration: underline;
+}
+.modal-content {
+    border-radius: 12px;
+    background: #260029;
+    color: #fff;
+}
+.modal-header {
+    border-bottom: 1px solid rgba(255,255,255,0.15);
+}
+.modal-title {
+    color: #EFB11E;
+    font-weight: 600;
+}
 </style>
 
 <body class="login-bg">
@@ -50,7 +56,6 @@
             <div class="text-center mb-5">
                 <img src="<?php echo asset_url('images/eventslogo.png'); ?>" alt="logo" width="250">
             </div>
-
 
             <form id="LoginForm" style="width:80%;margin:auto; margin-top: 200px;">
                 <div class="form-group mb-2">
@@ -67,7 +72,10 @@
                     <button type="submit" class="btn epr-btn-one">LOGIN</button>
                 </div>
 
-                <p class="text-center text-white mt-3">
+                <p class="text-center text-white mt-3 mb-1">
+                    <a class="text-link" data-toggle="modal" data-target="#resetPasswordModal">Forgot Password?</a>
+                </p>
+                <p class="text-center text-white mt-2">
                     Don’t have an account?
                     <a href="<?php echo base_url('attendees/register'); ?>" style="color:#EFB11E;">Register</a>
                 </p>
@@ -76,6 +84,32 @@
     </div>
 </div>
 
+<!-- 🔹 Reset Password Modal -->
+<div class="modal fade" id="resetPasswordModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Reset Password</h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-3" style="color:#ddd!important;">Enter your registered email. A reset link will be sent to you.</p>
+                <form id="ResetForm">
+                    <div class="form-group mb-3">
+                        <input type="email" class="form-control" name="email" placeholder="Enter Email" required>
+                    </div>
+                    <div class="text-center">
+                        <button type="submit" class="btn epr-btn-one">Send Reset Link</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
 <div id="toast" class="alert text-center d-none"
      style="position:fixed;top:20px;left:50%;transform:translateX(-50%);
      z-index:2000;width:300px;"></div>
@@ -84,7 +118,6 @@
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-    const form = document.getElementById("LoginForm");
     const toast = document.getElementById("toast");
 
     const showToast = (msg, type="success") => {
@@ -94,9 +127,10 @@ document.addEventListener("DOMContentLoaded", () => {
         setTimeout(() => toast.classList.add("d-none"), 3500);
     };
 
-    form.addEventListener("submit", async e => {
+    // 🔹 Login
+    document.getElementById("LoginForm").addEventListener("submit", async e => {
         e.preventDefault();
-        const data = Object.fromEntries(new FormData(form));
+        const data = Object.fromEntries(new FormData(e.target));
 
         const res = await fetch("<?php echo base_url('api/login'); ?>", {
             method: "POST",
@@ -108,14 +142,35 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         const result = await res.json();
-
         if (result.status === "success") {
             showToast("Login successful!");
-            setTimeout(() => {
-                window.location.href = "<?php echo base_url('attendees/start'); ?>";
-            }, 1500);
+            setTimeout(() => window.location.href = "<?php echo base_url('attendees/start'); ?>", 1500);
         } else {
             showToast(result.message || "Invalid credentials.", "danger");
+        }
+    });
+
+    // 🔹 Password Reset
+    document.getElementById("ResetForm").addEventListener("submit", async e => {
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(e.target));
+
+        const res = await fetch("<?php echo base_url('api/password/forgot'); ?>", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-API-KEY": "<?php echo env('api.securityKey'); ?>"
+            },
+            body: JSON.stringify(data)
+        });
+
+        const result = await res.json();
+        if (result.status === "success") {
+            showToast("Reset link sent to your email!");
+            $('#resetPasswordModal').modal('hide');
+            e.target.reset();
+        } else {
+            showToast(result.message || "Unable to send reset link.", "danger");
         }
     });
 });

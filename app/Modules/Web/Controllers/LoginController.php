@@ -32,4 +32,10 @@ class LoginController extends BaseController
         ]);
     }
 
+    public function resetPassword(): string
+    {
+        return module_view('Web', 'reset_password');
+    }
+
+
 }
