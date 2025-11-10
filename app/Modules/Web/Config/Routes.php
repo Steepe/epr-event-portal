@@ -27,6 +27,7 @@ $routes->group('attendees', ['namespace' => 'App\Modules\Web\Controllers', 'filt
     $routes->get('start', 'StartController::index');
     $routes->get('lobby', 'LobbyController::index');
     $routes->get('agenda/(:num)', 'AgendaController::index/$1');
+    $routes->get('pastConference/(:num)', 'AgendaController::view_past_conference/$1');
     $routes->get('sessions/(:num)', 'SessionsController::view/$1'); // 👈 single session page
 
     $routes->get('networking_center', 'NetworkingCenterController::index');

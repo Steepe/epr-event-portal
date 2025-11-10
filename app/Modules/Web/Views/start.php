@@ -192,7 +192,7 @@ body {
                     : asset_url('images/lobby/default.png');
                 ?>
                 <div class="lobby-bubble" style="width:<?php echo $size; ?>px; height:<?php echo $size; ?>px;"
-                     onclick="window.location='<?php echo base_url('attendees/conference/' . $conf['conference_id']); ?>'">
+                     onclick="window.location='<?php echo base_url('attendees/agenda/' . $conf['conference_id']); ?>'">
                     <img src="<?php echo $image; ?>" alt="<?php echo esc($conf['title']); ?>">
                 </div>
             <?php endforeach; ?>
