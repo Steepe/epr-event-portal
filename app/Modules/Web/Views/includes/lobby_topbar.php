@@ -32,16 +32,16 @@ if (isset($global_attendee_details)
             <li class="nav-item" style="margin-right: 15px; margin-top: 10px;">
                 <a class="nav-item mr-md-2 text-white" href="<?php echo base_url('attendee/p/messages');?>">
                     <?php
-                        if ($new_messages_count['message_count'] > 0){
-                    ?>
+                    // ✅ Ensure variable is defined safely
+                    $new_messages_count = $new_messages_count ?? ['message_count' => 0];
+
+                    // ✅ Display badge only if there are unread messages
+                    if (!empty($new_messages_count['message_count']) && $new_messages_count['message_count'] > 0):
+                        ?>
                         <span class="rounded-circle epr-pink float-right notification-badge">
-                            <?php
-                                echo $new_messages_count['message_count'];
-                            ?>
-                        </span>
-                    <?php
-                        }
-                    ?>
+        <?php echo $new_messages_count['message_count']; ?>
+    </span>
+                    <?php endif; ?>
                     <i class="fa fa-bell-o text-black" style="font-size: 25px; color: black;"></i>
                 </a>
             </li>
