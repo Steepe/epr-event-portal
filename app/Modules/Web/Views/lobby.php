@@ -182,7 +182,10 @@ $country = session('reg_country') ?? 'Nigeria';
 
 <!-- 🧠 Brain Hub Interactive Bubbles -->
 <div class="bubble agenda">
-    <a href="<?php echo  base_url('attendees/agenda'); ?>">AGENDA</a>
+    <?php
+        $conference_id = session()->get('live-conference-id');
+    ?>
+    <a href="<?php echo  base_url('attendees/agenda/'.$conference_id); ?>">AGENDA</a>
 </div>
 
 <div class="bubble networking">

@@ -11,47 +11,56 @@
 namespace App\Modules\Web\Controllers;
 
 use App\Controllers\BaseController;
-use App\Modules\Web\Models\ConferenceModel;
-use App\Modules\Web\Models\ConferenceSessionsModel;
-use App\Traits\AttendeeTrait;
+use CodeIgniter\Database\Exceptions\DataException;
 
 class AgendaController extends BaseController
 {
-    use AttendeeTrait;
-
-    public function index()
+    public function index($conferenceId = null)
     {
         $session = session();
 
-        // Ensure user logged in
-        if (!$session->get('logged_in')) {
+        // 🧱 Ensure user is logged in
+        if (! $session->get('logged_in')) {
             return redirect()->to(base_url('attendees/login'));
         }
 
-        // Get live conference ID from session
-        $liveConferenceId = $session->get('live-conference-id');
-        if (empty($liveConferenceId)) {
+        // 🧠 Use stored live conference ID if none passed
+        $conferenceId = $conferenceId ?? $session->get('live-conference-id');
+
+        if (! $conferenceId) {
             return redirect()->to(base_url('attendees/home'))
-                ->with('error', 'No live conference selected.');
+                ->with('error', 'No active conference found.');
         }
 
-        // Pull conference + sessions using Web module models
-        $conferenceModel = new ConferenceModel();
-        $sessionsModel = new ConferenceSessionsModel();
+        $db = db_connect();
 
-        $conference = $conferenceModel->find($liveConferenceId);
-        $sessions = $sessionsModel
-            ->where('conference_id', $liveConferenceId)
-            ->orderBy('event_date', 'ASC')
-            ->findAll();
+        try {
+            // Fetch all sessions for that conference
+            $sessions = $db->table('tbl_conference_sessions')
+                ->where('conference_id', $conferenceId)
+                ->orderBy('event_date', 'ASC')
+                ->orderBy('start_time', 'ASC')
+                ->get()
+                ->getResultArray();
 
-        // Attach minimal attendee context
-        $data = [
-            'conference' => $conference,
-            'attendee_sessions' => $sessions,
-            'global_attendee_details' => $this->getAttendeeData(),
-        ];
+            // Group sessions by event_date
+            $grouped = [];
+            foreach ($sessions as $s) {
+                $grouped[$s['event_date']][] = $s;
+            }
 
-        return module_view('Web', 'agenda', $data);
+            $data = [
+                'sessionsByDate' => $grouped,
+                'timezone'       => $session->get('user_timezone') ?? 'Africa/Lagos',
+                'plan'           => $session->get('plan') ?? 1,
+                'attendee_id'    => $session->get('attendee_id'),
+            ];
+
+            return module_view('Web', 'agenda', $data);
+
+        } catch (DataException $e) {
+            log_message('error', 'Agenda load failed: ' . $e->getMessage());
+            return redirect()->back()->with('error', 'Unable to load sessions.');
+        }
     }
 }

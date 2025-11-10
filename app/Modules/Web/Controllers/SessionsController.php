@@ -12,58 +12,67 @@
 namespace App\Modules\Web\Controllers;
 
 use App\Controllers\BaseController;
-use CodeIgniter\API\ResponseTrait;
+use CodeIgniter\Database\Exceptions\DataException;
 
 class SessionsController extends BaseController
 {
-    use ResponseTrait;
-
-    public function view($sessionId): string|\CodeIgniter\HTTP\RedirectResponse
+    public function view($sessionId = null)
     {
         $session = session();
 
-        if (!$session->get('logged_in')) {
+        // 🧱 Require login
+        if (! $session->get('logged_in')) {
             return redirect()->to(base_url('attendees/login'));
         }
 
-        $apiKey  = env('api.securityKey');
-        $apiBase = rtrim(base_url('api'), '/');
-        $curl    = service('curlrequest', ['verify' => false]); // self-signed SSL safe
+        if (! $sessionId) {
+            return redirect()->to(base_url('attendees/agenda'))->with('error', 'Invalid session ID.');
+        }
+
+        $db = db_connect();
 
         try {
-            $response = $curl->get("{$apiBase}/sessions/view/{$sessionId}", [
-                'headers' => ['X-API-KEY' => $apiKey],
-            ]);
+            // 🔹 Fetch session details
+            $sessionData = $db->table('tbl_conference_sessions')
+                ->where('sessions_id', $sessionId)
+                ->get()
+                ->getRowArray();
 
-            $body = json_decode($response->getBody(), true);
-
-            // ✅ Flexible handling of both formats
-            $dataBlock = $body['data'] ?? [];
-            $sessionData = $dataBlock['session'] ?? $dataBlock; // handle if "session" key doesn’t exist
-            $speakers    = $dataBlock['speakers'] ?? [];
-            $sponsors    = $dataBlock['sponsors'] ?? [];
-
-            if (empty($sessionData)) {
-                return redirect()
-                    ->to(base_url('attendees/agenda'))
-                    ->with('error', 'Session not found.');
+            if (! $sessionData) {
+                return redirect()->to(base_url('attendees/agenda'))->with('error', 'Session not found.');
             }
 
+            // 🔹 Fetch related speakers
+            $speakers = $db->table('tbl_session_speakers as ss')
+                ->select('sp.*')
+                ->join('tbl_speakers as sp', 'sp.speaker_id = ss.speaker_id', 'left')
+                ->where('ss.sessions_id', $sessionId)
+                ->get()
+                ->getResultArray();
+
+            // 🔹 Fetch sponsors (if any)
+            $sponsors = $db->table('tbl_session_sponsors as sr')
+                ->select('sr.sponsor_name, sr.sponsor_logo, sr.sponsor_link')
+                ->where('sr.sessions_id', $sessionId)
+                ->get()
+                ->getResultArray();
+
+            // ✅ Prepare view data
             $data = [
-                'session'   => $sessionData,
-                'speakers'  => $speakers,
-                'sponsors'  => $sponsors,
-                'timezone'  => $session->get('user_timezone') ?? 'Africa/Lagos',
-                'page_title'=> $sessionData['sessions_name'] ?? 'Session Details'
+                'session'    => $sessionData,
+                'speakers'   => $speakers,
+                'sponsors'   => $sponsors,
+                'timezone'   => $session->get('user_timezone') ?? 'Africa/Lagos',
+                'plan'       => $session->get('plan') ?? 1,
+                'page_title' => $sessionData['sessions_name'] ?? 'Session Details'
             ];
 
             return module_view('Web', 'session_detail', $data);
 
-        } catch (\Throwable $e) {
-            log_message('critical', '[SessionsController] Error fetching session '.$sessionId.': '.$e->getMessage());
-            return redirect()
-                ->to(base_url('attendees/agenda'))
-                ->with('error', 'Unable to load session at this time.');
+        } catch (DataException $e) {
+            log_message('critical', 'Error loading session ' . $sessionId . ': ' . $e->getMessage());
+            return redirect()->to(base_url('attendees/agenda'))
+                ->with('error', 'Unable to load this session.');
         }
     }
 }
