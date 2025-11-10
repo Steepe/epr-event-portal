@@ -377,6 +377,12 @@ body {
 	overflow-x: hidden;
 }
 
+.other-bg{
+	background: url("../images/other-bg.png") center center fixed;
+	background-size: cover;
+	overflow-x: hidden;
+}
+
 
 .attendee-topbar{
 	/*background: url("../images/topbar-bg.png");

@@ -103,7 +103,7 @@ class AgendaController extends BaseController
                 'attendee_id'    => $session->get('attendee_id'),
             ];
 
-            return module_view('Web', 'agenda', $data);
+            return module_view('Web', 'past_agenda', $data);
 
         } catch (DataException $e) {
             log_message('error', 'Agenda load failed: ' . $e->getMessage());

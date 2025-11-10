@@ -59,6 +59,11 @@
             <i class="bx bx-award text-lg"></i> Sponsors
         </a>
 
+        <a href="<?php echo base_url('admin/webinars'); ?>"
+           class="flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-700">
+            <i class="bx bx-video-recording text-lg"></i> Webinars
+        </a>
+
         <?php if (session('admin_role') === 'superadmin'): ?>
             <a href="<?php echo base_url('admin/admins'); ?>"
                class="flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-700">

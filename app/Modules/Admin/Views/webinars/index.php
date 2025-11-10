@@ -3,8 +3,8 @@
  * Created by PhpStorm.
  * User: oluwamayowasteepe
  * Project: epr-event-portal
- * Date: 09/11/2025
- * Time: 04:41
+ * Date: 10/11/2025
+ * Time: 20:04
  */
 
 $this->extend('App\Modules\Admin\Views\layout');
@@ -13,14 +13,12 @@ $this->section('content');
 
 <div class="mb-6 flex items-center justify-between">
   <div>
-    <h1 class="text-2xl font-semibold text-gray-200">
-      Sessions — <?php echo esc($conference['title']); ?>
-    </h1>
-    <p class="text-sm text-gray-400">All sessions under this conference.</p>
+    <h1 class="text-2xl font-semibold text-gray-200">Webinars</h1>
+    <p class="text-sm text-gray-400">Manage upcoming and past webinars.</p>
   </div>
-  <a href="<?php echo site_url('admin/conferences/' . $conference['conference_id'] . '/sessions/create'); ?>"
+  <a href="<?php echo site_url('admin/webinars/create'); ?>"
      class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm">
-     + Add Session
+     + Add Webinar
   </a>
 </div>
 
@@ -35,67 +33,75 @@ $this->section('content');
 <?php endif; ?>
 
 <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-6">
-  <?php if (empty($sessions)): ?>
-    <p class="text-gray-400">No sessions found for this conference.</p>
+  <?php if (empty($webinars)): ?>
+    <p class="text-gray-400">No webinars found.</p>
   <?php else: ?>
-    <?php foreach ($sessions as $session): ?>
+    <?php foreach ($webinars as $webinar): ?>
       <div class="bg-gray-800 border border-gray-700 rounded-lg shadow hover:shadow-lg transition">
         <div class="p-5">
           <h2 class="text-lg font-semibold text-gray-100">
-            <?php echo esc($session['sessions_name']); ?>
+            <?php echo esc($webinar['event_name']); ?>
           </h2>
+
           <p class="text-sm text-gray-400 mt-1">
-            <?php echo date('M d, Y', strtotime($session['event_date'])); ?>
-            • <?php echo esc($session['start_time']); ?> - <?php echo esc($session['end_time']); ?>
+            <?php echo date('M d, Y', strtotime($webinar['event_date'])); ?>
+            <?php if (!empty($webinar['start_time'])): ?>
+              • <?php echo esc($webinar['start_time']); ?>
+            <?php endif; ?>
           </p>
 
-          <p class="mt-3 text-gray-300 text-sm line-clamp-3">
-            <?php echo esc(substr($session['description'], 0, 150)); ?>...
-          </p>
+          <?php if (!empty($webinar['tags'])):
+            $tags = explode(',', $webinar['tags']); ?>
+            <div class="mt-3 flex flex-wrap gap-1">
+              <?php foreach ($tags as $tag): ?>
+                <span class="px-2 py-1 text-xs rounded bg-blue-800/50 text-blue-300 border border-blue-700">
+                  <?php echo esc(trim($tag)); ?>
+                </span>
+              <?php endforeach; ?>
+            </div>
+          <?php endif; ?>
 
           <div class="mt-4 flex flex-wrap items-center gap-2 text-xs text-gray-400">
-            <span class="px-2 py-1 rounded bg-gray-700">
-              <?php echo ($session['access_level'] == 1) ? 'Free' : 'Paid'; ?>
-            </span>
-
-            <?php if (!empty($session['tags'])):
-              $tags = explode(',', $session['tags']); ?>
-              <div class="flex flex-wrap gap-1">
-                <?php foreach ($tags as $tag): ?>
-                  <span class="px-2 py-1 text-xs rounded bg-blue-800/50 text-blue-300 border border-blue-700">
-                    <?php echo esc(trim($tag)); ?>
-                  </span>
-                <?php endforeach; ?>
-              </div>
+            <?php if ($webinar['is_past']): ?>
+              <span class="px-2 py-1 rounded bg-gray-700 text-gray-300">Past Webinar</span>
+            <?php elseif ($webinar['is_open']): ?>
+              <span class="px-2 py-1 rounded bg-green-800/40 text-green-300 border border-green-700">Open</span>
+            <?php else: ?>
+              <span class="px-2 py-1 rounded bg-yellow-800/40 text-yellow-300 border border-yellow-700">Closed</span>
             <?php endif; ?>
           </div>
 
-          <?php if (!empty($session['workbook'])): ?>
-            <div class="mt-3">
-              <a href="<?php echo base_url('uploads/workbooks/' . $session['workbook']); ?>" target="_blank"
-                 class="text-blue-400 hover:underline text-sm">View Workbook</a>
-            </div>
-          <?php endif; ?>
+          <div class="mt-3 space-y-1">
+            <?php if (!empty($webinar['zoom_link'])): ?>
+              <a href="<?php echo esc($webinar['zoom_link']); ?>"
+                 target="_blank"
+                 class="text-blue-400 hover:underline text-sm">
+                 Join Zoom Session
+              </a>
+            <?php endif; ?>
 
-          <?php if (!empty($session['vimeo_id'])): ?>
-            <div class="mt-3">
+            <?php if (!empty($webinar['vimeo_id'])): ?>
               <button type="button"
                       class="text-blue-400 text-sm underline hover:text-blue-300"
-                      onclick="openVimeoPreview('<?php echo esc($session['vimeo_id']); ?>')">
-                View Video
+                      onclick="openVimeoPreview('<?php echo esc($webinar['vimeo_id']); ?>')">
+                View Recording
               </button>
-            </div>
-          <?php endif; ?>
+            <?php endif; ?>
+          </div>
 
           <div class="mt-4 flex justify-end gap-3">
-            <a href="<?php echo site_url('admin/conferences/sessions/' . $session['sessions_id'] . '/edit'); ?>"
+            <a href="<?php echo site_url('admin/webinars/edit/' . $webinar['event_id']); ?>"
                class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded">
                Edit
             </a>
-            <a href="<?php echo site_url('admin/conferences/sessions/' . $session['sessions_id'] . '/delete'); ?>"
+            <a href="<?php echo site_url('admin/webinars/delete/' . $webinar['event_id']); ?>"
                class="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded"
-               onclick="return confirm('Delete this session?');">
+               onclick="return confirm('Delete this webinar?');">
                Delete
+            </a>
+            <a href="<?php echo site_url('admin/webinars/toggle/' . $webinar['event_id']); ?>"
+               class="px-3 py-1 bg-yellow-600 hover:bg-yellow-700 text-white text-sm rounded">
+               <?php echo $webinar['is_open'] ? 'Close Access' : 'Open Access'; ?>
             </a>
           </div>
         </div>
@@ -126,7 +132,7 @@ function openVimeoPreview(vimeoId) {
   modal.classList.remove('hidden');
   player.src = `https://player.vimeo.com/video/${vimeoId}?autoplay=1&muted=1`;
 
-  // Auto-close after 5 seconds
+  // Auto-close after 50s
   setTimeout(() => closeVimeoPreview(), 50000);
 }
 

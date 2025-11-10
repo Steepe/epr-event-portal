@@ -92,6 +92,15 @@ $routes->group('admin', ['namespace' => 'App\Modules\Admin\Controllers'], functi
             $routes->get('(:num)/delete', 'AdminsController::delete/$1'); // Delete admin
         });
 
+        $routes->group('webinars', function ($routes) {
+            $routes->get('/', 'WebinarsController::index');
+            $routes->get('create', 'WebinarsController::create');
+            $routes->post('store', 'WebinarsController::store');
+            $routes->get('edit/(:num)', 'WebinarsController::edit/$1');
+            $routes->post('update/(:num)', 'WebinarsController::update/$1');
+            $routes->get('delete/(:num)', 'WebinarsController::delete/$1');
+            $routes->get('toggle/(:num)', 'WebinarsController::toggleOpen/$1');
+        });
 
 
         // Messages (admin inbox)
