@@ -112,7 +112,7 @@ document.addEventListener("DOMContentLoaded", () => {
         if (result.status === "success") {
             showToast("Login successful!");
             setTimeout(() => {
-                window.location.href = "<?php echo base_url('attendees/home'); ?>";
+                window.location.href = "<?php echo base_url('attendees/start'); ?>";
             }, 1500);
         } else {
             showToast(result.message || "Invalid credentials.", "danger");

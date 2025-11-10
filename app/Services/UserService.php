@@ -29,8 +29,12 @@ class UserService
 
     public function getUser(int $userId): ?array
     {
-        $response = $this->client->get("{$this->apiBase}/users/{$userId}", [
-            'headers' => ['X-API-KEY' => $this->apiKey]
+        $response = $this->client->get('https://eventportal.creyatif/api/users/' . $userId, [
+            'verify' => false,        // 🔥 ignore SSL certificate
+            'http_errors' => false,   // don't crash on 4xx/5xx
+            'headers' => [
+                'X-API-KEY' => getenv('API_KEY') ?: 'your_api_key_here'
+            ],
         ]);
 
         if ($response->getStatusCode() !== 200) return null;

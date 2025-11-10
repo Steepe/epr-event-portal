@@ -10,6 +10,7 @@
 
 namespace App\Modules\Api\Controllers;
 
+use App\Modules\Api\Models\TblConferenceSessionsModel;
 use CodeIgniter\RESTful\ResourceController;
 use App\Modules\Api\Models\TblConferencesModel;
 
@@ -57,13 +58,12 @@ class ConferenceController extends ResourceController
     {
         $model = new TblConferencesModel();
 
-        // Find the one that is live
-        $conference = $model->where('is_live', (int)1)->first();
+        // ✅ Use the correct column name
+        $conference = $model->where('status', 'live')->first();
         log_message('debug', 'Live conference query: ' . $model->getLastQuery());
 
-
         if (!$conference) {
-            return $this->failNotFound('Conference not found');
+            return $this->failNotFound('No live conference found.');
         }
 
         return $this->respond([
@@ -78,5 +78,52 @@ class ConferenceController extends ResourceController
         $data = $this->model->where('is_live', 0)->findAll();
         return $this->respond(['status' => 'success', 'data' => $data]);
     }
+
+    public function liveSessions()
+    {
+        $confModel = new TblConferencesModel();
+        $live = $confModel->where('status', 'live')->first();
+
+        if (!$live) {
+            return $this->failNotFound('No live conference found.');
+        }
+
+        $sessionModel = new TblConferenceSessionsModel();
+        $sessions = $sessionModel
+            ->where('conference_id', $live['conference_id'])
+            ->orderBy('event_date', 'ASC')
+            ->findAll();
+
+        return $this->respond([
+            'status' => 'success',
+            'conference' => $live,
+            'sessions' => $sessions,
+        ]);
+    }
+
+    public function sessionsByConference($conferenceId)
+    {
+        $sessionModel = new \App\Modules\Api\Models\TblConferenceSessionsModel();
+
+        $sessions = $sessionModel
+            ->where('conference_id', $conferenceId)
+            ->orderBy('event_date', 'ASC')
+            ->findAll();
+
+        if (empty($sessions)) {
+            return $this->respond([
+                'status'  => 'success',
+                'sessions'=> [],
+                'message' => 'No sessions found for this conference.'
+            ]);
+        }
+
+        return $this->respond([
+            'status'   => 'success',
+            'sessions' => $sessions
+        ]);
+    }
+
+
 
 }

@@ -75,4 +75,11 @@ $routes->group('api', [
     $routes->post('messages/send', 'MessagesController::send');
     $routes->get('messages/inbox/(:num)', 'MessagesController::inbox/$1');
     $routes->get('messages/outbox/(:num)', 'MessagesController::outbox/$1');
+    $routes->get('messages/unread/(:num)', 'Messages::unread/$1');
+
+
+    $routes->get('conferences/live', 'ConferenceController::live');
+    $routes->get('conferences/live/sessions', 'ConferenceController::liveSessions');
+    $routes->get('conferences/(:num)/sessions', 'ConferenceController::sessionsByConference/$1');
+
 });

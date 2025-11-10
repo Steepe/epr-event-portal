@@ -22,7 +22,7 @@
     <nav class="navbar navbar-expand-lg navbar-light" style="background-color: transparent;">
 
         <a class="navbar-brand float-left" href="#">
-            <img src="<?php echo asset_url('images/emergence_logo.png');?>" width="250px" alt="emergence-logo">
+            <img src="<?php echo asset_url('images/eventslogo.png');?>" width="250px" alt="emergence-logo">
         </a>
 
         <ul class="navbar-nav flex-row ml-md-auto d-none d-md-flex">

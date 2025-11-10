@@ -152,7 +152,7 @@ $country = session('reg_country') ?? 'Nigeria';
 
 <!-- 🎥 Background Video -->
 <video autoplay muted loop playsinline id="bgVideo">
-    <source src="<?= asset_url('videos/brain-lobby-bg.mp4'); ?>" type="video/mp4">
+    <source src="<?php echo  asset_url('videos/brain-lobby-bg.mp4'); ?>" type="video/mp4">
     Your browser does not support the video tag.
 </video>
 <script>
@@ -182,33 +182,24 @@ $country = session('reg_country') ?? 'Nigeria';
 
 <!-- 🧠 Brain Hub Interactive Bubbles -->
 <div class="bubble agenda">
-    <a href="<?= base_url('attendees/agenda'); ?>">AGENDA</a>
+    <a href="<?php echo  base_url('attendees/agenda'); ?>">AGENDA</a>
 </div>
 
 <div class="bubble networking">
-    <a href="<?= base_url('attendees/networking_center'); ?>">NETWORKING<br>CENTER</a>
-</div>
-
-<div class="bubble envision">
-    <a href="<?= base_url('attendees/envision'); ?>">ENVISION</a>
+    <a href="<?php echo  base_url('attendees/networking_center'); ?>">NETWORKING<br>CENTER</a>
 </div>
 
 <div class="bubble exhibitors">
-    <a href="<?= base_url('attendees/exhibitors'); ?>">EXHIBITORS</a>
+    <a href="<?php echo  base_url('attendees/exhibitors'); ?>">EXHIBITORS</a>
 </div>
 
 <div class="bubble sponsors">
-    <a href="<?= base_url('attendees/sponsors'); ?>">SPONSORS</a>
+    <a href="<?php echo  base_url('attendees/sponsors'); ?>">SPONSORS</a>
 </div>
 
 <div class="bubble emergence">
-    <a href="<?= base_url('attendees/emergence_booth'); ?>">EMERGENCE<br>BOOTH</a>
+    <a href="<?php echo  base_url('attendees/emergence_booth'); ?>">EMERGENCE<br>BOOTH</a>
 </div>
-
-<div class="bubble past">
-    <a href="<?php echo base_url('attendees/past_conferences'); ?>">PAST<br>CONFERENCES</a>
-</div>
-
 
 <!-- 🔔 Announcement Sidebar -->
 <div class="notification-slide" id="notification_slide">
@@ -247,7 +238,7 @@ $country = session('reg_country') ?? 'Nigeria';
     <div>
         Crafted with <i class="fa fa-heart" aria-hidden="true"></i> by
         <a href="https://www.creyatif.com/website" target="_blank">Crèyatif</a> •
-        &copy; <?= date("Y"); ?> Powered By EPR Global.
+        &copy; <?php echo  date("Y"); ?> Powered By EPR Global.
     </div>
 </footer>
 
@@ -268,10 +259,10 @@ echo module_view('Web', 'includes/scripts');
 
     // Paid event logic
     document.addEventListener("DOMContentLoaded", async () => {
-        const attendeeId = "<?= $attendee_id; ?>";
-        const country = "<?= $country; ?>";
-        const apiBase = "<?= rtrim(base_url('api'), '/'); ?>";
-        const apiKey = "<?= env('api.securityKey'); ?>";
+        const attendeeId = "<?php echo  $attendee_id; ?>";
+        const country = "<?php echo  $country; ?>";
+        const apiBase = "<?php echo  rtrim(base_url('api'), '/'); ?>";
+        const apiKey = "<?php echo  env('api.securityKey'); ?>";
 
         async function apiGet(endpoint) {
             const res = await fetch(`${apiBase}/${endpoint}`, {
