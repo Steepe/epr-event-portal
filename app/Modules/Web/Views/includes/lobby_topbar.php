@@ -32,7 +32,7 @@ if (isset($global_attendee_details)
             <li class="nav-item" style="margin-right: 15px; margin-top: 10px;">
                 <a class="nav-item mr-md-2 text-white" href="<?php echo base_url('attendee/p/messages');?>">
                     <?php
-                    // ✅ Ensure variable is defined safely
+                    // ✅ Ensure variable
                     $new_messages_count = $new_messages_count ?? ['message_count' => 0];
 
                     // ✅ Display badge only if there are unread messages
