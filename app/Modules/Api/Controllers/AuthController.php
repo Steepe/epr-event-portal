@@ -77,35 +77,79 @@ class AuthController extends BaseController
         $email = $data['email'] ?? null;
 
         if (!$email) {
-            return $this->respond(['status' => 'error', 'message' => 'Email is required'], 400);
+            return $this->respond([
+                'status'  => 'error',
+                'message' => 'Email is required.'
+            ], 400);
         }
 
-        // ✅ Correct table and column
-        $user = $this->db->table('tbl_users')->where('email', $email)->get()->getRowArray();
+        // ✅ Check if the user exists
+        $user = $this->db->table('tbl_users')
+            ->where('email', $email)
+            ->get()
+            ->getRowArray();
 
         if (!$user) {
-            return $this->respond(['status' => 'error', 'message' => 'Email not found'], 404);
+            return $this->respond([
+                'status'  => 'error',
+                'message' => 'Email not found.'
+            ], 404);
         }
 
-        // ✅ Generate secure reset token
+        // ✅ Generate reset token
         $token = bin2hex(random_bytes(32));
 
-        // Store token in password_resets (you’ll need this table)
+        // Store token in password_resets
         $this->db->table('password_resets')->insert([
             'email'      => $email,
             'token'      => $token,
             'created_at' => date('Y-m-d H:i:s'),
         ]);
 
-        // Build password reset link
+        // ✅ Build password reset link
         $resetLink = base_url('attendees/reset-password?token=' . $token);
 
-        // (Optional) Send email here using your mail service
+        // ✅ Compose the email
+        $emailService = \Config\Services::email();
+
+        $emailService->setTo($email);
+        $emailService->setFrom(
+            env('email.fromEmail'),
+            env('email.fromName')
+        );
+        $emailService->setSubject('Password Reset Request - EPRGlobal Events');
+        $emailService->setMessage("
+        <html>
+        <body style='font-family:Poppins,Arial,sans-serif;color:#333;'>
+            <p>Dear Participant,</p>
+            <p>We received a request to reset your EPRGlobal Events Portal password. Click the button below to proceed:</p>
+            <p style='margin:25px 0;text-align:center;'>
+                <a href='{$resetLink}' 
+                   style='background-color:#9D0F82;color:#fff;
+                          text-decoration:none;padding:12px 25px;
+                          border-radius:6px;font-weight:bold;'>
+                    Reset My Password
+                </a>
+            </p>
+            <p>This link will expire in <strong>1 hour</strong>. If you did not request this, please ignore this email.</p>
+            <br>
+            <p>Warm regards,<br><strong>EPRGlobal Events Team</strong></p>
+        </body>
+        </html>
+    ");
+
+        // ✅ Send email
+        if (!$emailService->send()) {
+            log_message('error', 'Password reset email failed: ' . print_r($emailService->printDebugger(['headers']), true));
+            return $this->respond([
+                'status'  => 'error',
+                'message' => 'Unable to send password reset email. Please try again later.'
+            ], 500);
+        }
 
         return $this->respond([
             'status'  => 'success',
-            'message' => 'Password reset link sent successfully.',
-            'link'    => $resetLink, // helpful for testing
+            'message' => 'Password reset link has been sent successfully to your email address.'
         ]);
     }
 
