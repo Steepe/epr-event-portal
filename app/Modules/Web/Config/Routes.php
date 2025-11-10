@@ -46,4 +46,9 @@ $routes->group('attendees', ['namespace' => 'App\Modules\Web\Controllers', 'filt
     $routes->get('emergence_booth', 'EmergenceBoothController::index');
     $routes->get('envision', 'EnvisionController::index');
 
+    $routes->get('forgot-password', 'ForgotPasswordController::index');
+    $routes->post('forgot-password', 'ForgotPasswordController::sendLink');
+    $routes->get('reset-password/(:segment)', 'ForgotPasswordController::resetForm/$1');
+    $routes->post('reset-password/(:segment)', 'ForgotPasswordController::updatePassword/$1');
+
 });

@@ -29,15 +29,26 @@ class UserService
 
     public function getUser(int $userId): ?array
     {
-        $response = $this->client->get('https://eventportal.creyatif/api/users/' . $userId, [
-            'verify' => false,        // 🔥 ignore SSL certificate
-            'http_errors' => false,   // don't crash on 4xx/5xx
+        // ✅ Dynamically build API base URL from .env or fallback to local
+        $apiBase = rtrim(
+            env('api.baseURL') ?: base_url('api'),
+            '/'
+        );
+
+        $url = "{$apiBase}/users/{$userId}";
+
+        $response = $this->client->get($url, [
+            'verify'       => false, // ok for self-signed certs
+            'http_errors'  => false,
             'headers' => [
-                'X-API-KEY' => getenv('API_KEY') ?: 'your_api_key_here'
+                'X-API-KEY' => env('api.securityKey') ?: getenv('API_KEY') ?: 'your_api_key_here',
             ],
         ]);
 
-        if ($response->getStatusCode() !== 200) return null;
+        if ($response->getStatusCode() !== 200) {
+            log_message('error', "UserService: Failed to fetch user {$userId} (HTTP {$response->getStatusCode()})");
+            return null;
+        }
 
         $body = json_decode($response->getBody(), true);
         return $body['data'] ?? null;
