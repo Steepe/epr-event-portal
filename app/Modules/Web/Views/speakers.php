@@ -25,7 +25,6 @@ body {
 }
 
 .speakers-container h3 {
-    color: #fff;
     font-weight: 700;
     letter-spacing: 1px;
     text-align: center;
