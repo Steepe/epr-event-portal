@@ -14,11 +14,11 @@ use CodeIgniter\Model;
 
 class TblSpeakersModel extends Model
 {
-    protected string $table            = 'tbl_session_speakers';
-    protected string $primaryKey       = 'id';
-    protected string $returnType       = 'array';
-    protected array $allowedFields    = [
-        'sessions_id',
+    protected string $table         = 'tbl_speakers';   // ✅ correct table
+    protected string $primaryKey    = 'speaker_id';
+    protected string $returnType    = 'array';
+
+    protected array $allowedFields  = [
         'speaker_name',
         'speaker_title',
         'speaker_company',

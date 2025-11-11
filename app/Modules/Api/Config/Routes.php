@@ -60,7 +60,6 @@ $routes->group('api', ['namespace' => 'App\Modules\Api\Controllers', 'filter'   
     $routes->get('speakers', 'SpeakersController::index');
 
     $routes->group('speakers', function ($routes) {
-        $routes->get('/', 'SessionSpeakersController::index');
         $routes->get('session/(:num)', 'SessionSpeakersController::bySession/$1');
     });
 

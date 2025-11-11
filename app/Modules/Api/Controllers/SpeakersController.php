@@ -7,45 +7,60 @@
  * Time: 20:44
  */
 
-
 namespace App\Modules\Api\Controllers;
 
 use CodeIgniter\RESTful\ResourceController;
+use CodeIgniter\API\ResponseTrait;
 use App\Modules\Api\Models\TblSpeakersModel;
-use App\Modules\Api\Models\TblConferenceSessionsModel;
 
 class SpeakersController extends ResourceController
 {
-    protected string $modelName = TblSpeakersModel::class;
-    protected string $format    = 'json';
+    use ResponseTrait;
 
-    // GET /api/speakers
+    protected string $modelName = TblSpeakersModel::class;
+    protected string $format = 'json';
+
+    /**
+     * GET /api/speakers
+     * Returns all speakers directly from tbl_speakers
+     */
     public function index()
     {
         try {
-            $speakersModel = new TblSpeakersModel();
-            $sessionModel  = new TblConferenceSessionsModel();
-
-            // Fetch all speakers
-            $speakers = $speakersModel->findAll();
-
-            // Attach sessions if any
-            foreach ($speakers as &$speaker) {
-                $speaker['sessions'] = $sessionModel
-                    ->select('sessions_name')
-                    ->where('sessions_id', $speaker['sessions_id'])
-                    ->findAll();
-            }
+            $speakers = $this->model->findAll();
 
             return $this->respond([
-                'status'   => 'success',
-                'data'     => $speakers,
-                'count'    => count($speakers)
+                'status' => 'success',
+                'data'   => $speakers,
+                'count'  => count($speakers)
             ]);
 
         } catch (\Throwable $e) {
-            log_message('error', 'Failed to load speakers: ' . $e->getMessage());
+            log_message('error', '[SpeakersController] Failed to fetch speakers: ' . $e->getMessage());
             return $this->failServerError('Unable to load speakers.');
+        }
+    }
+
+    /**
+     * Optional: GET /api/speakers/(:num)
+     * Returns a single speaker by ID
+     */
+    public function show($id = null)
+    {
+        try {
+            $speaker = $this->model->find($id);
+            if (!$speaker) {
+                return $this->failNotFound('Speaker not found.');
+            }
+
+            return $this->respond([
+                'status' => 'success',
+                'data'   => $speaker
+            ]);
+
+        } catch (\Throwable $e) {
+            log_message('error', '[SpeakersController] Error fetching speaker ID '.$id.': '.$e->getMessage());
+            return $this->failServerError('Unable to load speaker.');
         }
     }
 }
