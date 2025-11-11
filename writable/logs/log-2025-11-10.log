@@ -1,0 +1,36 @@
+ERROR - 2025-11-10 23:58:14 --> Email: Unable to send email using SMTP. Your server might not be configured to send mail using this method.
+ERROR - 2025-11-10 23:58:14 --> 220 mailrelay4.pub.mailoutpod2-cph3.one.com ESMTP
+
+hello: 250-mailrelay4.pub.mailoutpod2-cph3.one.com
+250-PIPELINING
+250-CHUNKING
+250-SIZE 104857600
+250-AUTH LOGIN PLAIN
+250-ENHANCEDSTATUSCODES
+250 8BITMIME
+
+Failed to authenticate password. Error: 535 5.7.8 [A3] Authentication failed (1d6664cd-be91-11f0-bb96-f3c0f7fef5ee)
+
+ERROR - 2025-11-10 23:58:14 --> Password reset email failed: 220 mailrelay4.pub.mailoutpod2-cph3.one.com ESMTP
+<br><pre>hello: 250-mailrelay4.pub.mailoutpod2-cph3.one.com
+250-PIPELINING
+250-CHUNKING
+250-SIZE 104857600
+250-AUTH LOGIN PLAIN
+250-ENHANCEDSTATUSCODES
+250 8BITMIME
+</pre>Failed to authenticate password. Error: 535 5.7.8 [A3] Authentication failed (1d6664cd-be91-11f0-bb96-f3c0f7fef5ee)
+<br>Unable to send email using SMTP. Your server might not be configured to send mail using this method.<br><pre>Date: Mon, 10 Nov 2025 23:58:12 +0000
+To: mayowa.steepe@gmail.com
+From: &quot;EPRGlobal Events&quot; &lt;no-reply@eprglobal.com&gt;
+Return-Path: &lt;no-reply@eprglobal.com&gt;
+Subject: =?UTF-8?Q?Password=20Reset=20Request=20-=20EPRGlobal=20Events?=
+Reply-To: &lt;no-reply@eprglobal.com&gt;
+User-Agent: CodeIgniter
+X-Sender: no-reply@eprglobal.com
+X-Mailer: CodeIgniter
+X-Priority: 3 (Normal)
+Message-ID: &lt;69127c14c9f236.94639943@eprglobal.com&gt;
+Mime-Version: 1.0
+
+</pre>

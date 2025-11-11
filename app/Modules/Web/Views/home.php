@@ -58,11 +58,10 @@ $country = session('reg_country') ?? 'Nigeria';
 <!-- Payment/Upgrade Notice -->
 <!-- Payment/Upgrade Notice -->
 <!-- Payment/Upgrade Notice -->
-<div id="paymentNotice"
+<!-- <div id="paymentNotice"
      class="alert alert-warning text-center d-flex flex-column flex-md-row align-items-center justify-content-between gap-3 position-relative"
      style="display:none; font-size:14px; background-color:#fff3cd; color:#856404; border:1px solid #ffeeba; border-radius:8px; flex-wrap:wrap; box-shadow:0 3px 6px rgba(0,0,0,0.15); padding:15px 20px;">
 
-    <!-- Dismiss button -->
     <button type="button" id="closeNotice" aria-label="Close"
             style="position:absolute; top:8px; right:12px; background:none; border:none; color:#856404; font-size:20px; cursor:pointer; line-height:1;">
         &times;
@@ -77,7 +76,7 @@ $country = session('reg_country') ?? 'Nigeria';
         <span id="priceInfo" style="font-weight:600;"></span>
         <button id="upgradeBtn" class="btn btn-sm btn-epr-pink" style="white-space: nowrap;">Pay Now</button>
     </div>
-</div>
+</div>-->
 
 
 
