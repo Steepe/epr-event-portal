@@ -18,7 +18,7 @@ use CodeIgniter\Router\RouteCollection;
 $routes->group('attendees', ['namespace' => 'App\Modules\Web\Controllers'], function ($routes) {
     $routes->get('register', 'RegistrationController::index');
     $routes->get('login', 'LoginController::index');
-    $routes->post('logout', 'LoginController::logout');
+    $routes->get('logout', 'LoginController::logout');
     $routes->get('reset-password', 'LoginController::resetPassword');
 
 });

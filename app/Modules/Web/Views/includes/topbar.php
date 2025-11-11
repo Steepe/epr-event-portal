@@ -108,13 +108,9 @@ $plan = isset($attendee['plan']) ? (int) $attendee['plan'] : 1;
                 </a>
 
                 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
-                    <?php if ($plan !== 2): ?>
-                        <a class="dropdown-item" href="<?php echo base_url('attendee/p/emergence_booth'); ?>">Upgrade Ticket</a>
-                    <?php endif; ?>
-
-                    <a class="dropdown-item" href="<?php echo base_url('attendee/profile'); ?>">Profile</a>
+                    <a class="dropdown-item" href="<?php echo base_url('attendees/profile'); ?>">Profile</a>
                     <div class="dropdown-divider"></div>
-                    <a class="dropdown-item text-danger" href="<?php echo base_url('attendee/logout'); ?>">Logout</a>
+                    <a class="dropdown-item text-danger" href="<?php echo base_url('attendees/logout'); ?>">Logout</a>
                 </div>
             </li>
         </ul>

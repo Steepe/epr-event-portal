@@ -19,17 +19,14 @@ class LoginController extends BaseController
         return module_view('Web', 'login');
     }
 
-    public function logout(): \CodeIgniter\HTTP\ResponseInterface
+    public function logout(): \CodeIgniter\HTTP\RedirectResponse
     {
         $session = session();
 
         // Destroy all session data
         $session->destroy();
 
-        return $this->respond([
-            'status'  => 'success',
-            'message' => 'Logout successful. Session destroyed.'
-        ]);
+        return redirect()->to('attendees/login');
     }
 
     public function resetPassword(): string

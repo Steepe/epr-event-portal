@@ -42,15 +42,14 @@ if (isset($global_attendee_details)
         <?php echo $new_messages_count['message_count']; ?>
     </span>
                     <?php endif; ?>
-                    <i class="fa fa-bell-o text-black" style="font-size: 25px; color: black;"></i>
                 </a>
             </li>
 
             <li style="margin-right: 20px;">
                 <a class="nav-item nav-link dropdown-toggle mr-md-2 text-white" href="#" id="bd-versions" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><img src="<?php echo $profile_picture;?>" width="30" height="30" class="rounded-circle"></a>
                 <div class="dropdown-menu dropdown-menu-right" style="margin-top: -20px; margin-right: 5px;">
-                    <a class="dropdown-item" href="<?php echo base_url('attendee/profile')?>">Profile</a>
-                    <a class="dropdown-item" href="<?php echo base_url('attendee/logout');?>">Logout</a>
+                    <a class="dropdown-item" href="<?php echo base_url('attendees/profile')?>">Profile</a>
+                    <a class="dropdown-item" href="<?php echo base_url('attendees/logout');?>">Logout</a>
                 </div>
             </li>
 

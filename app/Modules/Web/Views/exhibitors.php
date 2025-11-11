@@ -191,7 +191,7 @@ echo module_view('Web', 'includes/topbar');
 </style>
 
 <div class="exhibitors-container">
-    <h2>EXHIBITORS</h2>
+    <h2 class="epr-text-purple">EXHIBITORS</h2>
 
     <div class="exhibitors-grid">
         <?php if (!empty($exhibitors)): ?>

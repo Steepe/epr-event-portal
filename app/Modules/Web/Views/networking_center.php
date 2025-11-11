@@ -119,7 +119,7 @@ echo module_view('Web', 'includes/topbar');
     }
 </style>
 
-<h4 class="text-white" style="position: absolute; top: 280px; left: 200px;">Networking Center</h4>
+<h2 class="epr-text-purple" style="position: absolute; top: 280px; left: 200px;">Networking Center</h2>
 
 <div class="networking-container">
 
