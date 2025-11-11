@@ -126,7 +126,6 @@ h4.text-epr {
                                         <?php endif; ?>
                                     </h6>
                                     <span class="font-12"><?php echo $start; ?> - <?php echo $end; ?> (<?php echo esc($timezone); ?>)</span><br>
-                                    <span class="font-12">Speakers: TBA</span>
                                 </div>
                                 <div class="mt-2 mt-md-0">
                                     <?php if ($canAccess): ?>

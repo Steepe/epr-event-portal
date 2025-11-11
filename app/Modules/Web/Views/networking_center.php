@@ -32,19 +32,19 @@ echo module_view('Web', 'includes/topbar');
     }
 
     .networking-container h2 {
-        color: #fff;
         font-weight: 700;
         letter-spacing: 1px;
         margin-bottom: 80px;
         text-transform: uppercase;
         text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+        float: left !important;
     }
 
     /* 🧩 Icon grid */
     .networking-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 70px;
+        gap: 60px;
         justify-items: center;
         align-items: center;
         width: 85%;
@@ -119,29 +119,35 @@ echo module_view('Web', 'includes/topbar');
     }
 </style>
 
-<h2 class="epr-text-purple" style="position: absolute; top: 280px; left: 200px;">Networking Center</h2>
 
 <div class="networking-container">
+
+    <h2 class="epr-text-purple">Networking Center</h2>
 
     <div class="networking-grid">
         <a href="<?php echo base_url('attendees/attendees'); ?>" class="networking-item attendees">
             <img src="<?php echo asset_url('images/attendees-icon.png'); ?>" alt="Attendees">
-            <span>Attendees</span>
+            <span class="epr-text-purple">Attendees</span>
         </a>
 
         <a href="<?php echo base_url('attendees/speakers'); ?>" class="networking-item speakers">
             <img src="<?php echo asset_url('images/speakers-icon.png'); ?>" alt="Speakers">
-            <span>Speakers</span>
+            <span class="epr-text-purple">Speakers</span>
         </a>
 
-        <a href="<?php echo base_url('attendees/earn-points'); ?>" class="networking-item points">
+        <a href="<?php echo base_url('attendees/communities'); ?>" class="networking-item speakers">
+            <img src="<?php echo asset_url('images/community-icon.png'); ?>" alt="communities">
+            <span class="epr-text-purple">Communities</span>
+        </a>
+
+        <a href="<?php echo base_url('attendees/points'); ?>" class="networking-item points">
             <img src="<?php echo asset_url('images/earnpoints-icon.png'); ?>" alt="Earn Points">
-            <span>Earn Points</span>
+            <span class="epr-text-purple">Earn Points</span>
         </a>
 
         <a href="<?php echo base_url('attendees/leaderboard'); ?>" class="networking-item leaderboard">
             <img src="<?php echo asset_url('images/leaderboard-icon.png'); ?>" alt="Leaderboard">
-            <span>Leaderboard</span>
+            <span class="epr-text-purple">Leaderboard</span>
         </a>
     </div>
 </div>

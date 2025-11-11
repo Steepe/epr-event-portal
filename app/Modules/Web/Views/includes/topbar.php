@@ -87,7 +87,7 @@ $plan = isset($attendee['plan']) ? (int) $attendee['plan'] : 1;
 
         <ul class="navbar-nav ml-auto align-items-center">
             <li class="nav-item d-none d-lg-block mr-3">
-                <img src="<?php echo asset_url('images/dominate-logo.png'); ?>" alt="Dominate Logo" height="30">
+                <img src="<?php echo asset_url('images/unleash-logo.png'); ?>" alt="Conference Logo" height="30">
             </li>
 
             <li class="nav-item position-relative mr-3">

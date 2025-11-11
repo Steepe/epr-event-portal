@@ -55,6 +55,7 @@ $routes->group('attendees', ['namespace' => 'App\Modules\Web\Controllers', 'filt
     $routes->post('reset-password/(:segment)', 'ForgotPasswordController::updatePassword/$1');
 
     $routes->get('webinars', 'WebinarsController::index');
+    $routes->get('points', 'PointsController::index');
 
 
 });
