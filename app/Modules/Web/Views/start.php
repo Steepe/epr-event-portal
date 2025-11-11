@@ -171,24 +171,26 @@ body {
     <div class="lobby-events">
         <?php if (!empty($past)): ?>
             <?php
+            // Sort by year ascending
             usort($past, fn($a, $b) => (int)$a['year'] <=> (int)$b['year']);
-            $sizeMin = 100;
-            $sizeStep = 20;
-            foreach ($past as $i => $conf):
-                $size = $sizeMin + ($i * $sizeStep);
+
+            // Fixed bubble size
+            $bubbleSize = 140; // adjust as desired
+
+            foreach ($past as $conf):
                 $image = !empty($conf['icon'])
                     ? base_url('uploads/conferences/' . $conf['icon'])
                     : asset_url('images/lobby/default.png');
-            ?>
+                ?>
                 <div class="lobby-bubble"
-                     <!--style="width:<?php /*echo $size; */?>px; height:<?php /*echo $size; */?>px;"-->
-                     style="width:160px; height:160px;"
+                     style="width:<?php echo $bubbleSize; ?>px; height:<?php echo $bubbleSize; ?>px;"
                      onclick="window.location='<?php echo base_url('attendees/pastConference/' . $conf['conference_id']); ?>'">
                     <img src="<?php echo $image; ?>" alt="<?php echo esc($conf['title']); ?>">
                 </div>
             <?php endforeach; ?>
         <?php endif; ?>
     </div>
+
 </div>
 
 <?php echo module_view('Web', 'includes/scripts'); ?>
