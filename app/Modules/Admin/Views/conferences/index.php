@@ -51,7 +51,7 @@ $this->section('content');
       <div class="bg-gray-800 border border-gray-700 rounded-lg shadow hover:shadow-lg transition-shadow duration-200 overflow-hidden flex flex-col">
         <div class="h-40 flex items-center justify-center bg-gray-900">
           <?php if (!empty($conf['icon'])): ?>
-            <img src="<?php echo base_url($conf['icon']); ?>" alt="<?php echo esc($conf['title']); ?>"
+            <img src="<?php echo base_url('uploads/conferences/' . $conf['icon']); ?>" alt="<?php echo esc($conf['title']); ?>"
                  class="h-20 w-20 object-contain rounded">
           <?php else: ?>
             <div class="text-gray-500 text-sm">No Icon</div>

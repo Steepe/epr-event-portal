@@ -12,7 +12,7 @@ $this->extend('App\Modules\Admin\Views\layout');
  $this->section('content');
  ?>
 
-  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6" style="color: #0b0b0b !important;">
     <div class="bg-white p-4 rounded shadow">
       <div class="text-sm">Users</div>
       <div class="text-2xl font-bold"><?php echo isset($users_count) ? (int)$users_count : 0; ?></div>
@@ -31,7 +31,7 @@ $this->extend('App\Modules\Admin\Views\layout');
     </div>
   </div>
 
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4" style="color: #0b0b0b !important;">
     <section class="col-span-2 bg-white p-4 rounded shadow">
       <h2 class="text-lg font-semibold mb-3">Recent Activity</h2>
       <p class="text-sm text-gray-600">Recent registrations, payments and session changes will appear here.</p>

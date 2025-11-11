@@ -101,6 +101,7 @@ class AgendaController extends BaseController
                 'timezone'       => $session->get('user_timezone') ?? 'Africa/Lagos',
                 'plan'           => $session->get('plan') ?? 1,
                 'attendee_id'    => $session->get('attendee_id'),
+                'conf_title'     => $s['sessions_name'],
             ];
 
             return module_view('Web', 'past_agenda', $data);

@@ -85,12 +85,12 @@ class ConferencesController extends BaseController
             }
         }
 
-        // ✅ Handle icon upload
+// ✅ Handle icon upload
         $iconFile = $this->request->getFile('icon');
         if ($iconFile && $iconFile->isValid() && !$iconFile->hasMoved()) {
             $newName = $iconFile->getRandomName();
             $iconFile->move(FCPATH . 'uploads/conferences', $newName);
-            $data['icon'] = 'uploads/conferences/' . $newName;
+            $data['icon'] = $newName; // 👈 only filename stored in DB
         }
 
         $this->conferenceModel->insert($data);

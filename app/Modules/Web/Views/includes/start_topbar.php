@@ -63,7 +63,7 @@
     <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
         <ul class="navbar-nav">
             <li class="nav-item">
-                <a class="nav-link" href="<?php echo base_url('attendees/start'); ?>" style="font-size: 20px;">START</a>
+                <a class="nav-link" href="<?php echo base_url('attendees/start'); ?>" style="font-size: 20px;">HOME</a>
             </li>
         </ul>
     </div>
