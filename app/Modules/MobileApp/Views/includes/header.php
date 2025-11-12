@@ -32,6 +32,7 @@
     <!-- Core CSS -->
     <link rel="stylesheet" href="<?php echo asset_url('css/bootstrap.css'); ?>" type="text/css">
     <link rel="stylesheet" href="<?php echo asset_url('css/eprglobal.css'); ?>" type="text/css">
+    <link rel="stylesheet" href="<?php echo asset_url('css/mobile.css'); ?>" type="text/css">
     <link rel="stylesheet" href="<?php echo asset_url('font-awesome/css/font-awesome.min.css'); ?>" type="text/css">
 
     <!-- Matomo Analytics -->

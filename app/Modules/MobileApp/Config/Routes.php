@@ -28,13 +28,9 @@ $routes->group('mobile', ['namespace' => 'App\Modules\MobileApp\Controllers'], s
     $routes->get('welcome', 'Welcome::index');
     $routes->get('lobby', 'Lobby::index');
     $routes->get('agenda/(:num)', 'Agenda::index/$1');
+    $routes->get('session/(:num)', 'Session::detail/$1');
 
 
 
-    $routes->get('sessions', 'Sessions::index');
-    $routes->get('sessions/(:num)', 'Sessions::view/$1');
-    $routes->get('messages', 'Messages::index');
-    $routes->get('messages/thread/(:num)', 'Messages::thread/$1');
-    $routes->get('profile', 'Profile::index');
 
 });
