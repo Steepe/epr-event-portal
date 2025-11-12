@@ -8,6 +8,7 @@
  */
 
 echo module_view('MobileApp', 'includes/header');
+//var_dump(session());
 ?>
 
 <style>
@@ -182,7 +183,7 @@ echo module_view('MobileApp', 'includes/header');
 
 <div class="mobile-lobby">
     <div class="lobby-header">
-        <h3>Welcome, <?php echo esc(session('user_email')); ?></h3>
+        <h3>Welcome, <?php echo esc(session('firstname')); ?></h3>
         <p>Tap a bubble to explore conferences and experiences</p>
     </div>
 

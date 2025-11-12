@@ -32,8 +32,11 @@ class Auth extends BaseController
             return redirect()->back()->with('error', 'Email and password are required.')->withInput();
         }
 
-        $model = new UserModel();
-        $user = $model->where('email', $email)->first();
+        $userModel = new \App\Modules\MobileApp\Models\UserModel();
+        $attendeeModel = new \App\Modules\MobileApp\Models\AttendeeModel();
+
+        // 🔹 Find user by email
+        $user = $userModel->where('email', $email)->first();
 
         if (!$user) {
             return redirect()->back()->with('error', 'No account found for that email.')->withInput();
@@ -43,18 +46,33 @@ class Auth extends BaseController
             return redirect()->back()->with('error', 'Invalid password.')->withInput();
         }
 
-        // Store login session
-        session()->set([
+        // 🔹 Fetch attendee info (optional but strongly recommended)
+        $attendee = $attendeeModel
+            ->select('firstname, lastname, profile_picture')
+            ->where('attendee_id', $user['id'])
+            ->first();
+
+        // 🔹 Prepare session data
+        $sessionData = [
             'user_id'     => $user['id'],
             'user_email'  => $user['email'],
             'user_role'   => $user['role'],
-            'uuid'        => $user['uuid'],
+            'uuid'        => $user['uuid'] ?? null,
             'isLoggedIn'  => true,
-        ]);
+            'firstname'   => $attendee['firstname'] ?? '',
+            'lastname'    => $attendee['lastname'] ?? '',
+            'fullname'    => isset($attendee)
+                ? trim($attendee['firstname'] . ' ' . $attendee['lastname'])
+                : '',
+            'profile_picture' => $attendee['profile_picture'] ?? null,
+        ];
 
-        // Update last login timestamp
-        $model->update($user['id'], ['last_login_at' => date('Y-m-d H:i:s')]);
+        session()->set($sessionData);
 
+        // 🔹 Update last login
+        $userModel->update($user['id'], ['last_login_at' => date('Y-m-d H:i:s')]);
+
+        // 🔹 Redirect
         return redirect()->to(site_url('mobile/home'));
     }
 

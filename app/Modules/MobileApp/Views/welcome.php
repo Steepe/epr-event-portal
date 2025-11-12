@@ -60,7 +60,6 @@
         position: relative;
         width: 100%;
         max-width: 700px;
-        padding-top: 56.25%; /* 16:9 */
         border-radius: 20px;
         overflow: hidden;
         box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
@@ -132,11 +131,7 @@
     <h4 class="epr-text-purple">Welcome To Unleash 2025</h4>
 
     <div class="envision-video">
-        <iframe
-            src="https://player.vimeo.com/video/1014896127?h=2ad1e8b0f7&color=eebf34&title=0&byline=0&portrait=0"
-            allow="autoplay; fullscreen; picture-in-picture"
-            allowfullscreen>
-        </iframe>
+        <div style="position:relative;padding-top:56.25%;"><iframe src="https://iframe.mediadelivery.net/embed/405384/60589a7b-3fe7-40fb-a2ae-3c024f23e01e?autoplay=true&loop=false&muted=false&preload=true&responsive=true" loading="lazy" style="border:0;position:absolute;top:0;height:100%;width:100%;" allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;" allowfullscreen="true"></iframe></div>
     </div>
 
     <a href="<?php echo site_url('mobile/lobby'); ?>" class="enter-lobby epr-btn-four">ENTER LOBBY</a>
