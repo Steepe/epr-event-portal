@@ -18,4 +18,18 @@ class SponsorModel extends Model
     protected array $allowedFields = [
         'conference_id', 'name', 'logo', 'link'
     ];
+
+    public function getAllSponsors()
+    {
+        $orderCase = "CASE
+            WHEN tier = 'Diamond' THEN 1
+            WHEN tier = 'Platinum' THEN 2
+            WHEN tier = 'Distruptor' THEN 3
+            ELSE 4 END";
+
+        return $this->orderBy('is_featured', 'DESC')
+            ->orderBy($orderCase, 'ASC')
+            ->orderBy('name', 'ASC')
+            ->findAll();
+    }
 }

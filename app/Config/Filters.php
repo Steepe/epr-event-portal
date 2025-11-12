@@ -31,6 +31,7 @@ class Filters extends BaseFilters
         'auth'          => \App\Filters\AuthFilter::class,
         'adminAuth' => \App\Filters\AdminAuth::class,
         'role' => \App\Filters\RoleFilter::class,
+        'mobileauth' => \App\Filters\MobileAuthFilter::class,
         ];
 
     public array $required = [

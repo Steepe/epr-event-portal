@@ -7,7 +7,6 @@
  * Time: 21:41
  */
 
-
 echo module_view('Web', 'includes/header');
 echo module_view('Web', 'includes/topbar');
 ?>

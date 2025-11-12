@@ -20,12 +20,12 @@ $routes->group('mobile', ['namespace' => 'App\Modules\MobileApp\Controllers'], s
     $routes->get('login', 'Auth::login');
     $routes->post('login', 'Auth::attemptLogin');
     $routes->get('logout', 'Auth::logout');
-    $routes->get('home', 'Home::index');
 });
 
-$routes->group('mobile', ['namespace' => 'App\Modules\MobileApp\Controllers'], static function ($routes) {
 
+$routes->group('mobile', ['namespace' => 'App\Modules\MobileApp\Controllers'], ['filter' => 'mobileauth'], function ($routes) {
     $routes->get('welcome', 'Welcome::index');
+    $routes->get('home', 'Home::index');
     $routes->get('lobby', 'Lobby::index');
     $routes->get('agenda/(:num)', 'Agenda::index/$1');
     $routes->get('session/(:num)', 'Session::detail/$1');
@@ -34,9 +34,15 @@ $routes->group('mobile', ['namespace' => 'App\Modules\MobileApp\Controllers'], s
 
     $routes->get('pastConference/(:num)', 'PastConference::index/$1');
     $routes->get('pastConference/session/(:num)', 'PastConference::viewSession/$1');
+
     $routes->get('networking-center', 'NetworkingCenter::index');
+
     $routes->get('attendees', 'Attendees::index');
     $routes->get('speakers', 'SpeakersController::index');
 
+    $routes->get('exhibitors', 'ExhibitorsController::index');
+    $routes->post('exhibitors/send-message', 'ExhibitorsController::sendMessage');
 
+    $routes->get('sponsors', 'SponsorsController::index');
 });
+
