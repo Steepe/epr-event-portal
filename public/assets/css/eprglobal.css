@@ -1092,3 +1092,13 @@ body {
 .epr-btn-three:hover {
 	color: #c2c2c2;
 }
+
+.epr-btn-four{
+	background-image: url("../images/button-bg-long.png");
+	background-repeat: repeat-y;
+	width: 145px;
+	color: #ffffff;
+	border-radius: 15px;
+	font-size: 14px;
+	height: 40px;
+}

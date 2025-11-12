@@ -204,7 +204,7 @@ $conference_id = session('live-conference-id') ?? null;
     </div>
 
     <div class="bubble emergence">
-        <a href="<?php echo base_url('mobile/emergence_booth'); ?>">EMERGENCE<br>BOOTH</a>
+        <a href="<?php echo base_url('mobile/emergence-booth'); ?>">EMERGENCE<br>BOOTH</a>
     </div>
 </div>
 

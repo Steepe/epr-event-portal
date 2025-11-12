@@ -20,6 +20,7 @@ $routes->group('mobile', ['namespace' => 'App\Modules\MobileApp\Controllers'], s
     $routes->get('login', 'Auth::login');
     $routes->post('login', 'Auth::attemptLogin');
     $routes->get('logout', 'Auth::logout');
+    $routes->get('register', 'RegisterController::index');
 });
 
 
@@ -44,5 +45,11 @@ $routes->group('mobile', ['namespace' => 'App\Modules\MobileApp\Controllers'], [
     $routes->post('exhibitors/send-message', 'ExhibitorsController::sendMessage');
 
     $routes->get('sponsors', 'SponsorsController::index');
+
+    $routes->get('points', 'PointsController::index');
+
+    $routes->get('emergence-booth', 'EmergenceBoothController::index');
+    $routes->post('emergence/sendSupportEmail', 'EmergenceBoothController::sendSupportEmail');
+
 });
 

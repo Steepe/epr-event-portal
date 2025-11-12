@@ -164,7 +164,7 @@ echo module_view('MobileApp', 'includes/header'); ?>
             <?php foreach ($sponsors as $sponsor): ?>
                 <?php
                     $logo = !empty($sponsor['logo'])
-                        ? base_url('uploads/sponsors_logo/' . $sponsor['logo'])
+                        ? base_url('uploads/sponsors/' . $sponsor['logo'])
                         : asset_url('images/sponsors/default-logo.png');
                 ?>
                 <div class="sponsor-card <?php echo esc($sponsor['tier']); ?>"

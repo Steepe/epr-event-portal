@@ -139,7 +139,7 @@
         </iframe>
     </div>
 
-    <a href="<?php echo site_url('mobile/lobby'); ?>" class="enter-lobby epr-btn-two">ENTER LOBBY</a>
+    <a href="<?php echo site_url('mobile/lobby'); ?>" class="enter-lobby epr-btn-four">ENTER LOBBY</a>
 </div>
 
 <?php echo module_view('MobileApp', 'includes/footer'); ?>

@@ -17,14 +17,10 @@ class SponsorsController extends BaseController
 {
     public function index()
     {
-        // 🔒 Ensure attendee is logged in
-        if (!session()->get('isLoggedIn')) {
-            return redirect()->to(site_url('mobile/login'));
-        }
 
         $model = new SponsorModel();
         $data['sponsors'] = $model->getAllSponsors();
 
-        return view('App\Modules\MobileApp\Views\sponsors', $data);
+        echo module_view('MobileApp', 'sponsors', $data);
     }
 }
