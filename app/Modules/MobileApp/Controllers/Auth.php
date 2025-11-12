@@ -81,4 +81,16 @@ class Auth extends BaseController
         session()->destroy();
         return redirect()->to(site_url('mobile/login'));
     }
+
+    public function forgotPassword()
+    {
+        // This loads your forgot password view
+        return module_view('MobileApp', 'forgot_password');
+    }
+
+    public function resetPassword($token = null): string
+    {
+        // This loads your reset password form
+        return module_view('MobileApp', 'reset_password', ['token' => $token]);
+    }
 }

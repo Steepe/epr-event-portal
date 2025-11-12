@@ -22,6 +22,8 @@ $routes->group('mobile', ['namespace' => 'App\Modules\MobileApp\Controllers'], s
     $routes->get('logout', 'Auth::logout');
     $routes->get('register', 'RegisterController::index');
     $routes->post('register/process', 'RegisterController::process');
+    $routes->get('forgot-password', 'Auth::forgotPassword');
+    $routes->get('reset-password/(:any)', 'Auth::resetPassword/$1');
 });
 
 
