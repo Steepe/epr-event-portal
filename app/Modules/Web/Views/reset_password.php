@@ -7,7 +7,7 @@
  * Time: 00:27
  */
 
-echo module_view('Web', 'includes/auth_header');
+echo module_view('Web', 'includes/auth_header_two');
 ?>
 
 <style>
