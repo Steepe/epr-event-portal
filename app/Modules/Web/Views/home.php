@@ -53,28 +53,6 @@ $country = session('reg_country') ?? 'Nigeria';
     }
 </style>
 
-<!-- Payment/Upgrade Notice -->
-<!-- Payment/Upgrade Notice -->
-<!-- Payment/Upgrade Notice -->
-<!-- <div id="paymentNotice"
-     class="alert alert-warning text-center d-flex flex-column flex-md-row align-items-center justify-content-between gap-3 position-relative"
-     style="display:none; font-size:14px; background-color:#fff3cd; color:#856404; border:1px solid #ffeeba; border-radius:8px; flex-wrap:wrap; box-shadow:0 3px 6px rgba(0,0,0,0.15); padding:15px 20px;">
-
-    <button type="button" id="closeNotice" aria-label="Close"
-            style="position:absolute; top:8px; right:12px; background:none; border:none; color:#856404; font-size:20px; cursor:pointer; line-height:1;">
-        &times;
-    </button>
-
-    <div class="text-section text-md-start text-center" style="flex: 1; min-width: 250px;">
-        <strong>Access Restricted:</strong>
-        This is a paid event. Please complete your registration payment to unlock all sessions.
-    </div>
-
-    <div class="price-section d-flex align-items-center justify-content-center gap-2 mt-2 mt-md-0" style="flex-shrink: 0;">
-        <span id="priceInfo" style="font-weight:600;"></span>
-        <button id="upgradeBtn" class="btn btn-sm btn-epr-pink" style="white-space: nowrap;">Pay Now</button>
-    </div>
-</div>-->
 
 
 

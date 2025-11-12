@@ -34,8 +34,9 @@ $routes->group('mobile', ['namespace' => 'App\Modules\MobileApp\Controllers'], s
 
     $routes->get('pastConference/(:num)', 'PastConference::index/$1');
     $routes->get('pastConference/session/(:num)', 'PastConference::viewSession/$1');
-
-
+    $routes->get('networking-center', 'NetworkingCenter::index');
+    $routes->get('attendees', 'Attendees::index');
+    $routes->get('speakers', 'SpeakersController::index');
 
 
 });

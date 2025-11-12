@@ -14,23 +14,30 @@ use CodeIgniter\Model;
 class AttendeeModel extends Model
 {
     protected string $table = 'tbl_attendees';
-    protected string $primaryKey = 'attendee_id';
-
+    protected string $primaryKey = 'id';
     protected array $allowedFields = [
-        'fullname',
-        'email',
-        'password',
-        'phone',
-        'organization',
-        'title',
-        'country',
-        'status',
-        'token',
-        'created_at',
-        'updated_at'
+        'attendee_id', 'firstname', 'lastname', 'telephone',
+        'country', 'city', 'state', 'profile_picture',
+        'company', 'position', 'ipaddress', 'is_verified',
+        'registration_timestamp', 'created_at', 'updated_at'
     ];
 
-    protected bool $useTimestamps = true;
-    protected string $createdField = 'created_at';
-    protected string $updatedField = 'updated_at';
+    public function getAttendees($currentUserId, $search = null)
+    {
+        $builder = $this->db->table($this->table)
+            ->select('id, attendee_id, firstname, lastname, profile_picture, company, position, country, city, state')
+            ->where('attendee_id !=', $currentUserId)
+            ->orderBy('firstname', 'ASC');
+
+        if (!empty($search)) {
+            $builder->groupStart()
+                ->like('firstname', $search)
+                ->orLike('lastname', $search)
+                ->orLike('company', $search)
+                ->orLike('position', $search)
+                ->groupEnd();
+        }
+
+        return $builder->get()->getResultArray();
+    }
 }

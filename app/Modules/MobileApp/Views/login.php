@@ -173,7 +173,7 @@
                 <a href="<?php echo site_url('mobile/forgot-password'); ?>">Forgot Password</a>
             </div>
 
-            <button type="submit" class="epr-btn-one login-btn">LOGIN</button>
+            <button type="submit" class="epr-btn-two login-btn">LOGIN</button>
 
             <div class="signup-text">
                 Not a member? <a href="<?php echo site_url('mobile/register'); ?>">Sign Up!</a>

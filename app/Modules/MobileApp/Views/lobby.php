@@ -106,8 +106,8 @@ $conference_id = session('live-conference-id') ?? null;
         cursor: pointer;
         transition: transform 0.3s ease, box-shadow 0.3s ease;
         animation: float1 6s ease-in-out infinite;
-        margin-top: 50px;
-        margin-bottom: 50px;
+        margin-top: 30px;
+        margin-bottom: 30px;
     }
 
     .bubble:hover {
@@ -173,12 +173,12 @@ $conference_id = session('live-conference-id') ?? null;
 <div id="videoOverlay"></div>
 
 <!-- ⚠️ Payment Notice -->
-<div id="paymentNotice">
+<!--<div id="paymentNotice">
     <strong>Access Restricted:</strong>
     This is a paid event. Complete your registration payment to unlock all sessions.
     <span id="priceInfo"></span>
     <button id="closeNotice">&times;</button>
-</div>
+</div>-->
 
 <!-- 🧠 Lobby Bubbles (Grid Layout for Mobile) -->
 <div class="bubble-grid">
@@ -188,7 +188,7 @@ $conference_id = session('live-conference-id') ?? null;
     </div>
 
     <div class="bubble networking">
-        <a href="<?php echo base_url('mobile/networking_center'); ?>">NETWORKING<br>CENTER</a>
+        <a href="<?php echo base_url('mobile/networking-center'); ?>">NETWORKING<br>CENTER</a>
     </div>
 
     <div class="bubble exhibitors">

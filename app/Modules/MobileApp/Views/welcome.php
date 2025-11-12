@@ -7,101 +7,96 @@
  * Time: 05:13
  */
 
-echo module_view('MobileApp', 'includes/header');
-
-$attendee_id = session('user_id') ?? null;
-$country = session('reg_country') ?? 'Nigeria';
-?>
+ echo module_view('MobileApp', 'includes/header'); ?>
 
 <style>
     body {
         margin: 0;
         padding: 0;
         font-family: 'Inter', 'Poppins', sans-serif;
+        overflow-x: hidden;
         color: #fff;
-        overflow: hidden;
-        background-image: url('<?php echo asset_url('images/mobile-bg.png'); ?>');
+        background: url('<?php echo asset_url('images/mobile-bg.png'); ?>') no-repeat center center fixed;
         background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        height: 100vh;
+        position: relative;
+    }
+
+    /* 🌈 Overlay Gradient */
+    #imageOverlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(120deg, rgba(157,15,130,0.35), rgba(255,180,0,0.25));
+        z-index: -1;
+    }
+
+    /* 🧠 Container */
+    .envision-container {
+        min-height: 100vh;
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
         text-align: center;
-    }
-
-    /* ⚠️ Payment Notice */
-    #paymentNotice {
-        position: absolute;
-        top: 15px;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 20;
-        width: 90%;
-        background: rgba(255, 243, 205, 0.9);
-        color: #856404;
-        border: 1px solid #ffeeba;
-        border-radius: 10px;
-        padding: 10px 15px;
-        box-shadow: 0 3px 6px rgba(0,0,0,0.2);
-        display: none;
-        text-align: center;
-    }
-
-    #paymentNotice button {
-        border: none;
-        background: #9D0F82;
-        color: #fff;
-        padding: 6px 14px;
-        border-radius: 20px;
-        font-size: 12px;
-        cursor: pointer;
-        margin-top: 5px;
-    }
-
-    #closeNotice {
-        position: absolute;
-        top: 5px;
-        right: 12px;
-        background: none;
-        border: none;
-        color: #856404;
-        font-size: 20px;
-        cursor: pointer;
-        line-height: 1;
-    }
-
-    /* 🎥 Video Container */
-    .video-wrapper {
+        padding: 100px 1.5rem 100px;
+        z-index: 2;
         position: relative;
-        width: 90%;
-        max-width: 420px;
-        aspect-ratio: 16 / 9;
-        border-radius: 14px;
-        overflow: hidden;
-        box-shadow: 0 6px 20px rgba(0,0,0,0.4);
-        margin: 0 auto;
+        backdrop-filter: blur(2px);
     }
 
-    .video-wrapper iframe {
+    .envision-container h4 {
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 30px;
+        text-shadow: 0 0 10px rgba(255, 216, 77, 0.5);
+        font-size: 1.3rem;
+    }
+
+    /* 🎬 Responsive Video Wrapper */
+    .envision-video {
+        position: relative;
+        width: 100%;
+        max-width: 700px;
+        padding-top: 56.25%; /* 16:9 */
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
+        background: rgba(0, 0, 0, 0.4);
+    }
+
+    .envision-video iframe {
+        position: absolute;
+        top: 0;
+        left: 0;
         width: 100%;
         height: 100%;
-        border: 0;
-        border-radius: 14px;
+        border: none;
+        border-radius: 20px;
+    }
+
+    /* 💡 Text / Description Section */
+    .envision-description {
+        margin-top: 25px;
+        max-width: 700px;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        color: #eee;
+        opacity: 0.9;
     }
 
     /* 🚪 CTA Button */
     .enter-lobby {
         color: #fff;
         border: none;
-        border-radius: 30px;
+        border-radius: 50px;
         padding: 14px 0;
         font-weight: 600;
         width: 80%;
         max-width: 350px;
-        margin-top: 2rem;
+        margin-top: 2.5rem;
         transition: 0.3s;
         text-decoration: none;
         text-align: center;
@@ -113,99 +108,38 @@ $country = session('reg_country') ?? 'Nigeria';
         transform: scale(1.05);
     }
 
-    @media (max-width: 480px) {
-        .video-wrapper {
-            max-width: 350px;
+    /* 📱 Responsive */
+    @media (max-width: 600px) {
+        .envision-container {
+            padding: 80px 1rem 90px;
         }
-
-        .enter-lobby {
-            font-size: 15px;
-            padding: 12px 0;
+        .envision-container h4 {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+        }
+        .envision-video {
+            border-radius: 14px;
+            box-shadow: 0 0 25px rgba(0, 0, 0, 0.5);
         }
     }
 </style>
 
-<!-- ⚠️ Payment Notice -->
-<!--<div id="paymentNotice">
-    <button type="button" id="closeNotice">&times;</button>
-    <div class="notice-text">
-        <strong>Access Restricted:</strong>
-        This is a paid event. Please complete your registration payment to unlock all sessions.
-        <div class="mt-2">
-            <span id="priceInfo" style="font-weight:600;"></span>
-            <button id="upgradeBtn">Pay Now</button>
-        </div>
-    </div>
-</div>-->
+<!-- 🌈 Overlay Layer -->
+<div id="imageOverlay"></div>
 
-<!-- 🎥 Centered Video -->
-<div class="video-wrapper">
-    <iframe src="https://player.vimeo.com/video/1014896127"
+<!-- 🧠 Main Content -->
+<div class="envision-container">
+    <h4 class="epr-text-purple">Welcome To Unleash 2025</h4>
+
+    <div class="envision-video">
+        <iframe
+            src="https://player.vimeo.com/video/1014896127?h=2ad1e8b0f7&color=eebf34&title=0&byline=0&portrait=0"
             allow="autoplay; fullscreen; picture-in-picture"
-            allowfullscreen></iframe>
+            allowfullscreen>
+        </iframe>
+    </div>
+
+    <a href="<?php echo site_url('mobile/lobby'); ?>" class="enter-lobby epr-btn-two">ENTER LOBBY</a>
 </div>
 
-<!-- 🚪 Enter Lobby Button -->
-<a href="<?php echo site_url('mobile/lobby'); ?>" class="enter-lobby epr-btn-one">
-    ENTER LOBBY
-</a>
-
-
-<script>
-document.addEventListener("DOMContentLoaded", async () => {
-    const attendeeId = "<?php echo $attendee_id; ?>";
-    const country = "<?php echo $country; ?>";
-    const apiBase = "<?php echo rtrim(base_url('api'), '/'); ?>";
-    const apiKey  = "<?php echo env('api.securityKey'); ?>";
-
-    async function apiGet(endpoint) {
-        const res = await fetch(`${apiBase}/${endpoint}`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-                "X-API-KEY": apiKey
-            }
-        });
-        if (!res.ok) throw new Error(`API ${endpoint} failed (${res.status})`);
-        return res.json();
-    }
-
-    try {
-        const confData = await apiGet("conferences/live");
-        const conf = confData?.data;
-        if (!conf) return;
-
-        const isPaidEvent  = conf.is_paid;
-        const conferenceId = conf.conference_id;
-
-        const priceData = await apiGet(`ticket-prices/${conferenceId}/${country}`);
-        const payData = await apiGet(`payments/check/${attendeeId}`);
-        const hasPaid = payData?.data && Object.keys(payData.data).length > 0;
-
-        if (isPaidEvent && !hasPaid) {
-            const notice = document.getElementById("paymentNotice");
-            const priceInfo = document.getElementById("priceInfo");
-
-            if (priceData.status === "success") {
-                priceInfo.textContent = `Ticket: ${priceData.currency} ${priceData.price}`;
-            } else {
-                priceInfo.textContent = "Ticket pricing unavailable.";
-            }
-
-            notice.style.display = "block";
-        }
-    } catch (err) {
-        console.error("Error loading conference/payment info:", err);
-    }
-
-    const closeNotice = document.getElementById("closeNotice");
-    const paymentNotice = document.getElementById("paymentNotice");
-    if (closeNotice && paymentNotice) {
-        closeNotice.addEventListener("click", () => {
-            paymentNotice.style.opacity = "0";
-            paymentNotice.style.transition = "opacity 0.4s ease";
-            setTimeout(() => paymentNotice.style.display = "none", 400);
-        });
-    }
-});
-</script>
+<?php echo module_view('MobileApp', 'includes/footer'); ?>

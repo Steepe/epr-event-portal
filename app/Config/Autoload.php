@@ -92,5 +92,5 @@ class Autoload extends AutoloadConfig
      *
      * @var list<string>
      */
-    public array $helpers = ['url', 'asset', 'module', 'api'];
+    public array $helpers = ['url', 'asset', 'module', 'api', 'session'];
 }
