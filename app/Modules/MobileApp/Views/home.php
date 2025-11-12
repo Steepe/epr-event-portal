@@ -60,7 +60,6 @@ echo module_view('MobileApp', 'includes/header');
 
     .lobby-header {
         margin-bottom: 1.5rem;
-        z-index: 2;
     }
 
     .lobby-header h3 {
@@ -75,7 +74,7 @@ echo module_view('MobileApp', 'includes/header');
         margin-bottom: 0;
     }
 
-    /* 🔘 Lobby Bubbles */
+    /* 🔘 Bubble Defaults */
     .lobby-bubble {
         border-radius: 50%;
         cursor: pointer;
@@ -99,9 +98,8 @@ echo module_view('MobileApp', 'includes/header');
         transform: scale(0.95);
     }
 
-    /* 🌟 Live Big Bubble (Centered) */
+    /* 🌟 Live Big Bubble */
     .lobby-center-wrapper {
-        position: relative;
         width: 100%;
         display: flex;
         justify-content: center;
@@ -144,22 +142,23 @@ echo module_view('MobileApp', 'includes/header');
     }
 
     .lobby-top .lobby-bubble {
-        width: 90px;
-        height: 90px;
+        width: 120px;
+        height: 120px;
     }
 
-    /* 🏆 Past Conferences */
+    /* 🏆 Past Conferences Grid */
     .lobby-past {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
         gap: 25px;
-        z-index: 3;
+        width: 100%;
+        justify-items: center;
+        margin-top: 30px;
     }
 
     .lobby-past .lobby-bubble {
-        width: 90px;
-        height: 90px;
+        width: 120px;
+        height: 120px;
     }
 
     /* 📱 Responsive scaling */
@@ -168,13 +167,10 @@ echo module_view('MobileApp', 'includes/header');
             width: 260px;
             height: 260px;
         }
-        .lobby-top .lobby-bubble {
-            width: 80px;
-            height: 80px;
-        }
+        .lobby-top .lobby-bubble,
         .lobby-past .lobby-bubble {
-            width: 70px;
-            height: 70px;
+            width: 110px;
+            height: 110px;
         }
     }
 </style>
@@ -220,7 +216,7 @@ echo module_view('MobileApp', 'includes/header');
         <?php session()->set('live-conference-id', $live['conference_id']); ?>
         <div class="lobby-center-wrapper">
             <div class="lobby-center"
-                 onclick="window.location='<?php echo base_url('mobile/attendees/home'); ?>'">
+                 onclick="window.location='<?php echo base_url('mobile/welcome'); ?>'">
                 <img src="<?php echo base_url('uploads/conferences/' . $live['icon']); ?>"
                      alt="<?php echo esc($live['title']); ?>">
             </div>

@@ -6,9 +6,7 @@
  * Date: 28/10/2025
  * Time: 06:32
  */
-?>
 
-<?php
 echo module_view('Web', 'includes/header_home');
 echo module_view('Web', 'includes/home_topbar');
 

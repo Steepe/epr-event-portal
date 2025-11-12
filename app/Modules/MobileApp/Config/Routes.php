@@ -24,6 +24,13 @@ $routes->group('mobile', ['namespace' => 'App\Modules\MobileApp\Controllers'], s
 });
 
 $routes->group('mobile', ['namespace' => 'App\Modules\MobileApp\Controllers'], static function ($routes) {
+
+    $routes->get('welcome', 'Welcome::index');
+    $routes->get('lobby', 'Lobby::index');
+    $routes->get('agenda/(:num)', 'Agenda::index/$1');
+
+
+
     $routes->get('sessions', 'Sessions::index');
     $routes->get('sessions/(:num)', 'Sessions::view/$1');
     $routes->get('messages', 'Messages::index');

@@ -1,0 +1,45 @@
+<?php
+/**
+ * Created by PhpStorm.
+ * User: oluwamayowasteepe
+ * Project: epr-event-portal
+ * Date: 12/11/2025
+ * Time: 05:40
+ */
+
+
+namespace App\Modules\MobileApp\Controllers;
+
+use App\Controllers\BaseController;
+use App\Modules\MobileApp\Models\SessionModel;
+
+class Agenda extends BaseController
+{
+    public function index($conference_id = null)
+    {
+        // 🔒 Require login
+        if (!session()->get('isLoggedIn')) {
+            return redirect()->to(site_url('mobile/login'));
+        }
+
+        // 🧭 Ensure conference ID exists
+        if (empty($conference_id)) {
+            return redirect()->to(site_url('mobile/home'));
+        }
+
+        $sessionModel = new SessionModel();
+
+        // 🗓 Fetch all sessions for the conference
+        $sessions = $sessionModel
+            ->where('conference_id', $conference_id)
+            ->orderBy('event_date', 'ASC')
+            ->orderBy('start_time', 'ASC')
+            ->findAll();
+
+        // 🎯 Render view
+        return module_view('MobileApp', 'agenda', [
+            'sessions' => $sessions,
+            'conference_id' => $conference_id,
+        ]);
+    }
+}

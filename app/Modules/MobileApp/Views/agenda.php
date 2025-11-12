@@ -1,0 +1,261 @@
+<?php
+/**
+ * Created by PhpStorm.
+ * User: oluwamayowasteepe
+ * Project: epr-event-portal
+ * Date: 12/11/2025
+ * Time: 05:41
+ */
+
+echo module_view('MobileApp', 'includes/header');
+
+$plan = $plan ?? 1;
+$timezone = $timezone ?? 'Africa/Lagos';
+?>
+
+<style>
+    body {
+        font-family: 'Inter', 'Poppins', sans-serif;
+        color: #fff;
+        margin: 0;
+        padding: 0;
+        overflow-x: hidden;
+    }
+
+    /* 🎥 Background Video */
+    #bgVideo {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        filter: blur(6px) brightness(0.6);
+        z-index: -2;
+    }
+
+    /* 🌈 Overlay Gradient */
+    #videoOverlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(120deg, rgba(157,15,130,0.4), rgba(255,180,0,0.25));
+        z-index: -1;
+    }
+
+    h4.text-epr {
+        color: #ffd84d;
+        text-align: center;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        margin-top: 100px;
+        margin-bottom: 1.5rem;
+        text-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+    }
+
+    /* 📅 Day Pills */
+    .day-pills {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 1.5rem;
+        z-index: 1;
+        position: relative;
+    }
+
+    .day-pill {
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        color: #fff;
+        padding: 7px 16px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.25s ease;
+    }
+
+    .day-pill.active {
+        background: linear-gradient(135deg, #9D0F82, #ffb400);
+        border: none;
+        color: #fff;
+        box-shadow: 0 0 10px rgba(255, 184, 0, 0.4);
+        font-weight: 600;
+    }
+
+    /* 🧾 Session Cards */
+    .sessions-wrapper {
+        padding: 0 1rem 3rem;
+        position: relative;
+        z-index: 2;
+    }
+
+    .session-card {
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 18px;
+        padding: 1rem 1rem 0.8rem;
+        margin-bottom: 1rem;
+        transition: transform 0.25s ease;
+        box-shadow: 0 3px 12px rgba(0, 0, 0, 0.25);
+        backdrop-filter: blur(8px);
+    }
+
+    .session-card.locked {
+        opacity: 0.6;
+        pointer-events: none;
+    }
+
+    .session-card:hover {
+        transform: scale(1.03);
+    }
+
+    .session-title {
+        font-weight: 600;
+        font-size: 1rem;
+        color: #fff;
+        margin-bottom: .4rem;
+    }
+
+    .session-time {
+        font-size: 0.85rem;
+        color: #ccc;
+        margin-bottom: 0.4rem;
+    }
+
+    .session-speakers {
+        font-size: 0.85rem;
+        color: #ffd84d;
+        margin-bottom: 0.8rem;
+    }
+
+    .session-actions {
+        text-align: right;
+    }
+
+    .btn-epr {
+        color: #fff;
+        border: none;
+        border-radius: 25px;
+        padding: 8px 16px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        text-decoration: none;
+        transition: 0.3s;
+    }
+
+    .btn-epr:hover {
+        transform: scale(1.05);
+    }
+
+    .btn-light {
+        background: rgba(255, 255, 255, 0.15);
+        color: #bbb;
+        border: none;
+        border-radius: 25px;
+        padding: 8px 16px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .no-sessions {
+        text-align: center;
+        color: #ccc;
+        margin-top: 50px;
+        font-size: 0.9rem;
+    }
+
+    @media (max-width: 480px) {
+        .session-card {
+            padding: 1rem;
+        }
+        h4.text-epr {
+            margin-top: 80px;
+            font-size: 1.2rem;
+        }
+    }
+</style>
+
+<!-- 🎥 Background Video -->
+<video autoplay muted loop playsinline id="bgVideo">
+    <source src="<?php echo asset_url('videos/brain-lobby-bg.mp4'); ?>" type="video/mp4">
+</video>
+<div id="videoOverlay"></div>
+
+<h4 class="text-epr">AGENDA</h4>
+
+<div class="sessions-wrapper">
+<?php if (empty($sessions)): ?>
+    <p class="no-sessions">No sessions found for this conference.</p>
+<?php else: ?>
+    <?php
+    // Group sessions by event_date
+    $sessionsByDate = [];
+    foreach ($sessions as $s) {
+        $sessionsByDate[$s['event_date']][] = $s;
+    }
+    ?>
+
+    <!-- 📅 Date Tabs -->
+    <div class="day-pills" id="dayPills">
+        <?php $first = true; foreach ($sessionsByDate as $date => $list): ?>
+            <div class="day-pill <?php echo $first ? 'active' : ''; ?>"
+                 data-target="day-<?php echo str_replace('-', '', $date); ?>">
+                <?php echo date('M j, Y', strtotime($date)); ?>
+            </div>
+        <?php $first = false; endforeach; ?>
+    </div>
+
+    <!-- 🧾 Session Lists -->
+    <div id="sessionsContainer">
+        <?php $first = true; foreach ($sessionsByDate as $date => $list): ?>
+            <div class="session-day <?php echo $first ? '' : 'hidden'; ?>"
+                 id="day-<?php echo str_replace('-', '', $date); ?>">
+                <?php foreach ($list as $s): ?>
+                    <?php
+                        $start = (new DateTime($s['event_date'].' '.$s['start_time']))->format('h:i A');
+                        $end   = (new DateTime($s['event_date'].' '.$s['end_time']))->format('h:i A');
+                        $isPaid = $s['access_level'] == 2;
+                        $canAccess = ($plan ?? 1) >= $s['access_level'];
+                    ?>
+                    <div class="session-card <?php echo $canAccess ? '' : 'locked'; ?>">
+                        <div class="session-title"><?php echo esc($s['sessions_name']); ?></div>
+                        <div class="session-time"><?php echo $start; ?> - <?php echo $end; ?> (<?php echo esc($timezone); ?>)</div>
+                        <div class="session-speakers">Speakers: TBA</div>
+                        <div class="session-actions">
+                            <?php if ($canAccess): ?>
+                                <a href="<?php echo site_url('mobile/session/'.$s['sessions_id']); ?>" class="btn-epr epr-btn-one">View Session</a>
+                            <?php else: ?>
+                                <button class="btn-light" disabled>Locked</button>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php $first = false; endforeach; ?>
+    </div>
+<?php endif; ?>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const pills = document.querySelectorAll('.day-pill');
+    const sections = document.querySelectorAll('.session-day');
+
+    pills.forEach(pill => {
+        pill.addEventListener('click', () => {
+            pills.forEach(p => p.classList.remove('active'));
+            pill.classList.add('active');
+
+            sections.forEach(sec => sec.classList.add('hidden'));
+
+            const target = pill.getAttribute('data-target');
+            document.getElementById(target).classList.remove('hidden');
+        });
+    });
+});
+</script>
+
+<?php echo module_view('MobileApp', 'includes/footer'); ?>
