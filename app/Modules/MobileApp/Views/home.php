@@ -7,7 +7,6 @@
  * Time: 04:45
  */
 
-
 echo module_view('MobileApp', 'includes/header');
 ?>
 
