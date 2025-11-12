@@ -96,7 +96,7 @@ class RegisterController extends BaseController
                     <p>We’re thrilled to have you with us! 💎</p>
 
                     <div style="text-align:center;margin-top:35px;">
-                        <a href="' . site_url('mobile/lobby') . '" 
+                        <a href="https://portal.eprglobal.com" 
                            style="background:#9D0F82;color:#fff;text-decoration:none;padding:12px 30px;
                                   border-radius:30px;font-weight:600;display:inline-block;transition:0.3s;">
                             Access the Portal
