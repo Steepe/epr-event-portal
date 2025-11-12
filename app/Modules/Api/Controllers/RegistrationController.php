@@ -68,8 +68,6 @@ class RegistrationController extends BaseController
             'country'                => $data['country'] ?? '',
             'city'                   => $data['city'] ?? '',
             'state'                  => $data['state'] ?? '',
-            'useremail'              => $data['email'],
-            'userpassword'           => $hashedPassword,
             'ipaddress'              => $ipAddress,
             'uid'                    => substr(md5(uniqid('', true)), 0, 11),
             'is_verified'            => 1,
@@ -83,7 +81,7 @@ class RegistrationController extends BaseController
         }
 
         $emailService = \Config\Services::email();
-        $emailService->setFrom('no-reply@eventportal.creyatif', 'EPRGlobal Events');
+        $emailService->setFrom(env('email.fromEmail'), 'EPRGlobal Events');
         $emailService->setTo($data['email']);
         $emailService->setSubject('Welcome to EPRGlobal Event Portal!');
         $emailService->setMessage(module_view('Api', 'welcome_email', [
