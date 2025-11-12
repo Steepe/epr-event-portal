@@ -10,6 +10,7 @@
 namespace App\Modules\MobileApp\Controllers;
 
 use App\Controllers\BaseController;
+use App\Modules\MobileApp\Models\CountryModel;
 use App\Modules\MobileApp\Models\UserModel;
 use App\Modules\MobileApp\Models\AttendeeModel;
 
@@ -17,7 +18,10 @@ class RegisterController extends BaseController
 {
     public function index()
     {
-        return module_view('MobileApp', 'register');
+        $countryModel = new CountryModel();
+        $data['countries'] = $countryModel->orderBy('country_name', 'ASC')->findAll();
+
+        return module_view('MobileApp', 'register', $data);
     }
 
     public function process()
@@ -40,7 +44,6 @@ class RegisterController extends BaseController
         $userModel = new UserModel();
         $attendeeModel = new AttendeeModel();
 
-        // 🧩 Create User
         $userId = $userModel->insert([
             'email'     => $request->getPost('email'),
             'password'  => password_hash($request->getPost('password'), PASSWORD_DEFAULT),
@@ -48,7 +51,6 @@ class RegisterController extends BaseController
             'status'    => 1,
         ]);
 
-        // 🧍 Create Attendee profile
         $attendeeModel->insert([
             'attendee_id' => $userId,
             'firstname'   => $request->getPost('firstname'),
@@ -60,7 +62,6 @@ class RegisterController extends BaseController
             'is_verified' => 1,
         ]);
 
-        // 🔑 Initialize session
         session()->set([
             'isLoggedIn' => true,
             'user_id'    => $userId,

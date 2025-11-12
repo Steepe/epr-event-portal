@@ -21,6 +21,7 @@ $routes->group('mobile', ['namespace' => 'App\Modules\MobileApp\Controllers'], s
     $routes->post('login', 'Auth::attemptLogin');
     $routes->get('logout', 'Auth::logout');
     $routes->get('register', 'RegisterController::index');
+    $routes->post('register/process', 'RegisterController::process');
 });
 
 
