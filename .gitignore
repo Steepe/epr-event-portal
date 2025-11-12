@@ -19,6 +19,7 @@ application/logs/*
 /writable/logs/
 /writable/session/
 .idea/vcs.xml
+.idea/
 app/.DS_Store
 writable/.DS_Store
 *.log
@@ -37,3 +38,4 @@ public/.DS_Store
 .env
 writable/logs/index.html
 /writable/debugbar/
+*/.DS_Store
