@@ -14,7 +14,7 @@ use App\Modules\MobileApp\Models\ConferenceModel;
 
 class Home extends BaseController
 {
-    public function index()
+    public function index(): string|\CodeIgniter\HTTP\RedirectResponse
     {
         if (!session()->get('isLoggedIn')) {
             return redirect()->to(site_url('mobile/login'));
@@ -30,5 +30,15 @@ class Home extends BaseController
         return module_view('MobileApp', 'home', [
             'conferences' => $conferences
         ]);
+    }
+
+    public function envision(): string|\CodeIgniter\HTTP\RedirectResponse
+    {
+        if (!session()->get('isLoggedIn')) {
+            return redirect()->to(site_url('mobile/login'));
+        }
+
+        return module_view('MobileApp', 'envision');
+
     }
 }

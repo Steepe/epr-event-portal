@@ -30,6 +30,10 @@ $routes->group('mobile', ['namespace' => 'App\Modules\MobileApp\Controllers'], s
     $routes->get('agenda/(:num)', 'Agenda::index/$1');
     $routes->get('session/(:num)', 'Session::detail/$1');
     $routes->get('webinars', 'Webinars::index');
+    $routes->get('envision', 'Home::envision');
+
+    $routes->get('pastConference/(:num)', 'PastConference::index/$1');
+    $routes->get('pastConference/session/(:num)', 'PastConference::viewSession/$1');
 
 
 
