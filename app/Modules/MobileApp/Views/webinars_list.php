@@ -7,7 +7,7 @@
  * Time: 06:36
  */
 
- echo module_view('MobileApp', 'includes/header'); ?>
+echo module_view('MobileApp', 'includes/header'); ?>
 
 <style>
     body {
@@ -138,35 +138,69 @@
         border: none;
     }
 
-    /* 🎥 Modal */
-    .modal-content {
-        border-radius: 16px;
-        background-color: #000;
+    /* 🎬 Custom Overlay for Vimeo Player */
+    .video-overlay {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100vw; height: 100vh;
+        background: rgba(0,0,0,0.9);
+        backdrop-filter: blur(4px);
+        z-index: 9999;
+        display: none;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .video-box {
+        position: relative;
+        width: 90%;
+        max-width: 700px;
+        aspect-ratio: 16 / 9;
+        background: #000;
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 0 40px rgba(255,255,255,0.15);
+    }
+
+    .video-box iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+    }
+
+    .close-overlay {
+        position: absolute;
+        top: -45px;
+        right: 0;
+        background: none;
         color: #fff;
-        border: 1px solid rgba(255,255,255,0.1);
+        font-size: 36px;
+        border: none;
+        cursor: pointer;
+        z-index: 10;
+        opacity: 0.85;
+        transition: opacity .2s ease;
     }
 
-    .modal-header {
-        border-bottom: 1px solid rgba(255,255,255,0.15);
+    .close-overlay:hover {
+        opacity: 1;
     }
 
-    .modal-title {
-        color: #ffd84d;
-        font-weight: 600;
-    }
-
-    .close {
-        color: #fff;
-        opacity: 0.8;
-    }
-
-    .close:hover { opacity: 1; }
-
-    /* Responsive */
     @media (max-width: 600px) {
         h3 { font-size: 1.2rem; }
         .webinar-card { padding: 1rem; }
         .webinar-title { font-size: 1rem; }
+
+        .video-box {
+            width: 95%;
+            height: 56vw;
+            border-radius: 0;
+        }
+        .close-overlay {
+            top: 10px;
+            right: 12px;
+            font-size: 32px;
+        }
     }
 </style>
 
@@ -211,9 +245,8 @@
                             <i class="fa fa-video-camera"></i> Join Webinar
                         </a>
                     <?php elseif ($isPast && $hasRecording): ?>
-                        <button class="btn-purple"
-                                data-toggle="modal"
-                                data-target="#vimeoModal<?= $webinar['event_id']; ?>">
+                        <button class="btn-purple open-video"
+                                data-vimeo="https://player.vimeo.com/video/<?= esc($vimeoID); ?>?autoplay=1">
                             <i class="fa fa-play-circle"></i> Watch Recording
                         </button>
                     <?php else: ?>
@@ -221,40 +254,45 @@
                     <?php endif; ?>
                 </div>
             </div>
-
-            <!-- 🎥 Vimeo Modal -->
-            <?php if ($isPast && $hasRecording): ?>
-                <div class="modal fade" id="vimeoModal<?= $webinar['event_id']; ?>" tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered modal-lg">
-                        <div class="modal-content position-relative">
-                            <!-- ✖️ Close Button -->
-                            <button type="button" class="close video-close-btn" data-dismiss="modal" aria-label="Close">
-                                <span>&times;</span>
-                            </button>
-
-                            <div class="modal-body p-0 position-relative">
-                                <div class="embed-responsive embed-responsive-16by9 video-frame-wrapper">
-                                    <iframe class="embed-responsive-item"
-                                            src="https://player.vimeo.com/video/<?= esc($vimeoID); ?>?autoplay=1&muted=0&dnt=1"
-                                            allow="autoplay; fullscreen; picture-in-picture"
-                                            allowfullscreen>
-                                    </iframe>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            <?php endif; ?>
         <?php endforeach; ?>
     <?php endif; ?>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- 🎥 Custom Fullscreen Video Overlay -->
+<div id="videoOverlayContainer" class="video-overlay">
+    <div class="video-box">
+        <button class="close-overlay" id="closeVideoOverlay">&times;</button>
+        <iframe id="videoFrame" src="" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+    </div>
+</div>
+
 <script>
-$('.modal').on('hidden.bs.modal', function () {
-    const iframe = $(this).find('iframe');
-    if (iframe.length) iframe.attr('src', iframe.attr('src')); // stop video on close
+document.addEventListener("DOMContentLoaded", function() {
+    const overlay = document.getElementById('videoOverlayContainer');
+    const iframe = document.getElementById('videoFrame');
+    const closeBtn = document.getElementById('closeVideoOverlay');
+
+    document.querySelectorAll('.open-video').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const src = this.dataset.vimeo;
+            iframe.src = src;
+            overlay.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        });
+    });
+
+    function closeOverlay() {
+        iframe.src = ''; // stop playback
+        overlay.style.display = 'none';
+        document.body.style.overflow = 'auto';
+    }
+
+    closeBtn.addEventListener('click', closeOverlay);
+
+    // Close on tapping outside video
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) closeOverlay();
+    });
 });
 </script>
 
