@@ -11,7 +11,7 @@ namespace App\Modules\MobileApp\Controllers;
 
 use App\Controllers\BaseController;
 use App\Modules\MobileApp\Models\SessionModel;
-use App\Modules\MobileApp\Models\SpeakerModel;
+use App\Modules\MobileApp\Models\SpeakersModel;
 
 class Session extends BaseController
 {
@@ -27,7 +27,7 @@ class Session extends BaseController
         }
 
         $sessionModel = new SessionModel();
-        $speakerModel = new SpeakerModel();
+        $speakerModel = new SpeakersModel();
 
         // 🧠 Fetch session details
         $session = $sessionModel->where('sessions_id', $sessions_id)->first();
@@ -36,12 +36,8 @@ class Session extends BaseController
                 ->with('error', 'Session not found.');
         }
 
-        // 👥 Fetch linked speakers (joined with tbl_speakers)
-        $speakers = $speakerModel
-            ->select('tbl_speakers.speaker_name, tbl_speakers.speaker_title, tbl_speakers.speaker_company, tbl_speakers.speaker_photo')
-            ->join('tbl_speakers', 'tbl_speakers.speaker_id = tbl_session_speakers.speaker_id', 'left')
-            ->where('tbl_session_speakers.sessions_id', $sessions_id)
-            ->findAll();
+        // 👥 Fetch linked speakers safely
+        $speakers = $speakerModel->getSpeakersBySession($sessions_id);
 
         $timezone = session('reg_country') === 'Nigeria' ? 'Africa/Lagos' : 'UTC';
 
@@ -51,4 +47,25 @@ class Session extends BaseController
             'timezone'  => $timezone,
         ]);
     }
+
+    public function view($sessions_id)
+    {
+        $sessionModel = new SessionModel();
+        $speakerModel = new SpeakersModel();
+
+        $session = $sessionModel->where('sessions_id', $sessions_id)->first();
+        if (!$session) {
+            return redirect()->to(site_url('mobile/agenda'))->with('error', 'Session not found.');
+        }
+
+        $speakers = $speakerModel->getSpeakersBySession($sessions_id);
+
+        $data = [
+            'session'  => $session,
+            'speakers' => $speakers,
+        ];
+
+        echo module_view('MobileApp', 'sessions/view', $data);
+    }
+
 }

@@ -99,26 +99,51 @@
     </style>
 </head>
 <body>
-<div class="email-wrapper">
-    <div class="email-container">
+<div class="email-wrapper" style="background-color:#f4f4f4;padding:40px 0;font-family:'Poppins',sans-serif;">
+    <div class="email-container" style="max-width:600px;margin:auto;background:#ffffff;border-radius:10px;overflow:hidden;box-shadow:0 5px 20px rgba(0,0,0,0.1);">
 
-        <div class="email-header">
-            <img src="<?= base_url('assets/images/eventslogo.png'); ?>" alt="EPRGlobal Logo">
-            <h1>Welcome to EPRGlobal</h1>
+        <!-- Header -->
+        <div class="email-header" style="padding:30px;text-align:center;">
+            <img src="https://portal.eprglobal.com/assets/images/eventslogo.png" alt="EPRGlobal Logo" style="width:180px;margin-bottom:10px;">
+            <h1 style="color:#fff;margin:0;font-size:22px;font-weight:700;">Welcome to EPR Global’s Event Portal!</h1>
+            <p style="color:#fff;font-size:14px;margin-top:5px;">Your Access Is Confirmed 🎉</p>
         </div>
 
-        <div class="email-body">
-            <h2>Hello <?= esc($firstname) ?>,</h2>
-            <p>We’re thrilled to have you join the <strong>EPRGlobal Event Portal</strong> community.</p>
-            <p>Your registration was successful — you now have access to our upcoming virtual events, exhibitions, and networking sessions.</p>
-            <p>Use your registered email (<strong><?= esc($email ?? '') ?></strong>) to log in and explore.</p>
-            <a href="<?= base_url('attendees/login'); ?>" class="cta-button">Sign In to Your Account</a>
-            <p style="margin-top: 20px;">If you didn’t create this account, please ignore this message.</p>
+        <!-- Body -->
+        <div class="email-body" style="padding:35px 30px;color:#333333;line-height:1.7;font-size:15px;">
+            <h2 style="color:#9D0F82;font-weight:700;font-size:18px;">Hello <?php echo esc($firstname) ?>,</h2>
+
+            <p>Welcome to <strong>EPR Global’s Event Portal</strong>, your digital gateway to inspiration, empowerment, and transformation.</p>
+
+            <p>You now have full access to our library of past <strong>Emergence Conferences</strong>, webinars, and other powerful sessions from our <strong>Women’s Professional Network (WPN)</strong>. Each resource is designed to help you grow spiritually, personally, and professionally.</p>
+
+            <p>Take time to revisit your favourite moments or catch up on sessions you may have missed. Every talk is an opportunity to gain clarity, grow in confidence, and keep your genius in motion.</p>
+
+            <p>If you have any questions or need support while on the platform, please reach out to us at
+                <a href="mailto:support@eprglobal.com" style="color:#9D0F82;font-weight:600;text-decoration:none;">support@eprglobal.com</a> — we’re happy to help.
+            </p>
+
+            <p>Welcome again to the community of women of African descent who are rising with purpose and unleashing their God-given genius. 💎</p>
+
+            <div style="text-align:center;margin:35px 0;">
+                <a href="<?php echo base_url('attendees/login'); ?>"
+                   class="cta-button"
+                   style="background:#9D0F82;color:#fff;text-decoration:none;padding:12px 28px;border-radius:30px;font-weight:600;display:inline-block;transition:0.3s;">
+                    Access Your Account
+                </a>
+            </div>
+
+            <p style="margin-top:20px;text-align:center;color:#777;">
+                With excitement,<br>
+                <strong>The EPR Global Team</strong><br>
+                <em>Building the Women who will Build Institutions</em>
+            </p>
         </div>
 
-        <div class="email-footer">
-            &copy; <?= date('Y'); ?> EPRGlobal — All rights reserved.<br>
-            <span style="color:#9D0F82;">Powered by Creyatif Technologies</span>
+        <!-- Footer -->
+        <div class="email-footer" style="background:#150020;color:#fff;text-align:center;padding:15px 10px;font-size:12px;">
+            &copy; <?php echo date('Y'); ?> EPR Global — All Rights Reserved.<br>
+            <span style="color:#EFB11E;">Powered by <a href="https://about.me/steepe" target="_blank">Creyatif Technologies</a> </span>
         </div>
 
     </div>

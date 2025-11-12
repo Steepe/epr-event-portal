@@ -43,4 +43,22 @@ class SpeakersModel extends Model
             ->get()
             ->getResultArray();
     }
+
+    public function getSpeakersBySession($sessionId)
+    {
+        $db = \Config\Database::connect();
+
+        $sql = "
+        SELECT sp.speaker_id, sp.speaker_name, sp.speaker_title,
+               sp.speaker_company, sp.speaker_photo, sp.bio
+        FROM tbl_session_speakers AS ss
+        LEFT JOIN tbl_speakers AS sp ON sp.speaker_id = ss.speaker_id
+        WHERE ss.sessions_id = ?
+        ORDER BY sp.speaker_name ASC
+    ";
+
+        $query = $db->query($sql, [$sessionId]);
+        return $query->getResultArray();
+    }
+
 }

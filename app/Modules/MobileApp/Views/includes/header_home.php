@@ -217,66 +217,10 @@
 
 <body>
 
-<header class="mobile-header">
-    <h1></h1>
-    <button class="menu-btn" id="openMobileMenu" aria-label="Open menu">
-        <i class="fa fa-bars"></i>
-    </button>
-</header>
 
 <div class="overlay" id="overlay"></div>
 
-<nav class="mobile-menu" id="mobileMenu">
-    <div class="menu-header">
-        <h5 class="m-0 text-white fw-semibold">Menu</h5>
-        <button class="menu-btn text-white" id="closeMobileMenu" aria-label="Close menu">
-            <i class="fa fa-times"></i>
-        </button>
-    </div>
-
-    <!-- Optional Profile Section -->
-    <div class="text-center py-3 border-bottom border-light">
-        <img src="<?php echo session('profile_picture')
-            ? base_url('uploads/attendees/' . session('profile_picture'))
-            : asset_url('images/avatar.png'); ?>"
-             class="rounded-circle mb-2" width="60" height="60" alt="Profile">
-        <p class="mb-0 text-white fw-semibold">
-            <?php echo esc(session('name') ?? 'Guest User'); ?>
-        </p>
-    </div>
-
-    <ul class="mt-3">
-        <li><a href="<?php echo base_url('mobile/home'); ?>"><i class="fa fa-home me-2"></i>Home</a></li>
-        <li><a href="<?php echo base_url('mobile/lobby'); ?>"><i class="fa fa-bank me-2"></i>Lobby</a></li>
-        <li><a href="<?php echo base_url('mobile/agenda/' . session()->get('live-conference-id')); ?>"><i class="fa fa-calendar me-2"></i>Agenda</a></li>
-        <li><a href="<?php echo base_url('mobile/networking-center'); ?>"><i class="fa fa-building me-2"></i>Networking Centaer</a></li>
-        <li><a href="<?php echo base_url('mobile/emergence-booth'); ?>"><i class="fa fa-microphone me-2"></i>Emergence Booth</a></li>
-        <li><a href="<?php echo base_url('mobile/profile'); ?>"><i class="fa fa-user me-2"></i>Profile</a></li>
-        <li><a href="<?php echo base_url('mobile/logout'); ?>" class="text-danger"><i class="fa fa-sign-out me-2"></i>Logout</a></li>
-    </ul>
-</nav>
 
 
 
-<script>
-    const openBtn = document.getElementById('openMobileMenu');
-    const closeBtn = document.getElementById('closeMobileMenu');
-    const mobileMenu = document.getElementById('mobileMenu');
-    const overlay = document.getElementById('overlay');
-
-    openBtn?.addEventListener('click', () => {
-        mobileMenu.classList.add('active');
-        overlay.classList.add('active');
-    });
-
-    closeBtn?.addEventListener('click', () => {
-        mobileMenu.classList.remove('active');
-        overlay.classList.remove('active');
-    });
-
-    overlay?.addEventListener('click', () => {
-        mobileMenu.classList.remove('active');
-        overlay.classList.remove('active');
-    });
-</script>
 

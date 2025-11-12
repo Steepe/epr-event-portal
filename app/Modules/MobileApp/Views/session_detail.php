@@ -220,7 +220,6 @@ $eventDate = isset($event['event_date']) ? date('F j, Y', strtotime($event['even
     .btn-download {
         display: inline-block;
         margin-top: 1rem;
-        background: linear-gradient(135deg, #9D0F82, #ffb400);
         color: #fff;
         border: none;
         border-radius: 30px;
@@ -230,6 +229,7 @@ $eventDate = isset($event['event_date']) ? date('F j, Y', strtotime($event['even
         font-size: 0.9rem;
         box-shadow: 0 4px 15px rgba(0,0,0,0.3);
         transition: transform 0.2s ease;
+        width: 200px;
     }
 
     .btn-download:hover {
@@ -309,7 +309,7 @@ $eventDate = isset($event['event_date']) ? date('F j, Y', strtotime($event['even
         <p><?php echo nl2br(esc($event['description'] ?? 'No description available.')); ?></p>
 
         <?php if (!empty($event['workbook'])): ?>
-            <a href="<?php echo base_url('uploads/workbooks/' . $event['workbook']); ?>" download class="btn-download">
+            <a href="<?php echo base_url('uploads/workbooks/' . $event['workbook']); ?>" download class="btn-download epr-btn-four">
                 Download Workbook
             </a>
         <?php endif; ?>

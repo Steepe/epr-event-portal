@@ -7,7 +7,7 @@
  * Time: 04:45
  */
 
-echo module_view('MobileApp', 'includes/header');
+echo module_view('MobileApp', 'includes/header_home');
 //var_dump(session());
 ?>
 
@@ -242,4 +242,4 @@ echo module_view('MobileApp', 'includes/header');
     <?php endif; ?>
 </div>
 
-<?php echo module_view('MobileApp', 'includes/footer'); ?>
+<?php echo module_view('MobileApp', 'includes/footer_home'); ?>
