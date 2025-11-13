@@ -71,7 +71,21 @@ $timezone = $timezone ?? 'Africa/Lagos';
                                         <?php endif; ?>
                                     </h6>
                                     <span class="font-12"><?php echo $start; ?> - <?php echo $end; ?> (<?php echo esc($timezone); ?>)</span><br>
-                                    <span class="font-12">Speakers: TBA</span>
+                                    <?php if (!empty($s['speakers'])): ?>
+                                        <span class="font-12">
+                                            Speakers:
+                                            <?php
+                                            $speakerList = array_map(function ($sp) {
+                                                return esc($sp['name']) .
+                                                    (!empty($sp['company']) ? ' (' . esc($sp['company']) . ')' : '');
+                                            }, $s['speakers']);
+                                            echo implode(', ', $speakerList);
+                                            ?>
+                                        </span>
+                                    <?php else: ?>
+                                        <span class="font-12 text-muted">Speakers: TBA</span>
+                                    <?php endif; ?>
+
                                 </div>
                                 <div class="mt-2 mt-md-0">
                                     <?php if ($canAccess): ?>

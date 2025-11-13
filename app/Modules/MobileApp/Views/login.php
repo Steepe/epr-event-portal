@@ -99,7 +99,7 @@
     }
 
     .remember-row a {
-        color: #f3bb1a;
+        color: #ffffff;
         text-decoration: none;
     }
 
@@ -114,7 +114,7 @@
     }
 
     .signup-text a {
-        color: #f3bb1a;
+        color: #ffffff;
         font-weight: 600;
         text-decoration: none;
     }

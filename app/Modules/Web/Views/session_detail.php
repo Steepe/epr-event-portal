@@ -79,7 +79,6 @@ if (!empty($vimeo_id)) {
             <h5 class="text-white"><?php echo  esc($event['sessions_name'] ?? '') ?></h5>
 
             <div class="view-box mb-3">
-                <?php if ($canAccess && !empty($videoSrc)): ?>
                     <div style="padding:56.25% 0 0 0;position:relative;">
                         <iframe src="<?php echo  esc($videoSrc) ?>"
                                 frameborder="0"
@@ -88,13 +87,6 @@ if (!empty($vimeo_id)) {
                                 style="position:absolute;top:0;left:0;width:100%;height:100%;">
                         </iframe>
                     </div>
-                <?php else: ?>
-                    <div style="padding:56.25% 0 0 0;position:relative;background:#f5f5f5;">
-                        <div class="lock-overlay d-flex justify-content-center align-items-center">
-                            <i class="fa fa-lock"></i> &nbsp; Please upgrade your ticket to access this session.
-                        </div>
-                    </div>
-                <?php endif; ?>
             </div>
 
             <div class="row">
@@ -126,14 +118,14 @@ if (!empty($vimeo_id)) {
                         <div class="speaker-summary-bg">
                             <div class="speaker-summary d-flex">
                                 <div>
-                                    <img src="<?php echo  base_url('uploads/speaker_pictures/' . $speaker['profile_picture']) ?>"
-                                         alt="<?php echo  esc($speaker['firstname']) ?>"
+                                    <img src="<?php echo  base_url('uploads/speaker_pictures/' . $speaker['speaker_photo']) ?>"
+                                         alt="<?php echo  esc($speaker['speaker_name']) ?>"
                                          onerror="this.src='<?php echo  asset_url('images/user.png') ?>';"
                                          style="width:120px;height:120px;">
                                 </div>
                                 <div class="text-center pt-2 pl-2">
-                                    <h6><strong><?php echo  esc($speaker['firstname'] . ' ' . $speaker['lastname']) ?></strong></h6>
-                                    <p style="font-size:12px;"><?php echo  esc($speaker['position'] . ', ' . $speaker['company']) ?></p>
+                                    <h6><strong><?php echo  esc($speaker['speaker_name']) ?></strong></h6>
+                                    <p style="font-size:12px;"><?php echo  esc($speaker['speaker_title'] . ', ' . $speaker['speaker_company']) ?></p>
                                 </div>
                             </div>
                         </div>

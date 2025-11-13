@@ -13,7 +13,6 @@
 body {
     font-family: 'Inter', 'Poppins', sans-serif;
     color: #fff;
-    background: radial-gradient(circle at center, #3b004d 0%, #0a0012 100%);
     overflow-x: hidden;
 }
 #bgVideo {
@@ -25,7 +24,6 @@ body {
 #videoOverlay {
     position: fixed; top: 0; left: 0;
     width: 100%; height: 100%;
-    background: linear-gradient(120deg, rgba(157,15,130,0.3), rgba(255,180,0,0.25));
     z-index: -1;
 }
 .container {
@@ -35,7 +33,7 @@ body {
     z-index: 2;
 }
 h3 {
-    color: #f3bb1a;
+    color: #ffffff;
     font-weight: 700;
     margin-bottom: 1.5rem;
 }
@@ -48,10 +46,9 @@ h3 {
     transition: transform 0.25s ease;
 }
 .session-card:hover { transform: translateY(-3px); }
-.session-title { color: #f3bb1a; font-weight: 600; font-size: 1rem; }
+.session-title { color: #ffffff; font-weight: 600; font-size: 1rem; }
 .session-meta { font-size: 0.8rem; opacity: 0.8; margin-bottom: 6px; }
 .btn-watch {
-    background: linear-gradient(135deg, #9D0F82, #ffb400);
     border: none; color: #fff;
     border-radius: 30px;
     padding: 8px 18px;
@@ -62,7 +59,7 @@ h3 {
 </style>
 
 <video autoplay muted loop playsinline id="bgVideo">
-    <source src="<?php echo asset_url('videos/start-bg.mp4'); ?>" type="video/mp4">
+    <source src="<?php echo asset_url('videos/mobile-brain-bg.mp4'); ?>" type="video/mp4">
 </video>
 <div id="videoOverlay"></div>
 
@@ -80,7 +77,7 @@ h3 {
                     <div class="session-meta">
                         <?php echo date('h:i A', strtotime($s['start_time'])).' - '.date('h:i A', strtotime($s['end_time'])); ?>
                     </div>
-                    <button class="btn-watch"
+                    <button class="btn-watch epr-btn-two"
                             onclick="openSession('<?php echo base_url('mobile/pastConference/session/'.$s['sessions_id']); ?>')">
                         Watch Session
                     </button>
@@ -96,4 +93,4 @@ function openSession(url) {
 }
 </script>
 
-<?php echo module_view('MobileApp', 'includes/footer'); ?>
+<?php echo module_view('MobileApp', 'includes/footer_home'); ?>

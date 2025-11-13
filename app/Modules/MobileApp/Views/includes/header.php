@@ -173,7 +173,7 @@
         .mobile-menu ul li a i {
             width: 26px;
             text-align: center;
-            color: #EFB11E;
+            color: #A70B91;
             margin-right: 10px;
             transition: 0.3s ease;
         }
@@ -252,7 +252,7 @@
         <li><a href="<?php echo base_url('mobile/networking-center'); ?>"><i class="fa fa-building me-2"></i>Networking Centaer</a></li>
         <li><a href="<?php echo base_url('mobile/emergence-booth'); ?>"><i class="fa fa-microphone me-2"></i>Emergence Booth</a></li>
         <li><a href="<?php echo base_url('mobile/profile'); ?>"><i class="fa fa-user me-2"></i>Profile</a></li>
-        <li><a href="<?php echo base_url('mobile/logout'); ?>" class="text-danger"><i class="fa fa-sign-out me-2"></i>Logout</a></li>
+        <li><a href="<?php echo base_url('mobile/logout'); ?>"><i class="fa fa-sign-out me-2"></i>Logout</a></li>
     </ul>
 </nav>
 

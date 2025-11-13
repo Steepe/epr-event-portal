@@ -19,7 +19,6 @@ body {
     font-family: 'Poppins', sans-serif;
     overflow-x: hidden;
     color: #fff;
-    background: radial-gradient(circle at center, #6a0080 0%, #150020 100%);
 }
 
 /* 🎥 Video Background */
@@ -37,7 +36,6 @@ body {
     position: fixed;
     top: 0; left: 0;
     width: 100%; height: 100%;
-    background: linear-gradient(120deg, rgba(157,15,130,0.3), rgba(255,180,0,0.2));
     z-index: -1;
 }
 

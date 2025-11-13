@@ -57,7 +57,7 @@ echo module_view('MobileApp', 'includes/header'); ?>
     h3 {
         font-weight: 600;
         font-size: 1.4rem;
-        color: #f3bb1a;
+        color: #ffffff;
         margin-bottom: 0.8rem;
     }
 
@@ -88,7 +88,7 @@ echo module_view('MobileApp', 'includes/header'); ?>
     .webinar-title {
         font-size: 1.05rem;
         font-weight: 600;
-        color: #f3bb1a;
+        color: #ffffff;
         margin-bottom: 0.4rem;
     }
 
@@ -108,7 +108,6 @@ echo module_view('MobileApp', 'includes/header'); ?>
     }
 
     .btn-purple {
-        background: linear-gradient(135deg, #9D0F82, #ffb400);
         color: #fff;
         border: none;
         border-radius: 30px;
@@ -120,6 +119,7 @@ echo module_view('MobileApp', 'includes/header'); ?>
         margin-top: 0.5rem;
         transition: transform 0.25s ease, box-shadow 0.25s ease;
         box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+        width: 180px;
     }
 
     .btn-purple:hover {
@@ -204,7 +204,7 @@ echo module_view('MobileApp', 'includes/header'); ?>
 
 <!-- 🎥 Background Video -->
 <video autoplay muted loop playsinline id="bgVideo">
-    <source src="<?php echo asset_url('videos/start-bg.mp4'); ?>" type="video/mp4">
+    <source src="<?php echo asset_url('videos/mobile-brain-bg.mp4'); ?>" type="video/mp4">
 </video>
 <div id="videoOverlay"></div>
 
@@ -243,7 +243,7 @@ echo module_view('MobileApp', 'includes/header'); ?>
                             <i class="fa fa-video-camera"></i> Join Webinar
                         </a>
                     <?php elseif ($isPast && $hasRecording): ?>
-                        <button class="btn-purple open-video"
+                        <button class="btn-purple open-video epr-btn-four"
                                 data-vimeo="https://player.vimeo.com/video/<?= esc($vimeoID); ?>?autoplay=1">
                             <i class="fa fa-play-circle"></i> Watch Recording
                         </button>
@@ -294,4 +294,4 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 </script>
 
-<?php echo module_view('MobileApp', 'includes/footer'); ?>
+<?php echo module_view('MobileApp', 'includes/footer_home'); ?>

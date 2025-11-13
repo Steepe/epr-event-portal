@@ -37,7 +37,6 @@ $country = session('reg_country') ?? 'Nigeria';
         left: 0;
         width: 100%;
         height: 100%;
-        background: rgba(40, 0, 60, 0.3); /* purple tint overlay */
         z-index: 0; /* sits above the video but below content */
     }
 
@@ -185,7 +184,7 @@ $country = session('reg_country') ?? 'Nigeria';
     <?php
         $conference_id = session()->get('live-conference-id');
     ?>
-    <a href="<?php echo  base_url('attendees/agenda/'.$conference_id); ?>">AGENDA</a>
+    <a href="<?php echo base_url('attendees/agenda/'.$conference_id); ?>">AGENDA</a>
 </div>
 
 <div class="bubble networking">
@@ -205,11 +204,11 @@ $country = session('reg_country') ?? 'Nigeria';
 </div>
 
 <!-- 🔔 Announcement Sidebar -->
-<div class="notification-slide" id="notification_slide">
+<!--<div class="notification-slide" id="notification_slide">
     <div class="slider-arrow text-white">
         <i id="ringing" class="fa fa-bell faa-ring animated fa-5x ringing-bell" style="display: none;"></i>
-        <img class="slide-out" src="<?php echo asset_url('images/slider-arrow-reverse.png') ?>">
-        <img class="slide-in" src="<?php echo asset_url('images/slider-arrow.png') ?>" style="display: none;">
+        <img class="slide-out" src="<?php /*echo asset_url('images/slider-arrow-reverse.png') */?>">
+        <img class="slide-in" src="<?php /*echo asset_url('images/slider-arrow.png') */?>" style="display: none;">
     </div>
 
     <div class="text-center" style="position: relative; top: -34px;">
@@ -217,30 +216,30 @@ $country = session('reg_country') ?? 'Nigeria';
     </div>
 
     <div id="announcements_div" class="announcements mb-5" style="height: 450px; overflow-y: scroll;">
-        <?php if (isset($announcements)) : ?>
-            <?php foreach ($announcements as $announcement) : ?>
+        <?php /*if (isset($announcements)) : */?>
+            <?php /*foreach ($announcements as $announcement) : */?>
                 <div class="card announcement-card">
                     <div class="card-header">
                         <small class="float-right">
-                            <?php echo date('M d H:i', $announcement['created_at']); ?>
+                            <?php /*echo date('M d H:i', $announcement['created_at']); */?>
                         </small>
                     </div>
                     <div class="card-body">
                         <p class="card-text font-12" style="margin-top: -30px;">
-                            <?php echo $announcement['announcement']; ?>
+                            <?php /*echo $announcement['announcement']; */?>
                         </p>
                     </div>
                 </div>
-            <?php endforeach; ?>
-        <?php endif; ?>
+            <?php /*endforeach; */?>
+        <?php /*endif; */?>
     </div>
 </div>
-
+-->
 <!-- ⚙️ Footer -->
 <footer>
     <div>
         Crafted with <i class="fa fa-heart" aria-hidden="true"></i> by
-        <a href="https://www.creyatif.com/website" target="_blank">Crèyatif</a> •
+        <a href="https://about.me/steepe" target="_blank">Crèyatif</a> •
         &copy; <?php echo  date("Y"); ?> Powered By EPR Global.
     </div>
 </footer>

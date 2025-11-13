@@ -35,8 +35,8 @@ class HomeController extends BaseController
 
         if ($conference) {
             // ✅ Determine ticket price via API
-            $slug = $conference['slug'];
-            $priceData = api_get("ticket-prices?conference_slug={$slug}");
+            //$slug = $conference['slug'];
+            //$priceData = api_get("ticket-prices?conference_slug={$slug}");
             $ticket = $priceData['data'][0] ?? null;
 
             // Simplify logic for country → currency mapping

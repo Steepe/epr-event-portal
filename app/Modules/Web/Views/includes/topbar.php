@@ -77,8 +77,11 @@ $plan = isset($attendee['plan']) ? (int) $attendee['plan'] : 1;
 
     <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav mr-auto">
+            <?php
+            $conference_id = session()->get('live-conference-id');
+            ?>
             <li class="nav-item"><a class="nav-link" href="<?php echo base_url('attendees/lobby'); ?>">LOBBY</a></li>
-            <li class="nav-item"><a class="nav-link" href="<?php echo base_url('attendees/agenda'); ?>">AGENDA</a></li>
+            <li class="nav-item"><a class="nav-link" href="<?php echo base_url('attendees/agenda/'.$conference_id); ?>">AGENDA</a></li>
             <li class="nav-item"><a class="nav-link" href="<?php echo base_url('attendees/networking_center'); ?>">NETWORKING CENTER</a></li>
             <li class="nav-item"><a class="nav-link" href="<?php echo base_url('attendees/exhibitors'); ?>">EXHIBITORS</a></li>
             <li class="nav-item"><a class="nav-link" href="<?php echo base_url('attendees/sponsors'); ?>">SPONSORS</a></li>
