@@ -64,7 +64,7 @@ $eventDate = isset($event['event_date']) ? date('F j, Y', strtotime($event['even
     }
 
     h4 {
-        color: #ffd84d;
+        color: #f3bb1a;
         margin-bottom: 0.4rem;
         font-weight: 700;
         text-shadow: 0 2px 8px rgba(0,0,0,0.4);
@@ -119,7 +119,7 @@ $eventDate = isset($event['event_date']) ? date('F j, Y', strtotime($event['even
     .locked-video i {
         font-size: 1.2rem;
         margin-right: 8px;
-        color: #ffd84d;
+        color: #f3bb1a;
     }
 
     .feedback-row {
@@ -131,7 +131,7 @@ $eventDate = isset($event['event_date']) ? date('F j, Y', strtotime($event['even
     }
 
     .like-icon i {
-        color: #ffd84d;
+        color: #f3bb1a;
         font-size: 1.2rem;
         cursor: pointer;
         transition: color 0.3s;
@@ -158,7 +158,7 @@ $eventDate = isset($event['event_date']) ? date('F j, Y', strtotime($event['even
     .rating-stars input:checked ~ label,
     .rating-stars label:hover,
     .rating-stars label:hover ~ label {
-        color: #FFD84D;
+        color: #f3bb1a;
     }
 
     .speaker-section {
@@ -187,7 +187,7 @@ $eventDate = isset($event['event_date']) ? date('F j, Y', strtotime($event['even
     .speaker-info h6 {
         font-size: 0.95rem;
         font-weight: 600;
-        color: #ffd84d;
+        color: #f3bb1a;
         margin-bottom: 2px;
     }
 
@@ -206,7 +206,7 @@ $eventDate = isset($event['event_date']) ? date('F j, Y', strtotime($event['even
     }
 
     .session-overview h6 {
-        color: #ffd84d;
+        color: #f3bb1a;
         font-weight: 600;
         margin-bottom: 8px;
     }
@@ -288,7 +288,7 @@ $eventDate = isset($event['event_date']) ? date('F j, Y', strtotime($event['even
     <!-- 👥 Speakers -->
     <?php if (!empty($sessionSpeakers)): ?>
         <div class="speaker-section">
-            <h6 style="color:#ffd84d; margin-bottom:8px;">Speakers</h6>
+            <h6 style="color:#f3bb1a; margin-bottom:8px;">Speakers</h6>
             <?php foreach ($sessionSpeakers as $speaker): ?>
                 <div class="speaker-card">
                     <img src="<?php echo base_url('uploads/speaker_pictures/' . ($speaker['speaker_photo'] ?? '')); ?>"

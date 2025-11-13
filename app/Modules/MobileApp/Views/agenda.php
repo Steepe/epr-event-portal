@@ -46,7 +46,7 @@ $timezone = $timezone ?? 'Africa/Lagos';
     }
 
     h4.text-epr {
-        color: #ffd84d;
+        color: #f3bb1a;
         text-align: center;
         font-weight: 700;
         letter-spacing: 0.5px;
@@ -127,7 +127,7 @@ $timezone = $timezone ?? 'Africa/Lagos';
 
     .session-speakers {
         font-size: 0.85rem;
-        color: #ffd84d;
+        color: #f3bb1a;
         margin-bottom: 0.8rem;
     }
 

@@ -81,7 +81,7 @@ body {
     text-align: left;
 }
 .session-info h4 {
-    color: #ffd84d;
+    color: #f3bb1a;
     font-weight: 700;
     margin-bottom: 0.6rem;
 }
@@ -108,7 +108,7 @@ body {
     margin-right: 10px;
 }
 .speaker-info h6 {
-    color: #ffd84d;
+    color: #f3bb1a;
     font-size: 0.9rem;
     margin-bottom: 3px;
 }

@@ -28,7 +28,7 @@ echo module_view('MobileApp', 'includes/header'); ?>
 
     h3.sponsors-title {
         font-weight: 700;
-        color: #FFD84D;
+        color: #f3bb1a;
         margin-bottom: 1.5rem;
         text-shadow: 0 0 10px rgba(255, 216, 77, 0.4);
         text-transform: uppercase;
@@ -112,7 +112,7 @@ echo module_view('MobileApp', 'includes/header'); ?>
     }
 
     .sponsor-modal h4 {
-        color: #FFD84D;
+        color: #f3bb1a;
         font-weight: 700;
         margin-top: 10px;
         font-size: 1.2rem;

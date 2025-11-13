@@ -56,7 +56,7 @@ echo module_view('MobileApp', 'includes/header'); ?>
     }
 
     .form-control:focus {
-        border-color: #FFD84D;
+        border-color: #f3bb1a;
         background: rgba(255, 255, 255, 0.15);
     }
 
@@ -87,7 +87,7 @@ echo module_view('MobileApp', 'includes/header'); ?>
     }
 
     .alt-link a {
-        color: #FFD84D;
+        color: #f3bb1a;
         text-decoration: none;
         font-weight: 600;
     }

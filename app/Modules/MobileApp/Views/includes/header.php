@@ -89,7 +89,7 @@
             border: none;
             outline: none;
             font-size: 1.5rem;
-            color: #EFB11E;
+            color: #ffffff;
             cursor: pointer;
             transition: 0.3s ease;
         }

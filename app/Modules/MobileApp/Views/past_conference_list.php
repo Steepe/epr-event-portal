@@ -35,7 +35,7 @@ body {
     z-index: 2;
 }
 h3 {
-    color: #ffd84d;
+    color: #f3bb1a;
     font-weight: 700;
     margin-bottom: 1.5rem;
 }
@@ -48,7 +48,7 @@ h3 {
     transition: transform 0.25s ease;
 }
 .session-card:hover { transform: translateY(-3px); }
-.session-title { color: #ffd84d; font-weight: 600; font-size: 1rem; }
+.session-title { color: #f3bb1a; font-weight: 600; font-size: 1rem; }
 .session-meta { font-size: 0.8rem; opacity: 0.8; margin-bottom: 6px; }
 .btn-watch {
     background: linear-gradient(135deg, #9D0F82, #ffb400);

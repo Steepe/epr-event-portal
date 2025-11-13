@@ -11,7 +11,7 @@
 
 <style>
     body {
-        background-image: url('<?php echo asset_url('images/mobile-bg.png'); ?>');
+        background-image: url('<?php echo asset_url('images/mobile-brain-bg.png'); ?>');
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
@@ -29,23 +29,22 @@
         min-height: 100vh;
         text-align: center;
         padding: 2rem 1rem;
-        background: rgba(0, 0, 0, 0.4);
-        backdrop-filter: blur(10px);
     }
 
     .login-card {
         width: 100%;
         max-width: 380px;
-        background: rgba(255, 255, 255, 0.08);
         border: 1px solid rgba(255, 255, 255, 0.25);
         border-radius: 20px;
         padding: 2.2rem 2rem;
         box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+        margin-top: -55px;
+        height: 650px;
     }
 
     .login-card img {
-        width: 180px;
-        margin-bottom: 1rem;
+        width: 300px;
+        margin-bottom: 4rem;
     }
 
     .login-card h5 {
@@ -91,7 +90,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 1.5rem;
+        margin-bottom: 7.5rem;
         font-size: 0.85rem;
     }
 
@@ -100,7 +99,7 @@
     }
 
     .remember-row a {
-        color: #ffd84d;
+        color: #f3bb1a;
         text-decoration: none;
     }
 
@@ -115,7 +114,7 @@
     }
 
     .signup-text a {
-        color: #ffd84d;
+        color: #f3bb1a;
         font-weight: 600;
         text-decoration: none;
     }
@@ -131,7 +130,7 @@
         }
 
         .login-card img {
-            width: 150px;
+            width: 300px;
         }
 
         .login-card h5 {
@@ -155,12 +154,12 @@
         <form method="post" action="<?php echo site_url('mobile/login'); ?>">
             <?php echo csrf_field(); ?>
 
-            <div class="mb-3 text-start">
+            <div class="mb-5 text-start">
                 <input type="email" name="email" id="email" class="form-control"
                     placeholder="User Email" value="<?php echo old('email'); ?>" required>
             </div>
 
-            <div class="mb-3 text-start">
+            <div class="mb-5 text-start">
                 <input type="password" name="password" id="password" class="form-control"
                     placeholder="Password" required>
             </div>

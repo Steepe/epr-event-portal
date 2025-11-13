@@ -32,7 +32,7 @@ echo module_view('MobileApp', 'includes/header'); ?>
 
     .emergence-title {
         font-weight: 700;
-        color: #FFD84D;
+        color: #f3bb1a;
         margin-bottom: 2rem;
         text-transform: uppercase;
         letter-spacing: 1px;
@@ -169,7 +169,7 @@ echo module_view('MobileApp', 'includes/header'); ?>
         position: absolute;
         top: 10px;
         right: 18px;
-        color: #FFD84D;
+        color: #f3bb1a;
         font-size: 24px;
         font-weight: bold;
         cursor: pointer;

@@ -18,7 +18,6 @@ echo module_view('MobileApp', 'includes/header_home');
         font-family: 'Inter', 'Poppins', sans-serif;
         overflow-x: hidden;
         color: #fff;
-        background: radial-gradient(circle at center, #6a0080 0%, #150020 100%);
         position: relative;
     }
 
@@ -41,7 +40,6 @@ echo module_view('MobileApp', 'includes/header_home');
         left: 0;
         width: 100%;
         height: 100%;
-        background: linear-gradient(120deg, rgba(157,15,130,0.3), rgba(255,180,0,0.25));
         z-index: -1;
     }
 
@@ -177,7 +175,7 @@ echo module_view('MobileApp', 'includes/header_home');
 
 <!-- 🎥 Background Video -->
 <video autoplay muted loop playsinline id="bgVideo">
-    <source src="<?php echo asset_url('videos/start-bg.mp4'); ?>" type="video/mp4">
+    <source src="<?php echo asset_url('videos/mobile-brain-bg.mp4'); ?>" type="video/mp4">
 </video>
 <div id="videoOverlay"></div>
 

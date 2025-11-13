@@ -147,7 +147,7 @@ echo module_view('MobileApp', 'includes/header'); ?>
         right: 20px;
         background: none;
         border: none;
-        color: #FFD84D;
+        color: #f3bb1a;
         font-size: 26px;
         font-weight: 700;
         cursor: pointer;
@@ -164,7 +164,7 @@ echo module_view('MobileApp', 'includes/header'); ?>
 
     .drawer-name {
         font-weight: 700;
-        color: #FFD84D;
+        color: #f3bb1a;
         margin-top: 15px;
         font-size: 1.1rem;
     }
@@ -192,7 +192,7 @@ echo module_view('MobileApp', 'includes/header'); ?>
     }
 
     .drawer-sessions h5 {
-        color: #FFD84D;
+        color: #f3bb1a;
         margin-bottom: 8px;
         font-size: 0.95rem;
         font-weight: 600;

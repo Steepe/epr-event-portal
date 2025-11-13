@@ -45,7 +45,7 @@ echo module_view('MobileApp', 'includes/header'); ?>
     }
 
     .networking-container h3 {
-        color: #ffd84d;
+        color: #f3bb1a;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 1px;
@@ -94,7 +94,7 @@ echo module_view('MobileApp', 'includes/header'); ?>
         font-size: 0.9rem;
         font-weight: 600;
         text-transform: uppercase;
-        color: #ffd84d;
+        color: #f3bb1a;
         letter-spacing: 0.6px;
     }
 

@@ -28,7 +28,7 @@ body {
 
 .exhibitors-container h3 {
     font-weight: 700;
-    color: #FFD84D;
+    color: #f3bb1a;
     text-transform: uppercase;
     margin-bottom: 2rem;
     text-shadow: 0 0 10px rgba(255, 216, 77, 0.4);
@@ -139,7 +139,7 @@ body {
 }
 
 .booth-header h5 {
-    color: #FFD84D;
+    color: #f3bb1a;
     margin: 0;
     font-weight: 700;
 }
@@ -151,7 +151,7 @@ body {
     background: none;
     border: none;
     font-size: 26px;
-    color: #FFD84D;
+    color: #f3bb1a;
 }
 
 /* ===== Booth Video ===== */
@@ -198,7 +198,7 @@ body {
 }
 
 .contact-card strong {
-    color: #FFD84D;
+    color: #f3bb1a;
     display: block;
 }
 

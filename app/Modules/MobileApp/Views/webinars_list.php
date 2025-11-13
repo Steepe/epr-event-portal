@@ -16,7 +16,6 @@ echo module_view('MobileApp', 'includes/header'); ?>
         font-family: 'Inter', 'Poppins', sans-serif;
         overflow-x: hidden;
         color: #fff;
-        background: radial-gradient(circle at center, #6a0080 0%, #150020 100%);
         position: relative;
     }
 
@@ -39,7 +38,6 @@ echo module_view('MobileApp', 'includes/header'); ?>
         left: 0;
         width: 100%;
         height: 100%;
-        background: linear-gradient(120deg, rgba(157,15,130,0.3), rgba(255,180,0,0.25));
         z-index: -1;
     }
 
@@ -59,7 +57,7 @@ echo module_view('MobileApp', 'includes/header'); ?>
     h3 {
         font-weight: 600;
         font-size: 1.4rem;
-        color: #ffd84d;
+        color: #f3bb1a;
         margin-bottom: 0.8rem;
     }
 
@@ -90,7 +88,7 @@ echo module_view('MobileApp', 'includes/header'); ?>
     .webinar-title {
         font-size: 1.05rem;
         font-weight: 600;
-        color: #ffd84d;
+        color: #f3bb1a;
         margin-bottom: 0.4rem;
     }
 
@@ -102,7 +100,7 @@ echo module_view('MobileApp', 'includes/header'); ?>
 
     .badge-status {
         background: rgba(255,216,77,0.15);
-        color: #ffd84d;
+        color: #f3bb1a;
         font-size: 0.7rem;
         padding: 3px 7px;
         border-radius: 8px;

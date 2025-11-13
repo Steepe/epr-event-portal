@@ -57,7 +57,7 @@
     }
 
     .envision-container h4 {
-        color: #ffd84d;
+        color: #f3bb1a;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 1px;

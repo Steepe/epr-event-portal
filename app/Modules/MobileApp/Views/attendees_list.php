@@ -28,7 +28,7 @@ echo module_view('MobileApp', 'includes/header'); ?>
 
     h3.attendees-title {
         font-weight: 700;
-        color: #FFD84D;
+        color: #f3bb1a;
         margin-bottom: 1rem;
         text-shadow: 0 0 10px rgba(255, 216, 77, 0.4);
     }
@@ -164,7 +164,7 @@ echo module_view('MobileApp', 'includes/header'); ?>
         right: 20px;
         background: none;
         border: none;
-        color: #FFD84D;
+        color: #f3bb1a;
         font-size: 24px;
         font-weight: 700;
         cursor: pointer;
@@ -240,7 +240,7 @@ echo module_view('MobileApp', 'includes/header'); ?>
 <!-- Drawer -->
 <div class="message-drawer" id="messageDrawer">
     <button class="drawer-close" id="closeDrawer">&times;</button>
-    <h4 id="drawerTitle" style="margin-bottom:10px; color:#FFD84D;">Send a Message</h4>
+    <h4 id="drawerTitle" style="margin-bottom:10px; color:#f3bb1a;">Send a Message</h4>
     <textarea id="drawerMessage" placeholder="Type your message..." required></textarea>
     <button class="drawer-send-btn" id="drawerSend">Send</button>
 </div>

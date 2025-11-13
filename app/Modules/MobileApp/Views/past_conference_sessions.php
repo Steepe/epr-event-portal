@@ -42,7 +42,7 @@ body {
     text-align: center;
 }
 h3 {
-    color: #ffd84d;
+    color: #f3bb1a;
     font-weight: 700;
     margin-bottom: 1.5rem;
 }
@@ -59,7 +59,7 @@ h3 {
     transform: translateY(-3px);
 }
 .session-title {
-    color: #ffd84d;
+    color: #f3bb1a;
     font-weight: 600;
     font-size: 1rem;
     margin-bottom: 5px;
