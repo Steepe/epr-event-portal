@@ -13,12 +13,16 @@ echo module_view('MobileApp', 'includes/header'); ?>
     body {
         margin: 0;
         padding: 0;
+        background-image: url('<?php echo asset_url('images/mobile-brain-light.png'); ?>');
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
         font-family: 'Inter', 'Poppins', sans-serif;
         color: #fff;
         overflow-x: hidden;
-        background: radial-gradient(circle at center, #6a0080 0%, #150020 100%);
         position: relative;
         min-height: 100vh;
+        background-color: ;
     }
 
     /* 🌈 Overlay Gradient */
@@ -28,7 +32,6 @@ echo module_view('MobileApp', 'includes/header'); ?>
         left: 0;
         width: 100%;
         height: 100%;
-        background: linear-gradient(120deg, rgba(157,15,130,0.3), rgba(255,180,0,0.25));
         z-index: -1;
     }
 
@@ -45,7 +48,7 @@ echo module_view('MobileApp', 'includes/header'); ?>
     }
 
     .networking-container h3 {
-        color: #f3bb1a;
+        color: #A70B91;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 1px;
@@ -94,7 +97,7 @@ echo module_view('MobileApp', 'includes/header'); ?>
         font-size: 0.9rem;
         font-weight: 600;
         text-transform: uppercase;
-        color: #f3bb1a;
+        color: #A70B91;
         letter-spacing: 0.6px;
     }
 

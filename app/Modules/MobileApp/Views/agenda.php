@@ -16,14 +16,14 @@ $timezone = $timezone ?? 'Africa/Lagos';
 <style>
 
     body {
-        background-image: url('<?php echo asset_url('images/mobile-brain-bg.png'); ?>');
+        background-image: url('<?php echo asset_url('images/mobile-brain-light.png'); ?>');
         font-family: 'Inter', 'Poppins', sans-serif;
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
         min-height: 100vh;
         overflow-x: hidden;
-        color: #fff;
+        color: #A70B91;
     }
 
 
@@ -50,13 +50,12 @@ $timezone = $timezone ?? 'Africa/Lagos';
     }
 
     h4.text-epr {
-        color: #f3bb1a;
+        color: #A70B91;
         text-align: center;
         font-weight: 700;
         letter-spacing: 0.5px;
         margin-top: 100px;
         margin-bottom: 1.5rem;
-        text-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
     }
 
     /* 📅 Day Pills */
@@ -83,8 +82,7 @@ $timezone = $timezone ?? 'Africa/Lagos';
 
     .day-pill.active {
         border: none;
-        color: #fff;
-        box-shadow: 0 0 10px rgba(255, 184, 0, 0.4);
+        color: #A70B91;
         font-weight: 600;
     }
 
@@ -96,14 +94,13 @@ $timezone = $timezone ?? 'Africa/Lagos';
     }
 
     .session-card {
-        background: rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 1);
         border: 1px solid rgba(255, 255, 255, 0.2);
         border-radius: 18px;
         padding: 1rem 1rem 0.8rem;
         margin-bottom: 1rem;
         transition: transform 0.25s ease;
         box-shadow: 0 3px 12px rgba(0, 0, 0, 0.25);
-        backdrop-filter: blur(8px);
     }
 
     .session-card.locked {
@@ -118,13 +115,13 @@ $timezone = $timezone ?? 'Africa/Lagos';
     .session-title {
         font-weight: 600;
         font-size: 1rem;
-        color: #fff;
+        color: #000000;
         margin-bottom: .4rem;
     }
 
     .session-time {
         font-size: 0.85rem;
-        color: #ccc;
+        color: rgba(80, 78, 78, 0.85);
         margin-bottom: 0.4rem;
     }
 
@@ -141,10 +138,10 @@ $timezone = $timezone ?? 'Africa/Lagos';
     .btn-epr {
         color: #fff;
         border: none;
-        border-radius: 25px;
+        border-radius: 5px;
         padding: 8px 16px;
         font-size: 0.85rem;
-        font-weight: 600;
+        font-weight: 200;
         text-decoration: none;
         transition: 0.3s;
     }

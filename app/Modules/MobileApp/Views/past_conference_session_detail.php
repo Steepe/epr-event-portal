@@ -81,7 +81,7 @@ body {
     text-align: left;
 }
 .session-info h4 {
-    color: #f3bb1a;
+    color: #A70B91;
     font-weight: 700;
     margin-bottom: 0.6rem;
 }
@@ -96,7 +96,6 @@ body {
 .speaker-card {
     display: flex;
     align-items: center;
-    background: rgba(255,255,255,0.08);
     border-radius: 12px;
     padding: 10px;
     margin-top: 10px;
@@ -108,7 +107,7 @@ body {
     margin-right: 10px;
 }
 .speaker-info h6 {
-    color: #f3bb1a;
+    color: #f764e2;
     font-size: 0.9rem;
     margin-bottom: 3px;
 }
@@ -143,9 +142,6 @@ body {
         <?php if (!empty($speakers)): ?>
             <?php foreach ($speakers as $sp): ?>
                 <div class="speaker-card">
-                    <img src="<?php echo base_url('uploads/speaker_pictures/'.$sp['speaker_photo']); ?>"
-                         onerror="this.src='<?php echo asset_url('images/user.png'); ?>';"
-                         alt="<?php echo esc($sp['speaker_name']); ?>">
                     <div class="speaker-info">
                         <h6><?php echo esc($sp['speaker_name']); ?></h6>
                         <p><?php echo esc(($sp['speaker_title'] ?? '').', '.($sp['speaker_company'] ?? '')); ?></p>
