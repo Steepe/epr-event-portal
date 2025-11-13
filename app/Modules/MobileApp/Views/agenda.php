@@ -17,13 +17,36 @@ $timezone = $timezone ?? 'Africa/Lagos';
 
     body {
         background-image: url('<?php echo asset_url('images/mobile-brain-light.png'); ?>');
-        font-family: 'Inter', 'Poppins', sans-serif;
         background-size: cover;
         background-position: center;
         background-repeat: no-repeat;
+        background-attachment: fixed; /* 🔥 Keeps background fixed during scroll */
+        font-family: 'Inter', 'Poppins', sans-serif;
         min-height: 100vh;
-        overflow-x: hidden;
         color: #A70B91;
+        overflow-x: hidden;
+        overflow-y: auto; /* 🔥 Ensure only content scrolls */
+    }
+
+    /* 🔥 Add a transparent overlay for legibility */
+    body::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255,255,255,0.2);
+        backdrop-filter: blur(6px);
+        z-index: -1;
+    }
+
+    /* Ensure content sits above fixed background */
+    .sessions-wrapper {
+        position: relative;
+        z-index: 2;
+        padding: 0 1rem 3rem;
+        overflow-y: auto;
     }
 
 
