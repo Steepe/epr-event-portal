@@ -36,6 +36,10 @@ if (!empty($vimeo_id)) {
 
 
 <style>
+    .container {
+        max-width: 1400px !important; /* default is ~1140 */
+    }
+
     .nav-pills .nav-link.active {
         color: #fff;
         background-color: #9D0F82;
@@ -61,6 +65,92 @@ if (!empty($vimeo_id)) {
 
     .speaker-summary-bg { margin-bottom: 15px; }
     .speaker-summary img { border-radius: 10px; object-fit: cover; }
+</style>
+
+<style>
+    .chat-bubble-wrapper {
+        display: flex;
+        margin-bottom: 14px;
+        align-items: flex-end;
+    }
+
+    .chat-bubble-wrapper.me {
+        justify-content: flex-end;
+    }
+
+    .chat-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        margin-right: 8px;
+        object-fit: cover;
+    }
+
+    .chat-bubble {
+        max-width: 80%;
+        padding: 10px 14px;
+        border-radius: 10px;
+        font-size: 14px;
+        line-height: 1.4;
+        position: relative;
+        background: #333;
+        color: #fff;
+    }
+
+    /* Me (my messages) */
+    .chat-bubble.me {
+        background: #D8198E;
+        margin-left: 40px;
+        border-bottom-right-radius: 4px;
+        width: 100%;
+    }
+
+    /* Them */
+    .chat-bubble.them {
+        background: #222;
+        border-bottom-left-radius: 4px;
+        width: 100%;
+    }
+
+    /* Name */
+    .chat-name {
+        font-weight: bold;
+        margin-bottom: 4px;
+        font-size: 13px;
+    }
+
+    /* Timestamp */
+    .chat-time {
+        font-size: 10px;
+        color: #ccc;
+        margin-top: 6px;
+        text-align: right;
+    }
+
+    /* WhatsApp-style bubble tail */
+    .chat-bubble.me::after {
+        content: "";
+        position: absolute;
+        right: -8px;
+        bottom: 0;
+        width: 0;
+        height: 0;
+        border-left: 8px solid #D8198E;
+        border-top: 8px solid transparent;
+        border-bottom: 8px solid transparent;
+    }
+
+    .chat-bubble.them::before {
+        content: "";
+        position: absolute;
+        left: -8px;
+        bottom: 0;
+        width: 0;
+        height: 0;
+        border-right: 8px solid #222;
+        border-top: 8px solid transparent;
+        border-bottom: 8px solid transparent;
+    }
 </style>
 
 <div class="container">
@@ -236,22 +326,39 @@ echo module_view('Web', 'includes/scripts');
     }
 
     // Render incoming messages
-    function appendMessageToUI(data) {
-        const box = document.getElementById("chat-messages");
+    async function appendMessageWithUserInfo(data) {
+
+        // 1. Get user profile
+        let user = await getUserProfile(data.attendee_id);
+
+        let fullName = `${user.firstname ?? ''} ${user.lastname ?? ''}`.trim();
+
+        let avatar = user.profile_picture
+            ? "<?php echo base_url('uploads/profile_pictures'); ?>/" + user.profile_picture
+            : "<?php echo asset_url('images/user.png'); ?>";
+
+        const isMe = (data.attendee_id == attendeeId);
 
         const bubble = `
-            <div style="padding:8px; margin-bottom:10px;
-                        background:${data.attendee_id == attendeeId ? '#D8198E' : '#333'};
-                        color:white; border-radius:10px;">
-                <strong>User ${data.attendee_id}</strong><br>
+        <div class="chat-bubble-wrapper ${isMe ? 'me' : 'them'}">
+
+            ${!isMe ? `<img src="${avatar}" class="chat-avatar">` : ''}
+
+            <div class="chat-bubble ${isMe ? 'me' : 'them'}">
+                <div class="chat-name">${fullName}</div>
+
                 ${data.message}
-                <div style="font-size:10px; margin-top:4px; color:#ccc;">
-                    ${data.timestamp}
+
+                <div class="chat-time">
+                    ${new Date(data.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </div>
             </div>
-        `;
+        </div>
+    `;
 
-        box.insertAdjacentHTML("beforeend", bubble);
+        document.getElementById("chat-messages")
+            .insertAdjacentHTML("beforeend", bubble);
+
         scrollChatDown();
     }
 
@@ -267,11 +374,7 @@ echo module_view('Web', 'includes/scripts');
                 filter: "session_id=eq." + sessionId
             },
             (payload) => {
-                appendMessageToUI({
-                    attendee_id: payload.new.attendee_id,
-                    message: payload.new.message,
-                    timestamp: payload.new.created_at
-                });
+                appendMessageWithUserInfo(payload.new);
             }
         )
         .subscribe();
@@ -292,6 +395,50 @@ echo module_view('Web', 'includes/scripts');
 
         document.getElementById("chatInput").value = "";
     }
+
+    async function getUserProfile(userId) {
+        let response = await fetch("/api/users/" + userId, {
+            headers: {
+                "X-API-KEY": "<?php echo env('api.securityKey'); ?>"
+            }
+        });
+        console.log(response);
+
+        let json = await response.json();
+
+        if (json.status === "success") {
+            return json.data;
+        }
+
+        return {
+            firstname: "User",
+            lastname: userId,
+            profile_picture: ""
+        };
+    }
+
+    async function loadChatHistory() {
+        const url = "<?php echo getenv('supabase.url'); ?>/rest/v1/tbl_session_chats"
+            + "?session_id=eq.<?php echo $event['sessions_id']; ?>&order=id.asc";
+
+        const response = await fetch(url, {
+            headers: {
+                "apikey": "<?php echo getenv('supabase.anon_key'); ?>",
+                "Authorization": "Bearer <?php echo getenv('supabase.anon_key'); ?>"
+            }
+        });
+
+        const messages = await response.json();
+
+        for (let msg of messages) {
+            await appendMessageWithUserInfo(msg);
+        }
+
+        scrollChatDown();
+    }
+
+    loadChatHistory();
+
 </script>
 
 

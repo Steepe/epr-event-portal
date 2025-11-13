@@ -25,21 +25,24 @@ class UsersController extends ResourceController
             return $this->failUnauthorized('Invalid API key.');
         }
 
-        $user = $this->model->find($id);
-        if (!$user) return $this->failNotFound('User not found.');
+        // Load user + attendee profile
+        $user = $this->model
+            ->select('tbl_users.id, tbl_users.email, tbl_users.role,
+                  tbl_attendees.firstname, tbl_attendees.lastname,
+                  tbl_attendees.country, tbl_attendees.profile_picture,
+                  tbl_attendees.company, tbl_attendees.position')
+            ->join('tbl_attendees', 'tbl_attendees.attendee_id = tbl_users.id', 'left')
+            ->where('tbl_users.id', $id)
+            ->first();
 
-        $data = [
-            'id' => $user->id,
-            'firstname' => $user->firstname,
-            'lastname' => $user->lastname,
-            'email' => $user->email,
-            'country' => $user->country,
-            'role' => $user->role,
-            'plan' => $user->plan ?? 1,
-            'profile_picture' => $user->profile_picture ?? '',
-        ];
+        if (!$user) {
+            return $this->failNotFound('User not found.');
+        }
 
-        return $this->respond(['status' => 'success', 'data' => $data]);
+        return $this->respond([
+            'status' => 'success',
+            'data' => $user
+        ]);
     }
 
     public function attendeeSessions($attendeeId = null)
@@ -60,4 +63,6 @@ class UsersController extends ResourceController
             'data' => array_column($sessions, 'conference_session_id'),
         ]);
     }
+
+
 }

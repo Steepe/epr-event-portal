@@ -69,7 +69,6 @@ class RegistrationController extends BaseController
             'city'                   => $data['city'] ?? '',
             'state'                  => $data['state'] ?? '',
             'ipaddress'              => $ipAddress,
-            'uid'                    => substr(md5(uniqid('', true)), 0, 11),
             'is_verified'            => 1,
             'registration_timestamp' => date('Y-m-d H:i:s'),
         ];
