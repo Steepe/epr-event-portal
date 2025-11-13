@@ -14,13 +14,18 @@ $timezone = $timezone ?? 'Africa/Lagos';
 ?>
 
 <style>
+
     body {
+        background-image: url('<?php echo asset_url('images/mobile-brain-bg.png'); ?>');
         font-family: 'Inter', 'Poppins', sans-serif;
-        color: #fff;
-        margin: 0;
-        padding: 0;
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        min-height: 100vh;
         overflow-x: hidden;
+        color: #fff;
     }
+
 
     /* 🎥 Background Video */
     #bgVideo {
@@ -41,7 +46,6 @@ $timezone = $timezone ?? 'Africa/Lagos';
         left: 0;
         width: 100%;
         height: 100%;
-        background: linear-gradient(120deg, rgba(157,15,130,0.4), rgba(255,180,0,0.25));
         z-index: -1;
     }
 
@@ -78,7 +82,6 @@ $timezone = $timezone ?? 'Africa/Lagos';
     }
 
     .day-pill.active {
-        background: linear-gradient(135deg, #9D0F82, #ffb400);
         border: none;
         color: #fff;
         box-shadow: 0 0 10px rgba(255, 184, 0, 0.4);
@@ -178,11 +181,6 @@ $timezone = $timezone ?? 'Africa/Lagos';
     }
 </style>
 
-<!-- 🎥 Background Video -->
-<video autoplay muted loop playsinline id="bgVideo">
-    <source src="<?php echo asset_url('videos/brain-lobby-bg.mp4'); ?>" type="video/mp4">
-</video>
-<div id="videoOverlay"></div>
 
 <h4 class="text-epr">AGENDA</h4>
 
