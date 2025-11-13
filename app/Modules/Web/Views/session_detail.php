@@ -34,12 +34,6 @@ if (!empty($vimeo_id)) {
 }
 ?>
 
-<script src="https://2a63bc5e27bc4bb68eb137c6c91e2f40.weavy.io/uikit-web/weavy.js"></script>
-<script>
-    const weavy = new Weavy();
-    weavy.url = "https://2a63bc5e27bc4bb68eb137c6c91e2f40.weavy.io";
-    weavy.tokenFactory = async (refresh) => "<?php echo  session('access_token') ?>";
-</script>
 
 <style>
     .nav-pills .nav-link.active {
@@ -154,7 +148,16 @@ if (!empty($vimeo_id)) {
             <div class="tab-content">
                 <div class="tab-pane fade show active" id="chat-home">
                     <div id="chat-containerx" style="height:530px;">
-                        <wy-chat uid="<?php echo  esc($event['chat_uid'] ?? 'none') ?>"></wy-chat>
+                        <div id="chat-messages"
+                             style="height:480px; overflow-y:auto; background:#111; padding:10px; border-radius:10px;">
+                        </div>
+
+                        <div class="mt-2 d-flex">
+    <textarea id="chatInput" class="form-control" placeholder="Type a message..."
+              style="background:#222; color:#fff; border-radius:10px; height:55px;"></textarea>
+                            <button class="btn btn-epr-pink ml-2" onclick="sendMessage()"
+                                    style="height:55px; border-radius:10px;">Send</button>
+                        </div>
                     </div>
                 </div>
                 <div class="tab-pane fade" id="qa-profile">
@@ -212,6 +215,85 @@ echo module_view('Web', 'includes/scripts');
             });
         });
     });
+
+
 </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+    const supabaseClient = supabase.createClient(
+        "<?php echo getenv('supabase.url'); ?>",
+        "<?php echo getenv('supabase.anon_key'); ?>"
+    );
+
+    const sessionId   = "<?php echo $event['sessions_id']; ?>";
+    const attendeeId  = "<?php echo session('attendee_id'); ?>";
+    const apiEndpoint = "/api/chat/send/" + sessionId;
+
+    // Auto-scroll handler
+    function scrollChatDown() {
+        const chat = document.getElementById("chat-messages");
+        chat.scrollTop = chat.scrollHeight;
+    }
+
+    // Render incoming messages
+    function appendMessageToUI(data) {
+        const box = document.getElementById("chat-messages");
+
+        const bubble = `
+            <div style="padding:8px; margin-bottom:10px;
+                        background:${data.attendee_id == attendeeId ? '#D8198E' : '#333'};
+                        color:white; border-radius:10px;">
+                <strong>User ${data.attendee_id}</strong><br>
+                ${data.message}
+                <div style="font-size:10px; margin-top:4px; color:#ccc;">
+                    ${data.timestamp}
+                </div>
+            </div>
+        `;
+
+        box.insertAdjacentHTML("beforeend", bubble);
+        scrollChatDown();
+    }
+
+    // Subscribe to realtime chat
+    supabaseClient
+        .channel("session-" + sessionId)
+        .on(
+            "postgres_changes",
+            {
+                event: "INSERT",
+                schema: "public",
+                table: "tbl_session_chats",
+                filter: "session_id=eq." + sessionId
+            },
+            (payload) => {
+                appendMessageToUI({
+                    attendee_id: payload.new.attendee_id,
+                    message: payload.new.message,
+                    timestamp: payload.new.created_at
+                });
+            }
+        )
+        .subscribe();
+
+    // Send message (CI4 → Supabase → Realtime)
+    async function sendMessage() {
+        let msg = document.getElementById("chatInput").value.trim();
+        if (msg.length === 0) return;
+
+        await fetch(apiEndpoint, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                attendee_id: attendeeId,
+                message: msg
+            })
+        });
+
+        document.getElementById("chatInput").value = "";
+    }
+</script>
+
+
 </body>
 </html>

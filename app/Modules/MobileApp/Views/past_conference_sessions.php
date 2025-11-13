@@ -32,7 +32,6 @@ body {
     position: fixed;
     top: 0; left: 0;
     width: 100%; height: 100%;
-    background: linear-gradient(120deg, rgba(157,15,130,0.3), rgba(255,180,0,0.25));
     z-index: -1;
 }
 .container {
@@ -69,7 +68,6 @@ h3 {
     opacity: 0.85;
 }
 .btn-purple {
-    background: linear-gradient(135deg, #9D0F82, #ffb400);
     color: #fff;
     border: none;
     border-radius: 30px;
