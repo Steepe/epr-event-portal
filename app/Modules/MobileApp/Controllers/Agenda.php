@@ -12,34 +12,38 @@ namespace App\Modules\MobileApp\Controllers;
 
 use App\Controllers\BaseController;
 use App\Modules\MobileApp\Models\SessionModel;
+use App\Modules\MobileApp\Models\SpeakersModel;
 
 class Agenda extends BaseController
 {
-    public function index($conference_id = null)
+    public function index($conference_id = null): string|\CodeIgniter\HTTP\RedirectResponse
     {
-        // 🔒 Require login
         if (!session()->get('isLoggedIn')) {
             return redirect()->to(site_url('mobile/login'));
         }
 
-        // 🧭 Ensure conference ID exists
         if (empty($conference_id)) {
             return redirect()->to(site_url('mobile/home'));
         }
 
-        $sessionModel = new SessionModel();
+        $sessionModel  = new SessionModel();
+        $speakerModel  = new SpeakersModel();
 
-        // 🗓 Fetch all sessions for the conference
+        // Fetch all sessions
         $sessions = $sessionModel
             ->where('conference_id', $conference_id)
             ->orderBy('event_date', 'ASC')
             ->orderBy('start_time', 'ASC')
             ->findAll();
 
-        // 🎯 Render view
+        // Attach speakers
+        foreach ($sessions as &$session) {
+            $session['speakers'] = $speakerModel->getSpeakersBySession($session['sessions_id']);
+        }
+
         return module_view('MobileApp', 'agenda', [
-            'sessions' => $sessions,
-            'conference_id' => $conference_id,
+            'sessions'       => $sessions,
+            'conference_id'  => $conference_id,
         ]);
     }
 }

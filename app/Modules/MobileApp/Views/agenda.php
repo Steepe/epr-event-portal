@@ -150,7 +150,7 @@ $timezone = $timezone ?? 'Africa/Lagos';
 
     .session-speakers {
         font-size: 0.85rem;
-        color: #f3bb1a;
+        color: #A70B91;
         margin-bottom: 0.8rem;
     }
 
@@ -241,7 +241,14 @@ $timezone = $timezone ?? 'Africa/Lagos';
                     <div class="session-card <?php echo $canAccess ? '' : 'locked'; ?>">
                         <div class="session-title"><?php echo esc($s['sessions_name']); ?></div>
                         <div class="session-time"><?php echo $start; ?> - <?php echo $end; ?> (<?php echo esc($timezone); ?>)</div>
-                        <div class="session-speakers">Speakers: TBA</div>
+                        <div class="session-speakers">
+                            <?php if (!empty($s['speakers'])): ?>
+                                Speakers:
+                                <?php echo implode(', ', array_column($s['speakers'], 'speaker_name')); ?>
+                            <?php else: ?>
+                                Speakers: TBA
+                            <?php endif; ?>
+                        </div>
                         <div class="session-actions">
                             <?php if ($canAccess): ?>
                                 <a href="<?php echo site_url('mobile/session/'.$s['sessions_id']); ?>" class="btn-epr epr-btn-one">View Session</a>

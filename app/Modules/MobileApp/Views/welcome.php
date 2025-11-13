@@ -16,7 +16,7 @@
         font-family: 'Inter', 'Poppins', sans-serif;
         overflow-x: hidden;
         color: #fff;
-        background: url('<?php echo asset_url('images/mobile-bg.png'); ?>') no-repeat center center fixed;
+        background: url('<?php echo asset_url('images/mobile-brain-light.png'); ?>') no-repeat center center fixed;
         background-size: cover;
         position: relative;
     }
@@ -28,7 +28,6 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background: linear-gradient(120deg, rgba(157,15,130,0.35), rgba(255,180,0,0.25));
         z-index: -1;
     }
 

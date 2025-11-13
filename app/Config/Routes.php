@@ -5,7 +5,7 @@ use CodeIgniter\Router\RouteCollection;
 /**
  * @var RouteCollection $routes
  */
-$routes->get('/', 'Home::index');
+$routes->get('/', '\App\Modules\Web\Controllers\StartController::index');
 
 // Load module routes dynamically
 $modulesPath = APPPATH . 'Modules/';
