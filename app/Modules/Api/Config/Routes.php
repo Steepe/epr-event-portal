@@ -81,5 +81,7 @@ $routes->group('api', ['namespace' => 'App\Modules\Api\Controllers', 'filter'   
     $routes->get('conferences/(:num)/sessions', 'ConferenceController::sessionsByConference/$1');
 
     $routes->post('chat/send/(:num)', 'ChatController::send/$1');
+    $routes->get('attendees/all', 'AttendeesController::all');
+
 
 });

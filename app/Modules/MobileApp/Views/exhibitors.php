@@ -28,7 +28,7 @@ body {
 
 .exhibitors-container h3 {
     font-weight: 700;
-    color: #f3bb1a;
+    color: #A70B91;
     text-transform: uppercase;
     margin-bottom: 2rem;
     text-shadow: 0 0 10px rgba(255, 216, 77, 0.4);

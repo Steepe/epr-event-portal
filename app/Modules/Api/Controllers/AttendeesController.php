@@ -90,4 +90,21 @@ class AttendeesController extends ResourceController
             'data'   => $attendee,
         ]);
     }
+
+    public function all()
+    {
+        $key = $this->request->getHeaderLine('X-API-KEY');
+        if ($key !== env('api.securityKey')) {
+            return $this->failUnauthorized('Invalid API key');
+        }
+
+        $model = new TblAttendeesModel();
+
+        $rows = $model->select('id, firstname, lastname')->findAll();
+
+        return $this->respond([
+            'status' => 'success',
+            'data'   => $rows
+        ]);
+    }
 }

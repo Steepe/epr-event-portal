@@ -10,13 +10,6 @@
 echo module_view('Web', 'includes/header');
 echo module_view('Web', 'includes/topbar');
 
-?>
-<!-- Tribute.js (CSS + JS) — SAFE TO LOAD AT TOP -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tributejs@5.1.3/dist/tribute.css">
-<script src="https://cdn.jsdelivr.net/npm/tributejs@5.1.3/dist/tribute.min.js"></script>
-
-<?php
-
 $event           = $session ?? [];
 $sessionSpeakers = $speakers ?? [];
 $sessionSponsor  = $sponsors[0] ?? null;
@@ -312,11 +305,21 @@ echo module_view('Web', 'includes/scripts');
 
 
 </script>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<!-- Emoji Button (UMD build → works with window.EmojiButton) -->
+
+<!-- Emoji Picker Web Component -->
 <script type="module" src="https://unpkg.com/emoji-picker-element@latest/index.js"></script>
 
+<!-- Tribute.js (Mentions) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tributejs@5.1.3/dist/tribute.css">
+<script src="https://cdn.jsdelivr.net/npm/tributejs@5.1.3/dist/tribute.min.js"></script>
+
 <script>
+    /* ===========================================================
+       CLEAN CHAT ENGINE — Supabase Realtime + Emoji + Mentions
+       =========================================================== */
+
     const supabaseClient = supabase.createClient(
         "<?php echo getenv('supabase.url'); ?>",
         "<?php echo getenv('supabase.anon_key'); ?>"
@@ -326,123 +329,125 @@ echo module_view('Web', 'includes/scripts');
     const attendeeId  = "<?php echo session('attendee_id'); ?>";
     const apiEndpoint = "/api/chat/send/" + sessionId;
 
-    // Auto-scroll handler
+    const chatBox   = document.getElementById("chat-messages");
+    const chatInput = document.getElementById("chatInput");
+
+    let profileCache = {};
+    // mention lookup: id -> "Full Name"
+    window._mentionLookup = {};
+
+    /* ----------------------------
+       Auto-scroll to bottom
+    ----------------------------- */
     function scrollChatDown() {
-        const chat = document.getElementById("chat-messages");
-        chat.scrollTop = chat.scrollHeight;
+        chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    // Render incoming messages
-    async function appendMessageWithUserInfo(data) {
-
-        // 1. Get user profile
-        let user = await getUserProfile(data.attendee_id);
-
-        let fullName = `${user.firstname ?? ''} ${user.lastname ?? ''}`.trim();
-
-        let avatar = user.profile_picture
-            ? "<?php echo base_url('uploads/profile_pictures'); ?>/" + user.profile_picture
-            : "<?php echo asset_url('images/user.png'); ?>";
-
-        const isMe = (data.attendee_id == attendeeId);
-
-        const bubble = `
-        <div class="chat-bubble-wrapper ${isMe ? 'me' : 'them'}">
-
-            ${!isMe ? `<img src="${avatar}" class="chat-avatar">` : ''}
-
-            <div class="chat-bubble ${isMe ? 'me' : 'them'}">
-                <div class="chat-name">${fullName}</div>
-
-                ${data.message}
-
-                <div class="chat-time">
-                    ${new Date(data.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </div>
-            </div>
-        </div>
-    `;
-
-        document.getElementById("chat-messages")
-            .insertAdjacentHTML("beforeend", bubble);
-
-        scrollChatDown();
+    /* ----------------------------
+       Escape HTML (safe rendering)
+    ----------------------------- */
+    function sanitize(str) {
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;')
+            .replace(/\n/g, "<br>");
     }
 
-    // Subscribe to realtime chat
-    supabaseClient
-        .channel("session-" + sessionId)
-        .on(
-            "postgres_changes",
-            {
-                event: "INSERT",
-                schema: "public",
-                table: "tbl_session_chats",
-                filter: "session_id=eq." + sessionId
-            },
-            (payload) => {
-                appendMessageWithUserInfo(payload.new);
+    /* ----------------------------
+       Replace stored tokens @{user:ID} with styled full names
+       Uses window._mentionLookup (populated when mentions load) as primary source.
+       Falls back to profileCache if needed.
+    ----------------------------- */
+    function replaceTokensWithNames(text) {
+        if (!text) return text;
+        return String(text).replace(/@\{user:(\d+)\}/g, (match, id) => {
+            const lookup = window._mentionLookup || {};
+            if (lookup[id]) {
+                return `<span style="color:#D8198E;font-weight:600;">@${sanitize(lookup[id])}</span>`;
             }
-        )
-        .subscribe();
-
-    // Send message (CI4 → Supabase → Realtime)
-    async function sendMessage() {
-        let msg = document.getElementById("chatInput").value.trim();
-        if (msg.length === 0) return;
-
-        await fetch(apiEndpoint, {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({
-                attendee_id: attendeeId,
-                message: msg
-            })
+            const p = profileCache[id];
+            if (p) {
+                return `<span style="color:#D8198E;font-weight:600;">@${sanitize((p.firstname||'') + ' ' + (p.lastname||''))}</span>`;
+            }
+            return match; // leave token if no name available
         });
-
-        document.getElementById("chatInput").value = "";
     }
 
-    // -------------------------
-    // SEND ON ENTER (Desktop Only)
-    // -------------------------
-    document.getElementById("chatInput").addEventListener("keydown", function (e) {
-
-        // If user is holding SHIFT → allow normal newline
-        if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-
-            // Desktop detection — avoid sending accidentally on mobile keyboards
-            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
-
-            if (!isMobile) {
-                sendMessage();
-            }
-        }
-    });
-
-
+    /* ----------------------------
+       Load user profile (cached)
+    ----------------------------- */
     async function getUserProfile(userId) {
-        let response = await fetch("/api/users/" + userId, {
-            headers: {
-                "X-API-KEY": "<?php echo env('api.securityKey'); ?>"
+        if (profileCache[userId]) return profileCache[userId];
+
+        try {
+            let res = await fetch("/api/users/" + userId, {
+                headers: { "X-API-KEY": "<?php echo env('api.securityKey'); ?>" }
+            });
+
+            let json = await res.json();
+            if (json.status === "success") {
+                profileCache[userId] = json.data;
+                return json.data;
             }
-        });
-       // console.log(response);
-
-        let json = await response.json();
-
-        if (json.status === "success") {
-            return json.data;
+        } catch (e) {
+            console.warn("Profile load failed", e);
         }
 
-        return {
+        return profileCache[userId] = {
             firstname: "User",
             lastname: userId,
             profile_picture: ""
         };
     }
 
+    function replaceMentionTokens(msg) {
+        return msg.replace(/@\{user:(\d+)\}/g, function(_, uid) {
+            const user = profileCache[uid];
+            if (!user) return "@Unknown";
+
+            const name = `${user.firstname} ${user.lastname}`.trim();
+            return `<span class="mention">@${name}</span>`;
+        });
+    }
+
+    /* ----------------------------
+       Render a chat bubble (now replaces tokens with names)
+    ----------------------------- */
+    async function appendMessage(data) {
+        const user = await getUserProfile(data.attendee_id);
+        const isMe = Number(data.attendee_id) === Number(attendeeId);
+
+        const fullName = `${user.firstname ?? ''} ${user.lastname ?? ''}`.trim();
+        const avatar = user.profile_picture
+            ? "<?php echo base_url('uploads/profile_pictures'); ?>/" + user.profile_picture
+            : "<?php echo asset_url('images/user.png'); ?>";
+
+        // Convert stored mentions @{user:ID} → @Full Name
+        const renderedMessage = replaceTokensWithNames(sanitize(data.message));
+
+        const bubble = `
+        <div class="chat-bubble-wrapper ${isMe ? 'me' : 'them'}">
+            ${!isMe ? `<img src="${avatar}" class="chat-avatar" onerror="this.src='<?php echo asset_url('images/user.png'); ?>'">` : ""}
+            <div class="chat-bubble ${isMe ? 'me' : 'them'}">
+                <div class="chat-name">${fullName}</div>
+                ${renderedMessage}
+                <div class="chat-time">
+                    ${new Date(data.created_at).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' })}
+                </div>
+            </div>
+        </div>
+    `;
+
+        chatBox.insertAdjacentHTML("beforeend", bubble);
+        scrollChatDown();
+    }
+
+    /* ----------------------------
+       Load chat history
+    ----------------------------- */
     async function loadChatHistory() {
         const url = "<?php echo getenv('supabase.url'); ?>/rest/v1/tbl_session_chats"
             + "?session_id=eq.<?php echo $event['sessions_id']; ?>&order=id.asc";
@@ -457,90 +462,146 @@ echo module_view('Web', 'includes/scripts');
         const messages = await response.json();
 
         for (let msg of messages) {
-            await appendMessageWithUserInfo(msg);
+            await appendMessage(msg);
         }
-
-        scrollChatDown();
     }
 
-    loadChatHistory();
+    /* ----------------------------
+       SEND MESSAGE (converts displayed @Name -> @{user:ID})
+    ----------------------------- */
+    async function sendMessage() {
+        let msg = chatInput.value.trim();
+        if (!msg.length) return;
 
-    document.addEventListener("DOMContentLoaded", function() {
-        loadMentions();
-    });
+        // Replace @Full Name with @{user:ID}
+        for (let uid in profileCache) {
+            let u = profileCache[uid];
+            let fullname = `${u.firstname} ${u.lastname}`.trim();
 
-
-    // -------------------------
-    // EMOJI PICKER (WORKING + CLOSE ON OUTSIDE CLICK)
-    // -------------------------
-
-
-    // ============================
-    // WhatsApp-style Emoji Support
-    // ============================
-
-    // 1. Add emoji button dynamically
-    const emojiBtn = document.createElement("button");
-    emojiBtn.innerHTML = "😊";
-    emojiBtn.className = "btn btn-sm";
-    emojiBtn.style.marginLeft = "8px";
-    emojiBtn.type = "button";
-
-    // Insert next to Send button
-    document.getElementById("chatInput").parentElement.appendChild(emojiBtn);
-
-    // 2. Create emoji picker
-    const picker = document.createElement("emoji-picker");
-    picker.style.position = "absolute";
-    picker.style.bottom = "70px";
-    picker.style.right = "20px";
-    picker.style.zIndex = "9999";
-    picker.style.display = "none";
-    document.body.appendChild(picker);
-
-    // 3. Toggle emoji picker
-    emojiBtn.addEventListener("click", (e) => {
-        e.stopPropagation();             // Keep it open when clicking icon
-        picker.style.display = picker.style.display === "none" ? "block" : "none";
-    });
-
-    // 4. Clicking outside closes the panel
-    document.addEventListener("click", (e) => {
-        if (!picker.contains(e.target) && e.target !== emojiBtn) {
-            picker.style.display = "none";
+            if (fullname.length > 0) {
+                const regex = new RegExp("@" + fullname.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), "g");
+                msg = msg.replace(regex, `@{user:${uid}}`);
+            }
         }
-    });
 
-    // 5. Insert emoji at cursor inside textarea
-    picker.addEventListener("emoji-click", (event) => {
-        const emoji = event.detail.unicode;
-        const textarea = document.getElementById("chatInput");
+        await fetch(apiEndpoint, {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                attendee_id: attendeeId,
+                message: msg
+            })
+        });
 
-        const start = textarea.selectionStart;
-        const end   = textarea.selectionEnd;
-        const text  = textarea.value;
+        chatInput.value = "";
+    }
 
-        // Insert emoji at cursor position
-        textarea.value = text.slice(0, start) + emoji + text.slice(end);
+    window.sendMessage = sendMessage;
 
-        // Restore cursor
-        textarea.selectionStart = textarea.selectionEnd = start + emoji.length;
-
-        textarea.focus();
-    });
-
-    // 6. WhatsApp-style Enter behavior
-    document.getElementById("chatInput").addEventListener("keydown", (e) => {
-        // SHIFT+ENTER = newline
-        if (e.key === "Enter" && e.shiftKey) return;
-
-        // ENTER = send message
-        if (e.key === "Enter") {
+    /* ----------------------------
+       ENTER to Send (Desktop)
+    ----------------------------- */
+    chatInput.addEventListener("keydown", function(e) {
+        if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
             sendMessage();
         }
     });
 
+    /* ----------------------------
+       REALTIME new messages
+    ----------------------------- */
+    supabaseClient
+        .channel("session-" + sessionId)
+        .on("postgres_changes", {
+            event: "INSERT",
+            schema: "public",
+            table: "tbl_session_chats",
+            filter: "session_id=eq." + sessionId
+        }, payload => {
+            appendMessage(payload.new);
+        })
+        .subscribe();
+
+    /* ----------------------------
+       MENTIONS (@username)
+       - builds window._mentionLookup
+       - shows @Full Name in textarea immediately after selection
+    ----------------------------- */
+    async function initMentions() {
+        try {
+            const res = await fetch('/api/attendees/all', {
+                headers: { 'X-API-KEY': '<?php echo env("api.securityKey"); ?>' }
+            });
+
+            const json = await res.json();
+
+            const values = json.data.map(a => ({
+                key: `${a.firstname} ${a.lastname}`,   // name shown in dropdown
+                id: a.id,                              // keep ID for replacement
+            }));
+
+            const tribute = new Tribute({
+                trigger: "@",
+                lookup: "key",
+                values: values,
+                selectTemplate: item => item.original.key,   // insert full name visibly
+                menuItemTemplate: item => item.string
+            });
+
+            tribute.attach(chatInput);
+
+        } catch (err) {
+            console.warn("Mentions failed", err);
+        }
+    }
+
+    /* ----------------------------
+       EMOJI PICKER
+    ----------------------------- */
+    function initEmojiPicker() {
+        const emojiButton = document.createElement("button");
+        emojiButton.innerHTML = "😊";
+        emojiButton.className = "btn btn-sm";
+        emojiButton.style.marginLeft = "8px";
+
+        chatInput.parentElement.appendChild(emojiButton);
+
+        const picker = document.createElement("emoji-picker");
+        picker.style.position = "absolute";
+        picker.style.zIndex = "9999";
+        picker.style.bottom = "60px";
+        picker.style.right = "0";
+        picker.style.display = "none";
+
+        chatInput.parentElement.appendChild(picker);
+
+        emojiButton.addEventListener("click", () => {
+            picker.style.display = picker.style.display === "none" ? "block" : "none";
+        });
+
+        picker.addEventListener("emoji-click", event => {
+            const emoji = event.detail.unicode;
+            const start = chatInput.selectionStart;
+            const end   = chatInput.selectionEnd;
+            chatInput.value =
+                chatInput.value.substring(0, start) +
+                emoji +
+                chatInput.value.substring(end);
+            chatInput.selectionStart = chatInput.selectionEnd = start + emoji.length;
+            picker.style.display = "none";
+        });
+    }
+
+    /* ----------------------------
+       INIT CHAT
+    ----------------------------- */
+    (async function initChat() {
+        await loadChatHistory();
+        await initMentions();
+        initEmojiPicker();
+        scrollChatDown();
+    })();
 </script>
 
 
