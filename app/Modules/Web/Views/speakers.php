@@ -64,7 +64,6 @@ body {
     border-radius: 50%;
     object-fit: cover;
     border: 4px solid transparent;
-    background: radial-gradient(circle at 30% 30%, #9D0F82, #EFB11E);
     padding: 4px;
     transition: box-shadow 0.3s ease;
 }
@@ -92,7 +91,6 @@ body {
 
 /* View profile button */
 .view-profile-btn {
-    background: linear-gradient(90deg, #9D0F82, #EFB11E);
     border: none;
     color: #fff;
     font-weight: 600;
@@ -103,7 +101,6 @@ body {
 }
 
 .view-profile-btn:hover {
-    background: linear-gradient(90deg, #EFB11E, #9D0F82);
     transform: scale(1.05);
 }
 
@@ -121,7 +118,6 @@ body {
 .profile-header-bg {
     height: 180px;
     background: url('<?php echo asset_url('images/speaker-modal-bg.png'); ?>'),
-                linear-gradient(135deg, #9D0F82, #EFB11E);
     background-size: cover;
     background-position: center;
     position: relative;
@@ -241,7 +237,7 @@ body {
                         <p><?php echo esc($speaker['speaker_title']); ?><br>
                            <small><?php echo esc($speaker['speaker_company']); ?></small></p>
 
-                        <button class="view-profile-btn"
+                        <button class="view-profile-btn epr-btn-two"
                                 data-toggle="modal"
                                 data-target="#speakerModal<?php echo $speakerId; ?>">
                             View Profile

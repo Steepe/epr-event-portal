@@ -16,7 +16,7 @@ class AttendeesController extends BaseController
 {
     use ResponseTrait;
 
-    public function index()
+    public function index(): string|\CodeIgniter\HTTP\RedirectResponse
     {
         $session = session();
         if (!$session->get('logged_in')) {
@@ -58,4 +58,30 @@ class AttendeesController extends BaseController
 
         return module_view('Web', 'attendees_list', $data);
     }
+
+    public function profile(): string|\CodeIgniter\HTTP\RedirectResponse
+    {
+        $session = session();
+
+        if (! $session->get('logged_in')) {
+            return redirect()->to(base_url('attendees/login'));
+        }
+
+        $attendeeId = $session->get('attendee_id');
+
+        $db = db_connect();
+        $attendee = $db->table('tbl_attendees')
+            ->where('attendee_id', $attendeeId)
+            ->get()
+            ->getRowArray();
+
+        if (! $attendee) {
+            return redirect()->back()->with('error', 'Unable to load profile details.');
+        }
+
+        return module_view('Web', 'profile', [
+            'attendee' => $attendee
+        ]);
+    }
+
 }

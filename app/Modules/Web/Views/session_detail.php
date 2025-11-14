@@ -10,6 +10,13 @@
 echo module_view('Web', 'includes/header');
 echo module_view('Web', 'includes/topbar');
 
+?>
+<!-- Tribute.js (CSS + JS) — SAFE TO LOAD AT TOP -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tributejs@5.1.3/dist/tribute.css">
+<script src="https://cdn.jsdelivr.net/npm/tributejs@5.1.3/dist/tribute.min.js"></script>
+
+<?php
+
 $event           = $session ?? [];
 $sessionSpeakers = $speakers ?? [];
 $sessionSponsor  = $sponsors[0] ?? null;
@@ -232,7 +239,6 @@ if (!empty($vimeo_id)) {
         <aside class="col-md-4 mt-4" id="chat_pane">
             <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
                 <li class="nav-item"><button class="nav-link active" data-toggle="pill" data-target="#chat-home">LIVE CHAT</button></li>
-                <li class="nav-item"><button class="nav-link" data-toggle="pill" data-target="#qa-profile">Ask Questions</button></li>
             </ul>
 
             <div class="tab-content">
@@ -250,10 +256,6 @@ if (!empty($vimeo_id)) {
                         </div>
                     </div>
                 </div>
-                <div class="tab-pane fade" id="qa-profile">
-                    <iframe src="<?php echo  base_url('messages/chat/qa/' . ($event['sessions_id'] ?? 0)) ?>"
-                            style="background:transparent;height:550px;width:100%;border:none;"></iframe>
-                </div>
             </div>
 
             <?php if ($sessionSponsor): ?>
@@ -269,9 +271,11 @@ if (!empty($vimeo_id)) {
 <?php
 echo module_view('Web', 'includes/scripts');
 ?>
+
 <script src="<?php echo  asset_url('js/toast.min.js') ?>"></script>
 
 <script>
+
     $(document).ready(function(){
         let liked = false;
 
@@ -461,77 +465,81 @@ echo module_view('Web', 'includes/scripts');
 
     loadChatHistory();
 
+    document.addEventListener("DOMContentLoaded", function() {
+        loadMentions();
+    });
+
+
     // -------------------------
     // EMOJI PICKER (WORKING + CLOSE ON OUTSIDE CLICK)
     // -------------------------
 
-    document.addEventListener("DOMContentLoaded", function () {
 
-        const chatInput = document.getElementById("chatInput");
+    // ============================
+    // WhatsApp-style Emoji Support
+    // ============================
 
-        // Create emoji toggle button
-        const emojiBtn = document.createElement("button");
-        emojiBtn.type = "button";
-        emojiBtn.innerHTML = "😊";
-        emojiBtn.className = "btn btn-sm";
-        emojiBtn.style.marginLeft = "8px";
+    // 1. Add emoji button dynamically
+    const emojiBtn = document.createElement("button");
+    emojiBtn.innerHTML = "😊";
+    emojiBtn.className = "btn btn-sm";
+    emojiBtn.style.marginLeft = "8px";
+    emojiBtn.type = "button";
 
-        chatInput.parentElement.appendChild(emojiBtn);
+    // Insert next to Send button
+    document.getElementById("chatInput").parentElement.appendChild(emojiBtn);
 
-        // Create the emoji picker
-        const picker = document.createElement("emoji-picker");
-        picker.style.position = "absolute";
-        picker.style.bottom = "70px";
-        picker.style.right = "20px";
-        picker.style.zIndex = "9999";
-        picker.style.background = "#fff";
-        picker.style.borderRadius = "10px";
-        picker.style.boxShadow = "0 4px 12px rgba(0,0,0,0.3)";
-        picker.style.display = "none";
+    // 2. Create emoji picker
+    const picker = document.createElement("emoji-picker");
+    picker.style.position = "absolute";
+    picker.style.bottom = "70px";
+    picker.style.right = "20px";
+    picker.style.zIndex = "9999";
+    picker.style.display = "none";
+    document.body.appendChild(picker);
 
-        document.body.appendChild(picker);
-
-        let pickerOpen = false;
-
-        // Toggle the picker
-        emojiBtn.addEventListener("click", (e) => {
-            e.stopPropagation(); // Prevent click from closing immediately
-            pickerOpen = !pickerOpen;
-            picker.style.display = pickerOpen ? "block" : "none";
-        });
-
-        // Insert emoji
-        picker.addEventListener("emoji-click", (event) => {
-            const emoji = event.detail.unicode;
-            const el = chatInput;
-
-            const start = el.selectionStart;
-            const end = el.selectionEnd;
-            const text = el.value;
-
-            el.value = text.slice(0, start) + emoji + text.slice(end);
-            el.selectionStart = el.selectionEnd = start + emoji.length;
-            el.focus();
-
-            // Close picker after selecting emoji
-            picker.style.display = "none";
-            pickerOpen = false;
-        });
-
-        // Prevent clicks INSIDE picker from closing it
-        picker.addEventListener("click", (e) => {
-            e.stopPropagation();
-        });
-
-        // Close picker when clicking anywhere outside
-        document.addEventListener("click", () => {
-            if (pickerOpen) {
-                picker.style.display = "none";
-                pickerOpen = false;
-            }
-        });
+    // 3. Toggle emoji picker
+    emojiBtn.addEventListener("click", (e) => {
+        e.stopPropagation();             // Keep it open when clicking icon
+        picker.style.display = picker.style.display === "none" ? "block" : "none";
     });
 
+    // 4. Clicking outside closes the panel
+    document.addEventListener("click", (e) => {
+        if (!picker.contains(e.target) && e.target !== emojiBtn) {
+            picker.style.display = "none";
+        }
+    });
+
+    // 5. Insert emoji at cursor inside textarea
+    picker.addEventListener("emoji-click", (event) => {
+        const emoji = event.detail.unicode;
+        const textarea = document.getElementById("chatInput");
+
+        const start = textarea.selectionStart;
+        const end   = textarea.selectionEnd;
+        const text  = textarea.value;
+
+        // Insert emoji at cursor position
+        textarea.value = text.slice(0, start) + emoji + text.slice(end);
+
+        // Restore cursor
+        textarea.selectionStart = textarea.selectionEnd = start + emoji.length;
+
+        textarea.focus();
+    });
+
+    // 6. WhatsApp-style Enter behavior
+    document.getElementById("chatInput").addEventListener("keydown", (e) => {
+        // SHIFT+ENTER = newline
+        if (e.key === "Enter" && e.shiftKey) return;
+
+        // ENTER = send message
+        if (e.key === "Enter") {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
 
 </script>
 
