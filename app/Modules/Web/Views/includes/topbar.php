@@ -8,17 +8,25 @@
  */
 
 
-$attendee = isset($global_attendee_details) ? $global_attendee_details : [];
 
 $unread_count = isset($unread_messages) ? (int) $unread_messages : 0;
 
-$profile_picture = !empty($attendee['profile_picture_url'])
-    ? $attendee['profile_picture_url']
-    : asset_url('images/user.png');
+if (!empty(session()->get('profile_picture_url'))){
+    $profile_picture = session()->get('profile_picture_url');
+}
+else{
+    $profile_picture = asset_url('images/user.png');
+}
 
-$full_name = isset($attendee['firstname'], $attendee['lastname'])
-    ? $attendee['firstname'] . ' ' . $attendee['lastname']
-    : 'Attendee';
+if (!empty(session()->get('firstname'))){
+    $full_name = session()->get('firstname').' '.session()->get('lastname');
+}
+else{
+    $full_name = "ATTENDEE";
+}
+
+var_dump(session()->get('firstname'));
+
 
 $plan = isset($attendee['plan']) ? (int) $attendee['plan'] : 1;
 ?>
@@ -105,7 +113,7 @@ $plan = isset($attendee['plan']) ? (int) $attendee['plan'] : 1;
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle text-white d-flex align-items-center"
                    href="#" id="userDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <img src="<?php echo $profile_picture; ?>" width="40" height="40"
+                    <img src="<?php echo asset_url(''.$profile_picture); ?>" width="40" height="40"
                          class="rounded-circle mr-2" alt="Profile Picture">
                     <span class="d-none d-lg-inline"><?php echo htmlspecialchars($full_name); ?></span>
                 </a>

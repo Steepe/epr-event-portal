@@ -56,6 +56,7 @@ $routes->group('attendees', ['namespace' => 'App\Modules\Web\Controllers', 'filt
 
     $routes->get('webinars', 'WebinarsController::index');
     $routes->get('points', 'PointsController::index');
+    $routes->get('communities', 'CommunityController::index');
 
     $routes->get('profile', 'ProfileController::index');
     $routes->post('profile/update', 'ProfileController::update');

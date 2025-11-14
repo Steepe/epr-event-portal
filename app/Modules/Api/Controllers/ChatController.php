@@ -22,14 +22,14 @@ class ChatController extends BaseController
         $data = $this->request->getJSON(true);
 
         $chat = new SupabaseChat();
-        $chat->insertMessage(
+        $response = $chat->insertMessage(
             $sessionId,
             $data['attendee_id'],
             $data['message']
         );
 
         return $this->respond([
-            'status' => 'ok'
+            'status' => $response,
         ]);
     }
 }

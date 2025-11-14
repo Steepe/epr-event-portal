@@ -151,6 +151,18 @@ if (!empty($vimeo_id)) {
         border-top: 8px solid transparent;
         border-bottom: 8px solid transparent;
     }
+
+    .mention-link {
+        color: #4e95ff !important;
+        font-weight: bold;
+    }
+
+    .mention-link:hover {
+        color: #ff7acb !important;
+        text-decoration: underline;
+    }
+
+
 </style>
 
 <div class="container">
@@ -332,9 +344,8 @@ echo module_view('Web', 'includes/scripts');
     const chatBox   = document.getElementById("chat-messages");
     const chatInput = document.getElementById("chatInput");
 
-    let profileCache = {};
-    // mention lookup: id -> "Full Name"
-    window._mentionLookup = {};
+    let profileCache = {};          // id → profile
+    window._mentionLookup = {};     // id → fullname
 
     /* ----------------------------
        Auto-scroll to bottom
@@ -346,34 +357,78 @@ echo module_view('Web', 'includes/scripts');
     /* ----------------------------
        Escape HTML (safe rendering)
     ----------------------------- */
-    function sanitize(str) {
-        return String(str)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#039;')
+    function sanitizeAllowLinks(str) {
+        if (!str) return "";
+
+        // Temporarily remove mention HTML
+        const placeholders = [];
+        str = str.replace(/\[\[MENTION:(.*?)\]\]/g, (match, inner, index) => {
+            placeholders.push(inner);
+            return `[[MENTION_PLACEHOLDER_${placeholders.length - 1}]]`;
+        });
+
+        // Sanitize everything else
+        let escaped = str
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;")
             .replace(/\n/g, "<br>");
+
+        // Restore mention HTML safely
+        placeholders.forEach((html, i) => {
+            escaped = escaped.replace(
+                `[[MENTION_PLACEHOLDER_${i}]]`,
+                html
+            );
+        });
+
+        return escaped;
     }
 
     /* ----------------------------
-       Replace stored tokens @{user:ID} with styled full names
-       Uses window._mentionLookup (populated when mentions load) as primary source.
-       Falls back to profileCache if needed.
+       Replace stored tokens @{user:ID}
     ----------------------------- */
-    function replaceTokensWithNames(text) {
-        if (!text) return text;
-        return String(text).replace(/@\{user:(\d+)\}/g, (match, id) => {
-            const lookup = window._mentionLookup || {};
-            if (lookup[id]) {
-                return `<span style="color:#D8198E;font-weight:600;">@${sanitize(lookup[id])}</span>`;
-            }
-            const p = profileCache[id];
-            if (p) {
-                return `<span style="color:#D8198E;font-weight:600;">@${sanitize((p.firstname||'') + ' ' + (p.lastname||''))}</span>`;
-            }
-            return match; // leave token if no name available
+    function replaceTokensWithNames(message) {
+        return message.replace(/@\{user:(\d+)\}/g, function(_, userId) {
+            const u = profileCache[userId];
+            if (!u) return "@Unknown";
+
+            const fullname = `${u.firstname ?? ''} ${u.lastname ?? ''}`.trim();
+            const profileUrl = "/attendees/profile/" + userId;
+
+            // We wrap the HTML inside a marker so sanitizer knows to skip it
+            return `[[MENTION:<a href="${profileUrl}" class="mention-link" style="color:#ff4eb8;font-weight:bold;text-decoration:none;">@${fullname}</a>]]`;
         });
+    }
+
+    /* ----------------------------
+       Replace raw @Full Name (NEW!)
+    ----------------------------- */
+    function replaceRawMentions(message) {
+        for (let uid in profileCache) {
+            const u = profileCache[uid];
+            if (!u) continue;
+
+            const fullname = `${u.firstname} ${u.lastname}`.trim();
+            if (!fullname) continue;
+
+            const escaped = fullname.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
+            const regex = new RegExp("@" + escaped, "gi");
+
+            const profileUrl = "/attendees/profile/" + uid;
+
+            message = message.replace(
+                regex,
+                `<a href="${profileUrl}"
+                    class="mention-link"
+                    style="color:#ff4eb8;font-weight:bold;text-decoration:none;">
+                    @${fullname}
+                 </a>`
+            );
+        }
+        return message;
     }
 
     /* ----------------------------
@@ -392,9 +447,7 @@ echo module_view('Web', 'includes/scripts');
                 profileCache[userId] = json.data;
                 return json.data;
             }
-        } catch (e) {
-            console.warn("Profile load failed", e);
-        }
+        } catch (e) {}
 
         return profileCache[userId] = {
             firstname: "User",
@@ -403,43 +456,40 @@ echo module_view('Web', 'includes/scripts');
         };
     }
 
-    function replaceMentionTokens(msg) {
-        return msg.replace(/@\{user:(\d+)\}/g, function(_, uid) {
-            const user = profileCache[uid];
-            if (!user) return "@Unknown";
-
-            const name = `${user.firstname} ${user.lastname}`.trim();
-            return `<span class="mention">@${name}</span>`;
-        });
-    }
-
     /* ----------------------------
-       Render a chat bubble (now replaces tokens with names)
+       RENDER MESSAGE (now supports @Name + @{user:ID})
     ----------------------------- */
     async function appendMessage(data) {
         const user = await getUserProfile(data.attendee_id);
         const isMe = Number(data.attendee_id) === Number(attendeeId);
-
         const fullName = `${user.firstname ?? ''} ${user.lastname ?? ''}`.trim();
+
         const avatar = user.profile_picture
             ? "<?php echo base_url('uploads/profile_pictures'); ?>/" + user.profile_picture
             : "<?php echo asset_url('images/user.png'); ?>";
 
-        // Convert stored mentions @{user:ID} → @Full Name
-        const renderedMessage = replaceTokensWithNames(sanitize(data.message));
+        // 1️⃣ Convert raw mentions like @John Doe
+        let rendered = replaceRawMentions(data.message);
+
+        // 2️⃣ Convert token mentions @{user:5}
+        rendered = replaceTokensWithNames(rendered);
+
+        // 3️⃣ Sanitize safely
+        rendered = sanitizeAllowLinks(rendered);
 
         const bubble = `
         <div class="chat-bubble-wrapper ${isMe ? 'me' : 'them'}">
-            ${!isMe ? `<img src="${avatar}" class="chat-avatar" onerror="this.src='<?php echo asset_url('images/user.png'); ?>'">` : ""}
+            ${!isMe ? `<img src="${avatar}" class="chat-avatar">` : ""}
             <div class="chat-bubble ${isMe ? 'me' : 'them'}">
                 <div class="chat-name">${fullName}</div>
-                ${renderedMessage}
+
+                ${rendered}
+
                 <div class="chat-time">
                     ${new Date(data.created_at).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' })}
                 </div>
             </div>
-        </div>
-    `;
+        </div>`;
 
         chatBox.insertAdjacentHTML("beforeend", bubble);
         scrollChatDown();
@@ -460,28 +510,28 @@ echo module_view('Web', 'includes/scripts');
         });
 
         const messages = await response.json();
-
-        for (let msg of messages) {
-            await appendMessage(msg);
-        }
+        for (let msg of messages) await appendMessage(msg);
     }
 
     /* ----------------------------
-       SEND MESSAGE (converts displayed @Name -> @{user:ID})
+       SEND MESSAGE
     ----------------------------- */
     async function sendMessage() {
         let msg = chatInput.value.trim();
         if (!msg.length) return;
 
-        // Replace @Full Name with @{user:ID}
+        // Convert @Full Name → @{user:ID}
         for (let uid in profileCache) {
             let u = profileCache[uid];
-            let fullname = `${u.firstname} ${u.lastname}`.trim();
+            if (!u) continue;
 
-            if (fullname.length > 0) {
-                const regex = new RegExp("@" + fullname.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&'), "g");
-                msg = msg.replace(regex, `@{user:${uid}}`);
-            }
+            const fullname = `${u.firstname} ${u.lastname}`.trim();
+            if (!fullname) continue;
+
+            const escaped = fullname.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
+            const regex = new RegExp("@" + escaped, "gi");
+
+            msg = msg.replace(regex, `@{user:${uid}}`);
         }
 
         await fetch(apiEndpoint, {
@@ -495,12 +545,9 @@ echo module_view('Web', 'includes/scripts');
 
         chatInput.value = "";
     }
-
     window.sendMessage = sendMessage;
 
-    /* ----------------------------
-       ENTER to Send (Desktop)
-    ----------------------------- */
+    /* ENTER to send */
     chatInput.addEventListener("keydown", function(e) {
         if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
@@ -518,15 +565,14 @@ echo module_view('Web', 'includes/scripts');
             schema: "public",
             table: "tbl_session_chats",
             filter: "session_id=eq." + sessionId
-        }, payload => {
-            appendMessage(payload.new);
-        })
+        }, payload => appendMessage(payload.new))
         .subscribe();
 
     /* ----------------------------
-       MENTIONS (@username)
-       - builds window._mentionLookup
-       - shows @Full Name in textarea immediately after selection
+       MENTIONS INIT
+    ----------------------------- */
+    /* ----------------------------
+       MENTIONS INIT — loads attendees first and builds profileCache
     ----------------------------- */
     async function initMentions() {
         try {
@@ -535,37 +581,55 @@ echo module_view('Web', 'includes/scripts');
             });
 
             const json = await res.json();
+            if (!json || !json.data) {
+                console.warn("Mentions: no attendee data returned.");
+                return;
+            }
 
-            const values = json.data.map(a => ({
-                key: `${a.firstname} ${a.lastname}`,   // name shown in dropdown
-                id: a.id,                              // keep ID for replacement
-            }));
+            // Build mention list + preload profileCache
+            const values = json.data.map(a => {
+                const id = String(a.id);
+                const fullname = `${a.firstname} ${a.lastname}`.trim();
 
+                // Preload the cache (CRITICAL FIX)
+                profileCache[id] = {
+                    firstname: a.firstname,
+                    lastname: a.lastname,
+                    profile_picture: a.profile_picture || ""
+                };
+
+                window._mentionLookup[id] = fullname;
+                return { key: fullname, id: id };
+            });
+
+            // Tribute setup — inserts @Full Name into textarea
             const tribute = new Tribute({
                 trigger: "@",
-                lookup: "key",
                 values: values,
-                selectTemplate: item => item.original.key,   // insert full name visibly
+                lookup: "key",
+                selectTemplate: item => "@" + item.original.key,
                 menuItemTemplate: item => item.string
             });
 
             tribute.attach(chatInput);
 
-        } catch (err) {
-            console.warn("Mentions failed", err);
+            console.log("Mentions loaded:", Object.keys(profileCache).length, "users");
+        }
+        catch (err) {
+            console.warn("Mentions failed:", err);
         }
     }
 
     /* ----------------------------
-       EMOJI PICKER
+       EMOJI
     ----------------------------- */
     function initEmojiPicker() {
-        const emojiButton = document.createElement("button");
-        emojiButton.innerHTML = "😊";
-        emojiButton.className = "btn btn-sm";
-        emojiButton.style.marginLeft = "8px";
+        const btn = document.createElement("button");
+        btn.innerHTML = "😊";
+        btn.className = "btn btn-sm";
+        btn.style.marginLeft = "8px";
 
-        chatInput.parentElement.appendChild(emojiButton);
+        chatInput.parentElement.appendChild(btn);
 
         const picker = document.createElement("emoji-picker");
         picker.style.position = "absolute";
@@ -576,12 +640,12 @@ echo module_view('Web', 'includes/scripts');
 
         chatInput.parentElement.appendChild(picker);
 
-        emojiButton.addEventListener("click", () => {
+        btn.addEventListener("click", () => {
             picker.style.display = picker.style.display === "none" ? "block" : "none";
         });
 
-        picker.addEventListener("emoji-click", event => {
-            const emoji = event.detail.unicode;
+        picker.addEventListener("emoji-click", e => {
+            const emoji = e.detail.unicode;
             const start = chatInput.selectionStart;
             const end   = chatInput.selectionEnd;
             chatInput.value =
@@ -596,9 +660,13 @@ echo module_view('Web', 'includes/scripts');
     /* ----------------------------
        INIT CHAT
     ----------------------------- */
+    /* ----------------------------
+       INIT CHAT — MUST load mentions first
+    ----------------------------- */
     (async function initChat() {
-        await loadChatHistory();
-        await initMentions();
+        await initMentions();    // <-- CRITICAL: load & cache attendees FIRST
+        await loadChatHistory(); // now messages can be correctly replaced
+
         initEmojiPicker();
         scrollChatDown();
     })();

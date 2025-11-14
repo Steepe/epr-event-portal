@@ -7,96 +7,114 @@
  * Time: 18:10
  */
 
-
 namespace App\Modules\Api\Controllers;
 
-use App\Modules\Api\Models\TblUsersModel;
 use CodeIgniter\RESTful\ResourceController;
-use CodeIgniter\API\ResponseTrait;
+use App\Modules\Api\Models\TblUsersModel;
+use App\Modules\Api\Models\TblAttendeesModel;
 
 class LoginController extends ResourceController
 {
-    use ResponseTrait;
-
-    // ✅ Add this to avoid “must not be accessed before initialization” error
-    protected string $modelName = \App\Modules\Api\Models\TblUsersModel::class;
     protected string $format = 'json';
 
+    // Must be STRING, not typed.
+    protected string $modelName = 'App\Modules\Api\Models\TblAttendeesModel';
+
     protected TblUsersModel $users;
+    protected TblAttendeesModel $attendees;
 
     public function __construct()
     {
-        // You can rely on $this->model from ResourceController if you want,
-        // but it’s fine to keep a custom instance for clarity:
-        $this->users = new TblUsersModel();
+        $this->users     = new TblUsersModel();
+        $this->attendees = new TblAttendeesModel();
     }
 
-    public function login(): \CodeIgniter\HTTP\ResponseInterface
+    public function login()
     {
-        $data = $this->request->getJSON(true);
+        // Validate API key
+        $apiKey = $this->request->getHeaderLine('X-API-KEY');
+        if ($apiKey !== env('api.securityKey')) {
+            return $this->failUnauthorized('Invalid API key.');
+        }
 
+        // Read JSON
+        $data = $this->request->getJSON(true);
         if (empty($data['email']) || empty($data['password'])) {
             return $this->failValidationErrors('Email and password are required.');
         }
 
-        // ✅ Verify API Key
-        $key = $this->request->getHeaderLine('X-API-KEY');
-        if ($key !== env('api.securityKey')) {
-            return $this->failUnauthorized('Invalid API key.');
-        }
-
-        // ✅ Find user
+        // Fetch user
         $user = $this->users->where('email', $data['email'])->first();
-
         if (!$user) {
             return $this->failNotFound('User not found.');
         }
 
-        // ✅ Verify password (object or array)
-        $passwordHash = is_object($user) ? $user->password : $user['password'];
-        if (!password_verify($data['password'], $passwordHash)) {
+        // Normalize entity/array
+        if (is_array($user)) {
+            $userArray = $user;
+        } elseif (is_object($user) && method_exists($user, 'toArray')) {
+            $userArray = $user->toArray();
+        } else {
+            $userArray = (array) $user;
+        }
+
+        // Validate password
+        if (!password_verify($data['password'], $userArray['password'])) {
             return $this->fail('Invalid credentials.', 401);
         }
 
-        // ✅ Start session and store user data
-        $session = session();
+        // Fetch attendee
+        $attendee = $this->attendees->where('attendee_id', $userArray['id'])->first();
+        if (!$attendee) {
+            return $this->fail('Attendee profile missing.', 500);
+        }
 
-        // Use array syntax safely, handles both entity and array
-        $userId   = is_object($user) ? $user->id : $user['id'];
-        $uuid     = is_object($user) ? $user->uuid : $user['uuid'];
-        $email    = is_object($user) ? $user->email : $user['email'];
-        $role     = is_object($user) ? $user->role : $user['role'];
-        $country  = is_object($user) ? ($user->country ?? '') : ($user['country'] ?? '');
-        $fname    = is_object($user) ? ($user->firstname ?? '') : ($user['firstname'] ?? '');
-        $lname    = is_object($user) ? ($user->lastname ?? '') : ($user['lastname'] ?? '');
+        // Normalize attendee
+        if (is_array($attendee)) {
+            $attendeeArray = $attendee;
+        } elseif (is_object($attendee) && method_exists($attendee, 'toArray')) {
+            $attendeeArray = $attendee->toArray();
+        } else {
+            $attendeeArray = (array) $attendee;
+        }
 
-        $session->set([
-            'user_id'     => $userId,
-            'uuid'        => $uuid,
-            'useremail'   => $email,
-            'firstname'   => $fname,
-            'lastname'    => $lname,
-            'role'        => $role,
+        // Store session data
+        session()->set([
             'logged_in'   => true,
-            'attendee_id' => $userId,
-            'reg_country' => $country,
+            'user_id'     => $userArray['id'],
+            'uuid'        => $userArray['uuid'],
+            'email'       => $userArray['email'],
+            'role'        => $userArray['role'],
+            'firstname'   => $attendeeArray['firstname'],
+            'lastname'    => $attendeeArray['lastname'],
+            'attendee_id' => $attendeeArray['id'],     // PK of tbl_attendees
+            'reg_country' => $attendeeArray['country'],
+            'profile_pic' => $attendeeArray['profile_picture'],
         ]);
 
-        // ✅ Update last login timestamp
-        $this->users->update($userId, [
-            'last_login_at' => date('Y-m-d H:i:s'),
+        // Update last login
+        $this->users->update($userArray['id'], [
+            'last_login_at' => date('Y-m-d H:i:s')
         ]);
 
-        // ✅ Return success
         return $this->respond([
             'status'  => 'success',
             'message' => 'Login successful',
-            'user'    => [
-                'id'    => $userId,
-                'uuid'  => $uuid,
-                'email' => $email,
-                'role'  => $role,
+            'user' => [
+                'id'    => $userArray['id'],
+                'uuid'  => $userArray['uuid'],
+                'email' => $userArray['email'],
+                'role'  => $userArray['role'],
             ],
+            'attendee' => [
+                'attendee_id'     => $attendeeArray['id'],
+                'firstname'       => $attendeeArray['firstname'],
+                'lastname'        => $attendeeArray['lastname'],
+                'country'         => $attendeeArray['country'],
+                'city'            => $attendeeArray['city'],
+                'state'           => $attendeeArray['state'],
+                'profile_picture' => $attendeeArray['profile_picture'],
+            ]
         ]);
     }
 }

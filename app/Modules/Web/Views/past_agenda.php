@@ -180,10 +180,14 @@ h4.text-epr {
 <?php echo module_view('Web', 'includes/scripts'); ?>
 
 <script>
-$('.modal').on('hidden.bs.modal', function () {
-    var iframe = $(this).find('iframe');
-    if (iframe.length) iframe.attr('src', iframe.attr('src'));
-});
+    $('.modal').on('hidden.bs.modal', function () {
+        const iframe = $(this).find('iframe');
+        if (iframe.length) {
+            const src = iframe.attr('src');
+            iframe.attr('src', '');      // 1. Clear the iframe (forces stop)
+            iframe.attr('src', src);     // 2. Restore it (video paused, not playing)
+        }
+    });
 </script>
 
 </body>

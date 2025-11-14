@@ -223,7 +223,7 @@ body {
         <?php if (!empty($speakers)): ?>
             <?php foreach ($speakers as $speaker): ?>
                 <?php
-                    $image = base_url('uploads/speaker_pictures/' . $speaker['speaker_photo']);
+                    $image = base_url('uploads/speakers/' . $speaker['speaker_photo']);
                     $speakerId = $speaker['speaker_id'];
                 ?>
                 <div class="speaker-card">
@@ -234,8 +234,6 @@ body {
 
                     <div class="speaker-details">
                         <h5><?php echo esc($speaker['speaker_name']); ?></h5>
-                        <p><?php echo esc($speaker['speaker_title']); ?><br>
-                           <small><?php echo esc($speaker['speaker_company']); ?></small></p>
 
                         <button class="view-profile-btn epr-btn-two"
                                 data-toggle="modal"

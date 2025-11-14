@@ -59,6 +59,7 @@ class Auth extends BaseController
             'user_role'   => $user['role'],
             'uuid'        => $user['uuid'] ?? null,
             'isLoggedIn'  => true,
+            'attendee_id'=>  $user['id'],
             'firstname'   => $attendee['firstname'] ?? '',
             'lastname'    => $attendee['lastname'] ?? '',
             'fullname'    => isset($attendee)
