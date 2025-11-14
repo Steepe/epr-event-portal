@@ -11,11 +11,11 @@
 
 $unread_count = isset($unread_messages) ? (int) $unread_messages : 0;
 
-if (!empty(session()->get('profile_picture_url'))){
-    $profile_picture = session()->get('profile_picture_url');
+if (!empty(session()->get('profile_pic'))){
+    $profile_picture = session()->get('profile_pic');
 }
 else{
-    $profile_picture = asset_url('images/user.png');
+   $profile_picture = asset_url('images/user.png');
 }
 
 if (!empty(session()->get('firstname'))){
@@ -113,7 +113,7 @@ $plan = isset($attendee['plan']) ? (int) $attendee['plan'] : 1;
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle text-white d-flex align-items-center"
                    href="#" id="userDropdown" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <img src="<?php echo asset_url(''.$profile_picture); ?>" width="40" height="40"
+                    <img src="<?php echo base_url('uploads/attendee_pictures/'.$profile_picture); ?>" width="40" height="40"
                          class="rounded-circle mr-2" alt="Profile Picture">
                     <span class="d-none d-lg-inline"><?php echo htmlspecialchars($full_name); ?></span>
                 </a>
