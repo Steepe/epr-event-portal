@@ -66,7 +66,7 @@ $plan = isset($attendee['plan']) ? (int) $attendee['plan'] : 1;
 
 <body class="unleash-25-bg">
 <nav class="navbar fixed-top navbar-expand-lg navbar-dark attendee-topbar">
-    <a class="navbar-brand" href="<?php echo base_url('attendee/p/lobby'); ?>">
+    <a class="navbar-brand" href="<?php echo base_url();?>">
         <img src="<?php echo asset_url('images/eventslogo.png'); ?>" alt="Event Logo">
     </a>
 

@@ -139,7 +139,7 @@ body {
 }
 
 .booth-header h5 {
-    color: #f3bb1a;
+    color: #ffffff;
     margin: 0;
     font-weight: 700;
 }
@@ -151,7 +151,7 @@ body {
     background: none;
     border: none;
     font-size: 26px;
-    color: #f3bb1a;
+    color: #ffffff;
 }
 
 /* ===== Booth Video ===== */
@@ -198,7 +198,7 @@ body {
 }
 
 .contact-card strong {
-    color: #f3bb1a;
+    color: #A70B91;
     display: block;
 }
 
@@ -226,7 +226,6 @@ body {
 }
 
 .btn-epr-purple {
-    background: linear-gradient(90deg, #9D0F82, #EFB11E);
     border: none;
     color: #fff;
     font-weight: 600;
@@ -234,6 +233,7 @@ body {
     padding: 10px 28px;
     transition: all 0.3s ease;
     margin-top: 15px;
+    width: 180px;
 }
 
 .btn-epr-purple:hover {
@@ -288,7 +288,7 @@ body {
                     <!-- 💬 Message Form -->
                     <form class="message-form" data-exhibitor="<?php echo $ex['id']; ?>">
                         <textarea name="message" placeholder="Type your message to this exhibitor..." required></textarea>
-                        <button type="submit" class="btn-epr-purple">Send Message</button>
+                        <button type="submit" class="btn-epr-purple epr-btn-four">Send Message</button>
                     </form>
                 </div>
             </div>

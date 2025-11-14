@@ -54,5 +54,9 @@ $routes->group('mobile', ['namespace' => 'App\Modules\MobileApp\Controllers'], [
     $routes->get('emergence-booth', 'EmergenceBoothController::index');
     $routes->post('emergence/sendSupportEmail', 'EmergenceBoothController::sendSupportEmail');
 
+    $routes->get('profile', 'Profile::index');
+    $routes->post('profile/update', 'Profile::update');
+    $routes->post('profile/upload-photo', 'Profile::uploadPhoto');
+
 });
 

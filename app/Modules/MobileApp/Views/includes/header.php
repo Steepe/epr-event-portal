@@ -237,11 +237,11 @@
     <!-- Optional Profile Section -->
     <div class="text-center py-3 border-bottom border-light">
         <img src="<?php echo session('profile_picture')
-            ? base_url('uploads/attendees/' . session('profile_picture'))
+            ? base_url('uploads/attendee_pictures/' . session()->get('profile_picture'))
             : asset_url('images/avatar.png'); ?>"
              class="rounded-circle mb-2" width="60" height="60" alt="Profile">
         <p class="mb-0 text-white fw-semibold">
-            <?php echo esc(session('name') ?? 'Guest User'); ?>
+            <?php echo esc(session()->get('firstname') ?? 'Guest User'); ?>
         </p>
     </div>
 

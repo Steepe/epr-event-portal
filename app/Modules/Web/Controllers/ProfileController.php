@@ -7,7 +7,6 @@
  * Time: 05:00
  */
 
-
 namespace App\Modules\Web\Controllers;
 
 use App\Controllers\BaseController;
