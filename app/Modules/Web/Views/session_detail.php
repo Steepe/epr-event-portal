@@ -309,6 +309,9 @@ echo module_view('Web', 'includes/scripts');
 
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Emoji Button (UMD build → works with window.EmojiButton) -->
+<script type="module" src="https://unpkg.com/emoji-picker-element@latest/index.js"></script>
+
 <script>
     const supabaseClient = supabase.createClient(
         "<?php echo getenv('supabase.url'); ?>",
@@ -396,13 +399,32 @@ echo module_view('Web', 'includes/scripts');
         document.getElementById("chatInput").value = "";
     }
 
+    // -------------------------
+    // SEND ON ENTER (Desktop Only)
+    // -------------------------
+    document.getElementById("chatInput").addEventListener("keydown", function (e) {
+
+        // If user is holding SHIFT → allow normal newline
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+
+            // Desktop detection — avoid sending accidentally on mobile keyboards
+            const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+            if (!isMobile) {
+                sendMessage();
+            }
+        }
+    });
+
+
     async function getUserProfile(userId) {
         let response = await fetch("/api/users/" + userId, {
             headers: {
                 "X-API-KEY": "<?php echo env('api.securityKey'); ?>"
             }
         });
-        console.log(response);
+       // console.log(response);
 
         let json = await response.json();
 
@@ -438,6 +460,78 @@ echo module_view('Web', 'includes/scripts');
     }
 
     loadChatHistory();
+
+    // -------------------------
+    // EMOJI PICKER (WORKING + CLOSE ON OUTSIDE CLICK)
+    // -------------------------
+
+    document.addEventListener("DOMContentLoaded", function () {
+
+        const chatInput = document.getElementById("chatInput");
+
+        // Create emoji toggle button
+        const emojiBtn = document.createElement("button");
+        emojiBtn.type = "button";
+        emojiBtn.innerHTML = "😊";
+        emojiBtn.className = "btn btn-sm";
+        emojiBtn.style.marginLeft = "8px";
+
+        chatInput.parentElement.appendChild(emojiBtn);
+
+        // Create the emoji picker
+        const picker = document.createElement("emoji-picker");
+        picker.style.position = "absolute";
+        picker.style.bottom = "70px";
+        picker.style.right = "20px";
+        picker.style.zIndex = "9999";
+        picker.style.background = "#fff";
+        picker.style.borderRadius = "10px";
+        picker.style.boxShadow = "0 4px 12px rgba(0,0,0,0.3)";
+        picker.style.display = "none";
+
+        document.body.appendChild(picker);
+
+        let pickerOpen = false;
+
+        // Toggle the picker
+        emojiBtn.addEventListener("click", (e) => {
+            e.stopPropagation(); // Prevent click from closing immediately
+            pickerOpen = !pickerOpen;
+            picker.style.display = pickerOpen ? "block" : "none";
+        });
+
+        // Insert emoji
+        picker.addEventListener("emoji-click", (event) => {
+            const emoji = event.detail.unicode;
+            const el = chatInput;
+
+            const start = el.selectionStart;
+            const end = el.selectionEnd;
+            const text = el.value;
+
+            el.value = text.slice(0, start) + emoji + text.slice(end);
+            el.selectionStart = el.selectionEnd = start + emoji.length;
+            el.focus();
+
+            // Close picker after selecting emoji
+            picker.style.display = "none";
+            pickerOpen = false;
+        });
+
+        // Prevent clicks INSIDE picker from closing it
+        picker.addEventListener("click", (e) => {
+            e.stopPropagation();
+        });
+
+        // Close picker when clicking anywhere outside
+        document.addEventListener("click", () => {
+            if (pickerOpen) {
+                picker.style.display = "none";
+                pickerOpen = false;
+            }
+        });
+    });
+
 
 </script>
 
