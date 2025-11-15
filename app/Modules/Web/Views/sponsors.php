@@ -138,7 +138,7 @@ body {
                                  onerror="this.src='<?php echo asset_url('images/sponsors/default-logo.png'); ?>';">
                         </a>
                     <?php else: ?>
-                        <img loading="lazy" src="<?php echo base_url('uploads/sponsors_logo/' . $sponsor['logo']); ?>"
+                        <img loading="lazy" src="<?php echo base_url('uploads/sponsors/' . $sponsor['logo']); ?>"
                              alt="<?php echo esc($sponsor['name']); ?>"
                              onerror="this.src='<?php echo asset_url('images/sponsors/default-logo.png'); ?>';">
                     <?php endif; ?>
