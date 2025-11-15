@@ -19,6 +19,7 @@ class SpeakersModel extends Model
     protected array $allowedFields = [
         'speaker_name',
         'speaker_title',
+        'speaker_email',
         'speaker_company',
         'bio',
         'speaker_photo'

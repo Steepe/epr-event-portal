@@ -30,11 +30,16 @@ $this->section('content');
     <?php echo csrf_field(); ?>
 
     <div class="grid md:grid-cols-2 gap-6">
-      <div>
-        <label class="block text-sm text-gray-400 mb-2">Full Name</label>
-        <input type="text" name="speaker_name" required
-               class="w-full p-2 rounded bg-gray-900 border border-gray-700 text-gray-200 focus:ring-blue-500 focus:border-blue-500">
-      </div>
+        <div>
+            <label class="block text-sm text-gray-400 mb-2">Full Name</label>
+            <input type="text" name="speaker_name" required
+                   class="w-full p-2 rounded bg-gray-900 border border-gray-700 text-gray-200 focus:ring-blue-500 focus:border-blue-500">
+        </div>
+        <div>
+            <label class="block text-sm text-gray-400 mb-2">Email </label>
+            <input type="email" name="speaker_email" required
+                   class="w-full p-2 rounded bg-gray-900 border border-gray-700 text-gray-200 focus:ring-blue-500 focus:border-blue-500">
+        </div>
       <div>
         <label class="block text-sm text-gray-400 mb-2">Title</label>
         <input type="text" name="speaker_title"

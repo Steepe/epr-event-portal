@@ -55,6 +55,7 @@ class SpeakersController extends BaseController
 
         $data = [
             'speaker_name'    => $this->request->getPost('speaker_name'),
+            'speaker_email'    => $this->request->getPost('speaker_email'),
             'speaker_title'   => $this->request->getPost('speaker_title'),
             'speaker_company' => $this->request->getPost('speaker_company'),
             'bio'             => $this->request->getPost('bio'),
@@ -96,6 +97,7 @@ class SpeakersController extends BaseController
 
         $data = [
             'speaker_name'    => $this->request->getPost('speaker_name'),
+            'speaker_email'    => $this->request->getPost('speaker_email'),
             'speaker_title'   => $this->request->getPost('speaker_title'),
             'speaker_company' => $this->request->getPost('speaker_company'),
             'bio'             => $this->request->getPost('bio'),

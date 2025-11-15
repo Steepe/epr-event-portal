@@ -313,8 +313,10 @@ body {
                                     <div class="tab-pane fade" id="messages<?php echo $speakerId; ?>" role="tabpanel">
                                         <div class="about-content">
 
-                                            <form action="<?php echo base_url('speakers/sendMessage'); ?>" method="post" class="p-2">
+                                            <form action="<?php echo base_url('attendees/speakers/sendMessage'); ?>" method="post" class="p-2">
                                                 <input type="hidden" name="speaker_id" value="<?php echo $speakerId; ?>">
+                                                <input type="hidden" name="speaker_email" value="<?php echo esc($speaker['speaker_email']); ?>">
+
 
                                                 <div class="form-group">
                                                     <label>Your Name</label>

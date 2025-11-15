@@ -61,6 +61,7 @@ $routes->group('attendees', ['namespace' => 'App\Modules\Web\Controllers', 'filt
     $routes->get('profile', 'ProfileController::index');
     $routes->post('profile/update', 'ProfileController::update');
     $routes->post('profile/upload-photo', 'ProfileController::uploadPhoto');
+    $routes->post('speakers/sendMessage', 'SpeakersController::sendMessage');
 
 
 

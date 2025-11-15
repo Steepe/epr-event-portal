@@ -63,7 +63,7 @@
            class="flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-700">
             <i class="bx bx-video text-lg"></i> Speakers
         </a>
-        
+
         <!-- Exhibitors -->
         <a href="<?php echo base_url('admin/exhibitors'); ?>"
            class="flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-700">

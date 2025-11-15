@@ -86,29 +86,48 @@ class SpeakersController extends BaseController
 
     public function sendMessage()
     {
-        $speakerId = $this->request->getPost('speaker_id');
-        $name      = $this->request->getPost('name');
-        $email     = $this->request->getPost('email');
-        $subject   = $this->request->getPost('subject');
-        $msg       = $this->request->getPost('message');
+        $request = service('request');
+        $emailService = service('email');
 
-        // Get speaker email
-        $speaker = $this->speakerModel->find($speakerId);
+        $speakerId      = $request->getPost('speaker_id');
+        $speakerEmail   = $request->getPost('speaker_email');
+        $senderName     = $request->getPost('name');
+        $senderEmail    = $request->getPost('email');
+        $subject        = $request->getPost('subject');
+        $messageBody    = $request->getPost('message');
 
-        // Assuming speakers have an `email` column
-        $to = $speaker['email'];
+        if (!$speakerEmail || !$senderEmail || !$subject || !$messageBody) {
+            return redirect()->back()->with('error', 'All fields are required.');
+        }
 
-        $body = "
-        Message from: $name ($email)
+        // FROM your .env no-reply
+        $fromEmail = env('email.fromEmail');
+        $fromName  = env('email.fromName');
 
-        Subject: $subject
-
-        $msg
+        // Build message
+        $emailContent = "
+        <p>You have received a new message from an Event Portal attendee.</p>
+        <p><strong>Name:</strong> {$senderName}</p>
+        <p><strong>Email:</strong> {$senderEmail}</p>
+        <p><strong>Subject:</strong> {$subject}</p>
+        <p><strong>Message:</strong></p>
+        <p>{$messageBody}</p>
     ";
 
-        // send email normally using CI4 Email services
+        // Configure email
+        $emailService->setFrom($fromEmail, $fromName);
+        $emailService->setTo($speakerEmail);
+        $emailService->setReplyTo($senderEmail, $senderName);
+        $emailService->setSubject("Message from attendee: {$subject}");
+        $emailService->setMessage($emailContent);
+        $emailService->setMailType('html');
 
-        return redirect()->back()->with('success', 'Message sent successfully.');
+        if (!$emailService->send()) {
+            log_message('error', 'Email failed: ' . $emailService->printDebugger(['headers']));
+            return redirect()->back()->with('error', 'Message could not be sent.');
+        }
+
+        return redirect()->back()->with('success', 'Your message has been sent to the speaker.');
     }
 
 
