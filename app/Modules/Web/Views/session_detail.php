@@ -107,7 +107,7 @@ if (!empty($vimeo_id)) {
 
     /* Them */
     .chat-bubble.them {
-        background: #222;
+        background: #742c76;
         border-bottom-left-radius: 4px;
         width: 100%;
     }
@@ -242,23 +242,17 @@ if (!empty($vimeo_id)) {
         </div>
 
         <aside class="col-md-4 mt-4" id="chat_pane">
-            <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
-                <li class="nav-item"><button class="nav-link active" data-toggle="pill" data-target="#chat-home">LIVE CHAT</button></li>
-            </ul>
+            <div class="row">
+                <div id="chat-containerx" style="height:530px; position: relative; top: 5px;">
+                    <div id="chat-messages"
+                         style="height:480px; overflow-y:auto; background:#d2bcd4; padding:20px 10px; border-radius:10px; pa">
+                    </div>
 
-            <div class="tab-content">
-                <div class="tab-pane fade show active" id="chat-home">
-                    <div id="chat-containerx" style="height:530px;">
-                        <div id="chat-messages"
-                             style="height:480px; overflow-y:auto; background:#111; padding:10px; border-radius:10px;">
-                        </div>
-
-                        <div class="mt-2 d-flex">
+                    <div class="mt-2 d-flex">
     <textarea id="chatInput" class="form-control" placeholder="Type a message..."
               style="background:#222; color:#fff; border-radius:10px; height:55px;"></textarea>
-                            <button class="btn btn-epr-pink ml-2" onclick="sendMessage()"
-                                    style="height:55px; border-radius:10px;">Send</button>
-                        </div>
+                        <button class="btn btn-epr-pink ml-2" onclick="sendMessage()"
+                                style="height:55px; border-radius:10px;">Send</button>
                     </div>
                 </div>
             </div>

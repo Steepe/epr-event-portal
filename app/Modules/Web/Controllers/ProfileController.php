@@ -58,13 +58,14 @@ class ProfileController extends BaseController
             return redirect()->to(base_url('attendees/login'));
         }
 
-        $attendeeId = $this->request->getPost('attendee_id');
+        // IMPORTANT: Your new table uses `id` as PK, and `attendee_id` is FK to tbl_users.
+        $rowId = $this->request->getPost('id'); // change from attendee_id
 
-        // Validate basic fields
+        // Validation
         $validation = \Config\Services::validation();
         $validation->setRules([
             'firstname' => 'required|min_length[2]',
-            'lastname' => 'required|min_length[2]',
+            'lastname'  => 'required|min_length[2]',
         ]);
 
         if (!$validation->withRequest($this->request)->run()) {
@@ -72,50 +73,36 @@ class ProfileController extends BaseController
                 ->with('error', implode(', ', $validation->getErrors()));
         }
 
-        // Prepare update data
+        // Build update array from new DB structure
         $data = [
             'firstname' => $this->request->getPost('firstname'),
-            'lastname' => $this->request->getPost('lastname'),
+            'lastname'  => $this->request->getPost('lastname'),
             'telephone' => $this->request->getPost('telephone'),
-            'country' => $this->request->getPost('country'),
-            'city' => $this->request->getPost('city'),
-            'state' => $this->request->getPost('state'),
-            'company' => $this->request->getPost('company'),
-            'position' => $this->request->getPost('position'),
+            'country'   => $this->request->getPost('country'),
+            'city'      => $this->request->getPost('city'),
+            'state'     => $this->request->getPost('state'),
+            'company'   => $this->request->getPost('company'),
+            'position'  => $this->request->getPost('position'),
+
+            // NEW SOCIALS
+            'facebook'  => $this->request->getPost('facebook'),
+            'twitter'   => $this->request->getPost('twitter'),
+            'instagram' => $this->request->getPost('instagram'),
+            'linkedin'  => $this->request->getPost('linkedin'),
+
             'updated_at' => date('Y-m-d H:i:s'),
         ];
 
-        // ========================
-        // HANDLE PROFILE PICTURE
-        // ========================
-        $file = $this->request->getFile('profile_picture');
+        // Picture upload removed – now handled by uploadPhoto()
 
-        if ($file && $file->isValid() && !$file->hasMoved()) {
-
-            // Validate image
-            if (!in_array($file->getMimeType(), ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'])) {
-                return redirect()->back()->with('error', 'Invalid image format.');
-            }
-
-            $newName = $file->getRandomName();
-            $file->move(FCPATH . 'uploads/attendee_pictures/', $newName);
-
-            $data['profile_picture'] = $newName;
-
-            // Update session picture as well
-            $session->set('profile_picture', $newName);
-        }
-
-        // ========================
-        // UPDATE DATABASE RECORD
-        // ========================
+        // Update row using the actual PK "id"
         $this->db->table('tbl_attendees')
-            ->where('attendee_id', $attendeeId)
+            ->where('id', $rowId)
             ->update($data);
 
-        // Update session name
+        // Sync session values
         $session->set('firstname', $data['firstname']);
-        $session->set('lastname', $data['lastname']);
+        $session->set('lastname',  $data['lastname']);
 
         return redirect()->to(base_url('attendees/profile'))
             ->with('success', 'Profile updated successfully.');
