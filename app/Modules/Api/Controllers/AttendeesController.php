@@ -31,22 +31,32 @@ class AttendeesController extends ResourceController
             $name  = $this->request->getGet('attendee_name');
             $sort  = $this->request->getGet('sort');
 
-            $builder = $this->model->select(
-                'id, attendee_id, firstname, lastname, useremail, country, state, city'
-            );
+            $builder = $this->model
+                ->select('
+    tbl_attendees.id,
+    tbl_attendees.attendee_id,
+    tbl_attendees.firstname,
+    tbl_attendees.lastname,
+    tbl_attendees.profile_picture,
+    tbl_users.email,
+    tbl_attendees.country,
+    tbl_attendees.state,
+    tbl_attendees.city
+')
+                ->join('tbl_users', 'tbl_users.id = tbl_attendees.attendee_id');
 
             if ($name) {
                 $builder->groupStart()
-                    ->like('firstname', $name)
-                    ->orLike('lastname', $name)
+                    ->like('tbl_attendees.firstname', $name)
+                    ->orLike('tbl_attendees.lastname', $name)
                     ->groupEnd();
             }
 
             if ($sort) {
-                $builder->like('firstname', $sort, 'after');
+                $builder->like('tbl_attendees.firstname', $sort, 'after');
             }
 
-            $attendees = $builder->orderBy('firstname', 'ASC')->findAll();
+            $attendees = $builder->orderBy('tbl_attendees.firstname', 'ASC')->findAll();
 
             // Build A–Z sorting links
             $alphabetCount = [];
@@ -78,7 +88,8 @@ class AttendeesController extends ResourceController
         }
 
         $attendee = $this->model
-            ->select('id, attendee_id, firstname, lastname, useremail, country, state, city')
+            ->select('tbl_attendees.id, tbl_attendees.attendee_id, tbl_attendees.firstname, tbl_attendees.lastname, tbl_users.email, tbl_attendees.country, tbl_attendees.state, tbl_attendees.city')
+            ->join('tbl_users', 'tbl_users.id = tbl_attendees.attendee_id')
             ->find($id);
 
         if (!$attendee) {

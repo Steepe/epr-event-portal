@@ -58,5 +58,8 @@ $routes->group('mobile', ['namespace' => 'App\Modules\MobileApp\Controllers'], [
     $routes->post('profile/update', 'Profile::update');
     $routes->post('profile/upload-photo', 'Profile::uploadPhoto');
 
+    $routes->post('speakers/sendMessage', 'SpeakersController::sendMessage');
+
+
 });
 

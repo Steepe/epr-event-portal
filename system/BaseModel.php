@@ -86,7 +86,7 @@ abstract class BaseModel
      *
      * @var non-empty-string|null
      */
-    protected $DBGroup;
+    protected string $DBGroup;
 
     /**
      * The format that the results should be returned as.

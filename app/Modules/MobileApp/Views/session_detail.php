@@ -74,7 +74,7 @@ $eventDate = isset($event['event_date']) ? date('F j, Y', strtotime($event['even
 
     .session-meta {
         font-size: 0.85rem;
-        color: #ddd;
+        color: #5c065e;
         margin-bottom: 1rem;
     }
 
@@ -110,7 +110,7 @@ $eventDate = isset($event['event_date']) ? date('F j, Y', strtotime($event['even
         display: flex;
         justify-content: center;
         align-items: center;
-        color: #fff;
+        color: #5c065e;
         font-size: 0.95rem;
         font-weight: 500;
         text-shadow: 0 2px 6px rgba(0,0,0,0.3);
@@ -120,7 +120,7 @@ $eventDate = isset($event['event_date']) ? date('F j, Y', strtotime($event['even
     .locked-video i {
         font-size: 1.2rem;
         margin-right: 8px;
-        color: #f3bb1a;
+        color: #A70B91;
     }
 
     .feedback-row {
@@ -132,7 +132,7 @@ $eventDate = isset($event['event_date']) ? date('F j, Y', strtotime($event['even
     }
 
     .like-icon i {
-        color: #f3bb1a;
+        color: #A70B91;
         font-size: 1.2rem;
         cursor: pointer;
         transition: color 0.3s;
@@ -159,7 +159,7 @@ $eventDate = isset($event['event_date']) ? date('F j, Y', strtotime($event['even
     .rating-stars input:checked ~ label,
     .rating-stars label:hover,
     .rating-stars label:hover ~ label {
-        color: #f3bb1a;
+        color: #A70B91;
     }
 
     .speaker-section {
@@ -188,14 +188,14 @@ $eventDate = isset($event['event_date']) ? date('F j, Y', strtotime($event['even
     .speaker-info h6 {
         font-size: 0.95rem;
         font-weight: 600;
-        color: #f3bb1a;
+        color: #A70B91;
         margin-bottom: 2px;
     }
 
     .speaker-info p {
         font-size: 0.8rem;
         margin: 0;
-        color: #ddd;
+        color: #5c065e;
     }
 
     .session-overview {
@@ -214,7 +214,7 @@ $eventDate = isset($event['event_date']) ? date('F j, Y', strtotime($event['even
 
     .session-overview p {
         font-size: 0.9rem;
-        color: #fff;
+        color: #5c065e;
         line-height: 1.5;
     }
 
@@ -285,7 +285,7 @@ $eventDate = isset($event['event_date']) ? date('F j, Y', strtotime($event['even
         padding: 14px 18px;
         background: rgba(0,0,0,0.25);
         backdrop-filter: blur(8px);
-        color: #fff;
+        color: #5c065e;
         font-weight: 600;
         font-size: 1rem;
         border-radius: 20px 20px 0 0;
@@ -298,7 +298,7 @@ $eventDate = isset($event['event_date']) ? date('F j, Y', strtotime($event['even
         background: none;
         border: none;
         font-size: 26px;
-        color: #fff;
+        color: #5c065e;
         cursor: pointer;
         margin-top: -4px;
     }
@@ -514,26 +514,14 @@ $eventDate = isset($event['event_date']) ? date('F j, Y', strtotime($event['even
         </div>
     <?php endif; ?>
 
-    <!-- 💬 Feedback & Like -->
-    <div class="feedback-row">
-        <div class="like-icon" id="likeSession">
-            <i class="fa fa-heart-o"></i> <span>Like</span>
-        </div>
-        <div class="rating-stars">
-            <?php for ($i = 5; $i >= 1; $i--): ?>
-                <input type="radio" id="star<?php echo $i; ?>" name="rating" value="<?php echo $i; ?>">
-                <label for="star<?php echo $i; ?>">★</label>
-            <?php endfor; ?>
-        </div>
-    </div>
 
     <!-- 👥 Speakers -->
     <?php if (!empty($sessionSpeakers)): ?>
         <div class="speaker-section">
-            <h6 style="color:#f3bb1a; margin-bottom:8px;">Speakers</h6>
+            <h6 style="color:#A70B91; margin-bottom:8px;">Speakers</h6>
             <?php foreach ($sessionSpeakers as $speaker): ?>
                 <div class="speaker-card">
-                    <img src="<?php echo base_url('uploads/speaker_pictures/' . ($speaker['speaker_photo'] ?? '')); ?>"
+                    <img src="<?php echo base_url('uploads/speakers/' . ($speaker['speaker_photo'] ?? '')); ?>"
                          onerror="this.src='<?php echo asset_url('images/user.png'); ?>';"
                          alt="<?php echo esc($speaker['speaker_name']); ?>">
                     <div class="speaker-info">

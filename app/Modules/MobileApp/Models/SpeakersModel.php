@@ -16,7 +16,7 @@ class SpeakersModel extends Model
     protected string $table = 'tbl_speakers';
     protected string $primaryKey = 'speaker_id';
     protected array $allowedFields = [
-        'speaker_name', 'speaker_title', 'speaker_company',
+        'speaker_name', 'speaker_email', 'speaker_title', 'speaker_company',
         'speaker_photo', 'bio', 'created_at', 'updated_at'
     ];
 
@@ -44,12 +44,12 @@ class SpeakersModel extends Model
             ->getResultArray();
     }
 
-    public function getSpeakersBySession($sessionId)
+    public function getSpeakersBySession($sessionId): array
     {
         $db = \Config\Database::connect();
 
         $sql = "
-        SELECT sp.speaker_id, sp.speaker_name, sp.speaker_title,
+        SELECT sp.speaker_id, sp.speaker_name, sp.speaker_email, sp.speaker_title,
                sp.speaker_company, sp.speaker_photo, sp.bio
         FROM tbl_session_speakers AS ss
         LEFT JOIN tbl_speakers AS sp ON sp.speaker_id = ss.speaker_id
@@ -60,5 +60,15 @@ class SpeakersModel extends Model
         $query = $db->query($sql, [$sessionId]);
         return $query->getResultArray();
     }
+
+    public function getOffersBySpeaker($speakerId)
+    {
+        return $this->db->table('tbl_speaker_offers')
+            ->where('speaker_id', $speakerId)
+            ->orderBy('id', 'DESC')
+            ->get()
+            ->getResultArray();
+    }
+
 
 }
