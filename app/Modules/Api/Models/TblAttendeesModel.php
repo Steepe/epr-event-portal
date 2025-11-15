@@ -16,11 +16,13 @@ class TblAttendeesModel extends Model
     protected string $table            = 'tbl_attendees';
     protected string $primaryKey       = 'id';
     protected string $returnType       = 'array';
-    protected bool $useSoftDeletes   = false;
-    protected array $allowedFields    = [
+    protected bool $useSoftDeletes     = false;
+
+    protected array $allowedFields = [
         'attendee_id', 'firstname', 'lastname', 'telephone', 'country',
-        'city', 'state', 'useremail', 'userpassword', 'ipaddress',
-        'uid', 'is_verified', 'registration_timestamp',
+        'city', 'state', 'profile_picture', 'company', 'position',
+        'facebook', 'twitter', 'instagram', 'linkedin',
+        'ipaddress', 'is_verified', 'registration_timestamp',
         'created_at', 'updated_at'
     ];
 }

@@ -13,6 +13,7 @@ namespace App\Modules\Api\Controllers;
 use CodeIgniter\RESTful\ResourceController;
 use CodeIgniter\API\ResponseTrait;
 use App\Modules\Api\Models\TblAttendeesModel;
+use App\Modules\Api\Models\TblUsersModel;
 
 class AttendeesController extends ResourceController
 {
@@ -23,45 +24,57 @@ class AttendeesController extends ResourceController
 
     /**
      * GET /api/attendees
-     * Query params: ?attendee_name=John  or  ?sort=A
      */
     public function index()
     {
         try {
-            $name  = $this->request->getGet('attendee_name');
-            $sort  = $this->request->getGet('sort');
+            $name = $this->request->getGet('attendee_name');
+            $sort = $this->request->getGet('sort');
 
-            $builder = $this->model->select(
-                'id, attendee_id, firstname, lastname, useremail, country, state, city'
-            );
+            $builder = $this->model
+                ->select("
+        tbl_attendees.id,
+        tbl_attendees.attendee_id,
+        tbl_attendees.firstname,
+        tbl_attendees.lastname,
+        tbl_attendees.country,
+        tbl_attendees.state,
+        tbl_attendees.city,
+        tbl_attendees.profile_picture,
+        tbl_users.email
+    ")
+                ->join('tbl_users', 'tbl_users.id = tbl_attendees.attendee_id');
 
             if ($name) {
                 $builder->groupStart()
-                    ->like('firstname', $name)
-                    ->orLike('lastname', $name)
+                    ->like('tbl_attendees.firstname', $name)
+                    ->orLike('tbl_attendees.lastname', $name)
                     ->groupEnd();
             }
 
             if ($sort) {
-                $builder->like('firstname', $sort, 'after');
+                $builder->like('tbl_attendees.firstname', $sort, 'after');
             }
 
-            $attendees = $builder->orderBy('firstname', 'ASC')->findAll();
+            $attendees = $builder
+                ->orderBy('tbl_attendees.firstname', 'ASC')
+                ->findAll();
 
-            // Build A–Z sorting links
+            // Generate A–Z letters
             $alphabetCount = [];
             foreach (range('A', 'Z') as $letter) {
                 $alphabetCount[] = ['firstCharacter' => $letter];
             }
 
             return $this->respond([
-                'status' => 200,
+                'status'  => 200,
                 'message' => 'Attendees retrieved successfully.',
-                'data' => [
-                    'attendees'       => $attendees,
-                    'alphabet_count'  => $alphabetCount,
+                'data'    => [
+                    'attendees'      => $attendees,
+                    'alphabet_count' => $alphabetCount,
                 ],
             ]);
+
         } catch (\Throwable $e) {
             log_message('error', '[API:AttendeesController] '.$e->getMessage());
             return $this->failServerError('Unable to fetch attendees.');
@@ -78,7 +91,17 @@ class AttendeesController extends ResourceController
         }
 
         $attendee = $this->model
-            ->select('id, attendee_id, firstname, lastname, useremail, country, state, city')
+            ->select("
+                tbl_attendees.id,
+                tbl_attendees.attendee_id,
+                tbl_attendees.firstname,
+                tbl_attendees.lastname,
+                tbl_attendees.country,
+                tbl_attendees.state,
+                tbl_attendees.city,
+                tbl_users.email
+            ")
+            ->join('tbl_users', 'tbl_users.id = tbl_attendees.attendee_id')
             ->find($id);
 
         if (!$attendee) {
@@ -91,6 +114,9 @@ class AttendeesController extends ResourceController
         ]);
     }
 
+    /**
+     * GET /api/attendees/all (requires X-API-KEY)
+     */
     public function all()
     {
         $key = $this->request->getHeaderLine('X-API-KEY');
@@ -98,13 +124,17 @@ class AttendeesController extends ResourceController
             return $this->failUnauthorized('Invalid API key');
         }
 
-        $model = new TblAttendeesModel();
-
-        $rows = $model->select('id, firstname, lastname')->findAll();
+        $rows = $this->model
+            ->select("
+                tbl_attendees.id,
+                tbl_attendees.firstname,
+                tbl_attendees.lastname
+            ")
+            ->findAll();
 
         return $this->respond([
             'status' => 'success',
-            'data'   => $rows
+            'data'   => $rows,
         ]);
     }
 }
