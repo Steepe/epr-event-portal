@@ -63,4 +63,26 @@ class SpeakersController extends ResourceController
             return $this->failServerError('Unable to load speaker.');
         }
     }
+
+    public function offers($speakerId)
+    {
+        $apiKey = $this->request->getHeaderLine('X-API-KEY');
+        if ($apiKey !== env('api.securityKey')) {
+            return $this->failUnauthorized('Invalid API Key.');
+        }
+
+        $db = db_connect();
+
+        $offers = $db->table('tbl_speaker_offers')
+            ->where('speaker_id', $speakerId)
+            ->orderBy('id', 'DESC')
+            ->get()
+            ->getResultArray();
+
+        return $this->respond([
+            'status' => 'success',
+            'data'   => $offers
+        ]);
+    }
+
 }

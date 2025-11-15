@@ -29,7 +29,11 @@
         <p class="text-gray-500 text-xs mb-2"><?php echo esc($sp['speaker_company']); ?></p>
         <p class="text-gray-300 text-sm line-clamp-3"><?php echo esc(substr($sp['bio'], 0, 120)); ?>...</p>
         <div class="mt-4 flex justify-end gap-2">
-          <a href="<?php echo site_url('admin/speakers/' . $sp['speaker_id'] . '/edit'); ?>"
+            <a href="<?php echo base_url('admin/speakers/' . $sp['speaker_id'] . '/offers'); ?>"
+               class="px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded text-xs">
+                Offers
+            </a>
+            <a href="<?php echo site_url('admin/speakers/' . $sp['speaker_id'] . '/edit'); ?>"
              class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded">Edit</a>
           <a href="<?php echo site_url('admin/speakers/' . $sp['speaker_id'] . '/delete'); ?>"
              class="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded"

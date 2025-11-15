@@ -102,6 +102,16 @@ $routes->group('admin', ['namespace' => 'App\Modules\Admin\Controllers'], functi
             $routes->get('toggle/(:num)', 'WebinarsController::toggleOpen/$1');
         });
 
+        $routes->group('speakers', function($routes) {
+            $routes->get('(:num)/offers', 'SpeakerOffersController::index/$1');
+            $routes->get('(:num)/offers/create', 'SpeakerOffersController::create/$1');
+            $routes->post('(:num)/offers/store', 'SpeakerOffersController::store/$1');
+
+            $routes->get('offers/edit/(:num)', 'SpeakerOffersController::edit/$1');
+            $routes->post('offers/update/(:num)', 'SpeakerOffersController::update/$1');
+            $routes->get('offers/delete/(:num)', 'SpeakerOffersController::delete/$1');
+        });
+
 
         // Messages (admin inbox)
         $routes->get('messages', 'MessagesController::index');

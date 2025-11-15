@@ -83,5 +83,8 @@ $routes->group('api', ['namespace' => 'App\Modules\Api\Controllers', 'filter'   
     $routes->post('chat/send/(:num)', 'ChatController::send/$1');
     $routes->get('attendees/all', 'AttendeesController::all');
 
+    $routes->get('speakers/(:num)/offers', 'SpeakersController::offers/$1');
+
+
 
 });

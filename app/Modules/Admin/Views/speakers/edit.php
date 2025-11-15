@@ -62,6 +62,62 @@ $this->section('content');
                onchange="previewImage(event)"
                class="text-gray-300">
       </div>
+
+        <!-- ============================
+     SPEAKER OFFERS SECTION
+============================= -->
+        <div class="mt-10 bg-gray-900 border border-gray-700 rounded-lg p-6">
+
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold text-gray-200">Offers & Deals</h2>
+                <button type="button"
+                        onclick="openOfferModal()"
+                        class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded">
+                    + Add Offer
+                </button>
+            </div>
+
+            <?php if (!empty($offers)): ?>
+                <table class="w-full text-left text-gray-300 text-sm border-separate border-spacing-y-2">
+                    <thead>
+                    <tr class="text-gray-400 text-xs">
+                        <th class="py-2">Title</th>
+                        <th class="py-2">Price</th>
+                        <th class="py-2 w-32">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <?php foreach ($offers as $offer): ?>
+                        <tr class="bg-gray-800 border border-gray-700">
+                            <td class="p-3"><?php echo esc($offer['title']); ?></td>
+                            <td class="p-3"><?php echo esc($offer['price'] ?? '-'); ?></td>
+                            <td class="p-3 flex gap-3">
+
+                                <!-- Edit -->
+                                <button type="button"
+                                        onclick="editOffer(<?php echo $offer['id']; ?>)"
+                                        class="text-blue-400 hover:underline">
+                                    Edit
+                                </button>
+
+                                <!-- Delete -->
+                                <a href="<?php echo site_url('admin/speakers/'.$speaker['speaker_id'].'/offers/'.$offer['id'].'/delete'); ?>"
+                                   onclick="return confirm('Delete this offer?');"
+                                   class="text-red-400 hover:underline">
+                                    Delete
+                                </a>
+
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php else: ?>
+                <p class="text-gray-400 italic">No offers added for this speaker.</p>
+            <?php endif; ?>
+
+        </div>
+
     </div>
 
     <div class="flex justify-end">
@@ -80,5 +136,101 @@ function previewImage(event) {
   }
 }
 </script>
+
+<!-- OFFER MODAL -->
+<div id="offerModal"
+     class="fixed inset-0 bg-black bg-opacity-60 hidden justify-center items-center z-50">
+
+    <div class="bg-gray-800 border border-gray-700 rounded-lg p-6 w-full max-w-lg">
+        <h2 id="offerModalTitle" class="text-xl font-semibold text-gray-200 mb-4">Add Offer</h2>
+
+        <form id="offerForm" method="post" action="">
+            <?php echo csrf_field(); ?>
+
+            <input type="hidden" name="offer_id" id="offer_id">
+
+            <div class="mb-4">
+                <label class="block text-gray-400 text-sm mb-1">Offer Title</label>
+                <input type="text" name="title" id="offer_title"
+                       required
+                       class="w-full p-2 rounded bg-gray-900 border border-gray-700 text-gray-200">
+            </div>
+
+            <div class="mb-4">
+                <label class="block text-gray-400 text-sm mb-1">Summary</label>
+                <textarea name="summary" id="offer_summary" rows="4"
+                          class="w-full p-2 rounded bg-gray-900 border border-gray-700 text-gray-200"></textarea>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-gray-400 text-sm mb-1">Price</label>
+                    <input type="text" name="price" id="offer_price"
+                           class="w-full p-2 rounded bg-gray-900 border border-gray-700 text-gray-200">
+                </div>
+
+                <div>
+                    <label class="block text-gray-400 text-sm mb-1">CTA Link</label>
+                    <input type="text" name="cta_link" id="offer_cta"
+                           class="w-full p-2 rounded bg-gray-900 border border-gray-700 text-gray-200">
+                </div>
+            </div>
+
+            <div class="flex justify-end gap-3 mt-4">
+                <button type="button" onclick="closeOfferModal()"
+                        class="px-4 py-2 bg-gray-700 text-gray-200 rounded">
+                    Cancel
+                </button>
+
+                <button type="submit"
+                        class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded">
+                    Save Offer
+                </button>
+            </div>
+        </form>
+    </div>
+
+</div>
+
+<script>
+    function openOfferModal() {
+        document.getElementById('offerForm').action =
+            "<?php echo site_url('admin/speakers/'.$speaker['speaker_id'].'/offers/store'); ?>";
+
+        document.getElementById('offer_id').value = "";
+        document.getElementById('offer_title').value = "";
+        document.getElementById('offer_summary').value = "";
+        document.getElementById('offer_price').value = "";
+        document.getElementById('offer_cta').value = "";
+
+        document.getElementById('offerModalTitle').textContent = "Add Offer";
+
+        document.getElementById('offerModal').classList.remove('hidden');
+    }
+
+    function editOffer(id) {
+        fetch("<?php echo site_url('admin/speakers/'.$speaker['speaker_id'].'/offers'); ?>/" + id)
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('offerForm').action =
+                    "<?php echo site_url('admin/speakers/'.$speaker['speaker_id'].'/offers'); ?>/" + id + "/update";
+
+                document.getElementById('offer_id').value = data.id;
+                document.getElementById('offer_title').value = data.title;
+                document.getElementById('offer_summary').value = data.summary;
+                document.getElementById('offer_price').value = data.price;
+                document.getElementById('offer_cta').value = data.cta_link;
+
+                document.getElementById('offerModalTitle').textContent = "Edit Offer";
+
+                document.getElementById('offerModal').classList.remove('hidden');
+            });
+    }
+
+    function closeOfferModal() {
+        document.getElementById('offerModal').classList.add('hidden');
+    }
+</script>
+
 
 <?php $this->endSection(); ?>

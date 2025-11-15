@@ -270,18 +270,34 @@ body {
                                 <!-- Tabs -->
                                 <ul class="nav nav-tabs profile-tabs" id="profileTabs<?php echo $speakerId; ?>" role="tablist">
                                     <li class="nav-item">
-                                        <a class="nav-link active" id="about-tab-<?php echo $speakerId; ?>" data-toggle="tab" href="#about<?php echo $speakerId; ?>" role="tab">About</a>
+                                        <a class="nav-link active" id="about-tab-<?php echo $speakerId; ?>"
+                                           data-toggle="tab" href="#about<?php echo $speakerId; ?>" role="tab">
+                                            About
+                                        </a>
                                     </li>
+
                                     <li class="nav-item">
-                                        <a class="nav-link" id="messages-tab-<?php echo $speakerId; ?>" data-toggle="tab" href="#messages<?php echo $speakerId; ?>" role="tab">Messages</a>
+                                        <a class="nav-link" id="messages-tab-<?php echo $speakerId; ?>"
+                                           data-toggle="tab" href="#messages<?php echo $speakerId; ?>" role="tab">
+                                            Message
+                                        </a>
+                                    </li>
+
+                                    <li class="nav-item">
+                                        <a class="nav-link" id="offers-tab-<?php echo $speakerId; ?>"
+                                           data-toggle="tab" href="#offers<?php echo $speakerId; ?>" role="tab">
+                                            Offers & Deals
+                                        </a>
                                     </li>
                                 </ul>
 
                                 <div class="tab-content mt-4 text-left" id="profileTabsContent<?php echo $speakerId; ?>" style="position: relative; top: -26px;">
-                                    <!-- About Tab -->
+
+                                    <!-- ========================= ABOUT TAB ========================= -->
                                     <div class="tab-pane fade show active" id="about<?php echo $speakerId; ?>" role="tabpanel">
                                         <div class="about-content">
                                             <p><?php echo nl2br(esc($speaker['bio'] ?? 'No biography available.')); ?></p>
+
                                             <?php if (!empty($speaker['sessions'])): ?>
                                                 <h6 class="mt-4 text-epr">Sessions:</h6>
                                                 <ul class="session-list">
@@ -293,10 +309,84 @@ body {
                                         </div>
                                     </div>
 
-                                    <!-- Messages Tab -->
+                                    <!-- ========================= MESSAGE TAB ========================= -->
                                     <div class="tab-pane fade" id="messages<?php echo $speakerId; ?>" role="tabpanel">
-                                        <div class="about-content text-center">
-                                            <p class="text-muted">Messaging feature coming soon...</p>
+                                        <div class="about-content">
+
+                                            <form action="<?php echo base_url('speakers/sendMessage'); ?>" method="post" class="p-2">
+                                                <input type="hidden" name="speaker_id" value="<?php echo $speakerId; ?>">
+
+                                                <div class="form-group">
+                                                    <label>Your Name</label>
+                                                    <input type="text"
+                                                           name="name"
+                                                           required
+                                                           class="form-control"
+                                                           value="<?php echo esc(session('firstname').' '.session('lastname')); ?>" readonly>
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label>Your Email</label>
+                                                    <input type="email"
+                                                           name="email"
+                                                           required
+                                                           class="form-control"
+                                                           value="<?php echo esc(session('email')); ?>" readonly>
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label>Subject</label>
+                                                    <input type="text"
+                                                           name="subject"
+                                                           required
+                                                           class="form-control"
+                                                           placeholder="Subject">
+                                                </div>
+
+                                                <div class="form-group">
+                                                    <label>Message</label>
+                                                    <textarea name="message" rows="4" required class="form-control"
+                                                              placeholder="Write your message to this speaker..."></textarea>
+                                                </div>
+
+                                                <button class="btn btn-primary btn-block" style="background:#A70B91;border:none;">
+                                                    Send Message
+                                                </button>
+                                            </form>
+
+                                        </div>
+                                    </div>
+
+                                    <!-- ========================= OFFERS & DEALS TAB ========================= -->
+                                    <div class="tab-pane fade" id="offers<?php echo $speakerId; ?>" role="tabpanel">
+                                        <div class="about-content">
+
+                                            <?php if (!empty($speaker['offers'])): ?>
+                                                <?php foreach ($speaker['offers'] as $offer): ?>
+                                                    <div class="offer-box mb-3 p-3" style="
+                        background:#fafafa;
+                        border-radius:12px;
+                        border:1px solid #eee;">
+                                                        <h5 style="color:#A70B91;"><?php echo esc($offer['title']); ?></h5>
+                                                        <p class="text-muted mb-1"><?php echo esc($offer['summary']); ?></p>
+
+                                                        <?php if (!empty($offer['price'])): ?>
+                                                            <p><strong>Price:</strong> <?php echo esc($offer['price']); ?></p>
+                                                        <?php endif; ?>
+
+                                                        <?php if (!empty($offer['cta_link'])): ?>
+                                                            <a href="<?php echo esc($offer['cta_link']); ?>" target="_blank"
+                                                               class="btn btn-sm"
+                                                               style="background:#A70B91;color:white;border-radius:6px;">
+                                                                Learn More
+                                                            </a>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                <?php endforeach; ?>
+                                            <?php else: ?>
+                                                <p class="text-muted text-center">No offers or deals available.</p>
+                                            <?php endif; ?>
+
                                         </div>
                                     </div>
                                 </div>

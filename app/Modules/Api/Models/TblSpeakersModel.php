@@ -25,4 +25,14 @@ class TblSpeakersModel extends Model
         'speaker_photo',
         'bio'
     ];
+
+    public function getOffers($speakerId): array
+    {
+        return $this->db->table('tbl_speaker_offers')
+            ->where('speaker_id', $speakerId)
+            ->orderBy('id', 'DESC')
+            ->get()
+            ->getResultArray();
+    }
+
 }
