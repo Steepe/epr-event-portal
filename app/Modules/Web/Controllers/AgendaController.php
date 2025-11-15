@@ -19,11 +19,6 @@ class AgendaController extends BaseController
     {
         $session = session();
 
-        // 🧱 Ensure user is logged in
-        if (! $session->get('logged_in')) {
-            return redirect()->to(base_url('attendees/login'));
-        }
-
         // 🧠 Use stored live conference ID if none passed
         $conferenceId = $conferenceId ?? $session->get('live-conference-id');
 
@@ -37,7 +32,7 @@ class AgendaController extends BaseController
         try {
             // Fetch sessions with speakers in one query
             $builder = $db->table('tbl_conference_sessions s')
-                ->select('s.*, sp.speaker_name, sp.speaker_title, sp.speaker_company')
+                ->select('s.*, sp.speaker_name')
                 ->join('tbl_session_speakers ss', 'ss.sessions_id = s.sessions_id', 'left')
                 ->join('tbl_speakers sp', 'sp.speaker_id = ss.speaker_id', 'left')
                 ->where('s.conference_id', $conferenceId)
@@ -73,8 +68,6 @@ class AgendaController extends BaseController
                 if (!empty($row['speaker_name'])) {
                     $grouped[$eventDate][$sessionId]['speakers'][] = [
                         'name'     => $row['speaker_name'],
-                        'title'    => $row['speaker_title'],
-                        'company'  => $row['speaker_company'],
                     ];
                 }
             }
