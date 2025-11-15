@@ -240,7 +240,7 @@ $timezone = $timezone ?? 'Africa/Lagos';
                     ?>
                     <div class="session-card <?php echo $canAccess ? '' : 'locked'; ?>">
                         <div class="session-title"><?php echo esc($s['sessions_name']); ?></div>
-                        <div class="session-time"><?php echo $start; ?> - <?php echo $end; ?> (<?php echo esc($timezone); ?>)</div>
+                        <div class="session-time"><?php echo $start; ?> - <?php echo $end; ?> (GMT)</div>
                         <div class="session-speakers">
                             <?php if (!empty($s['speakers'])): ?>
                                 Speakers:

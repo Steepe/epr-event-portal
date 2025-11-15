@@ -13,7 +13,7 @@
 
 <head>
     <meta charset="utf-8" />
-    <title>Emergence Conference Global 2024</title>
+    <title>Emergence Conference Global 2025</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta content="Global EPR Emergence Conference" name="description" />
     <meta content="Creyatif - 08033868618 business@creyatif.com" name="author" />
