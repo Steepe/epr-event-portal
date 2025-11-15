@@ -66,7 +66,7 @@ $eventDate = isset($event['event_date']) ? date('F j, Y', strtotime($event['even
     }
 
     h4 {
-        color: #A70B91;
+        color: #ffffff;
         margin-bottom: 0.4rem;
         font-weight: 700;
         font-size: 1.4rem;
@@ -188,7 +188,7 @@ $eventDate = isset($event['event_date']) ? date('F j, Y', strtotime($event['even
     .speaker-info h6 {
         font-size: 0.95rem;
         font-weight: 600;
-        color: #f3bb1a;
+        color: #ffffff;
         margin-bottom: 2px;
     }
 
@@ -530,10 +530,10 @@ $eventDate = isset($event['event_date']) ? date('F j, Y', strtotime($event['even
     <!-- 👥 Speakers -->
     <?php if (!empty($sessionSpeakers)): ?>
         <div class="speaker-section">
-            <h6 style="color:#f3bb1a; margin-bottom:8px;">Speakers</h6>
+            <h6 style="color:#ffffff; margin-bottom:8px;">Speakers</h6>
             <?php foreach ($sessionSpeakers as $speaker): ?>
                 <div class="speaker-card">
-                    <img src="<?php echo base_url('uploads/speaker_pictures/' . ($speaker['speaker_photo'] ?? '')); ?>"
+                    <img src="<?php echo base_url('uploads/speakers/' . ($speaker['speaker_photo'] ?? '')); ?>"
                          onerror="this.src='<?php echo asset_url('images/user.png'); ?>';"
                          alt="<?php echo esc($speaker['speaker_name']); ?>">
                     <div class="speaker-info">
