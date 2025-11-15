@@ -186,6 +186,11 @@ echo module_view('MobileApp', 'includes/header'); ?>
             <span>Need Assistance?</span>
         </button>
 
+        <!-- Want Some Merch -->
+        <a href="https://shop.eprglobal.com" target="_blank" class="emergence-item">
+            <img src="<?php echo asset_url('images/merch.png'); ?>" alt="Want Some Merch">
+            <span>Want Some Merch?</span>
+        </a>
 
         <!-- Join The Community -->
         <a href="https://community.eprglobal.com" target="_blank" class="emergence-item">

@@ -111,11 +111,16 @@ body {
   <div class="emergence-grid">
 
     <!-- Need Assistance -->
-    <a href="mailto:support@eprglobal.com" target="_blank" class="emergence-item">
+    <a href="https://wa.me/2348033868618" target="_blank" class="emergence-item">
       <img src="<?php echo asset_url('images/assistance.png'); ?>" alt="Need Assistance">
       <span>NEED ASSISTANCE?</span>
     </a>
 
+    <!-- Want Some Merch -->
+    <a href="https://shop.eprglobal.com" target="_blank" class="emergence-item">
+      <img src="<?php echo asset_url('images/merch.png'); ?>" alt="Want Some Merch">
+      <span>WANT SOME MERCH?</span>
+    </a>
 
     <!-- Join The Community -->
     <a href="https://community.eprglobal.com" target="_blank" class="emergence-item">

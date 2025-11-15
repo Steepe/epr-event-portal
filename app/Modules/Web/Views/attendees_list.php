@@ -57,7 +57,7 @@ body {
 }
 .alphabet-filter span,
 .alphabet-filter a {
-    color: #5a0a5e;
+    color: #fff;
     font-size: 13px;
     margin: 0 3px;
     text-decoration: none;
@@ -65,7 +65,7 @@ body {
 }
 .alphabet-filter a:hover,
 .alphabet-filter a.active {
-    color: #866387;
+    color: #EFB11E;
     text-decoration: underline;
 }
 
@@ -108,7 +108,7 @@ body {
 .attendee-name {
     font-size: 16px;
     font-weight: 600;
-    color: #5a0a5e;
+    color: #fff;
     margin-bottom: 10px;
     text-transform: capitalize;
 }
@@ -147,6 +147,7 @@ body {
     outline: none;
 }
 .btn-epr-purple {
+    background: linear-gradient(90deg, #9D0F82, #EFB11E);
     border: none;
     color: #fff;
     font-weight: 600;
@@ -155,6 +156,7 @@ body {
     transition: all .3s ease;
 }
 .btn-epr-purple:hover {
+    background: linear-gradient(90deg, #EFB11E, #9D0F82);
 }
 
 @media (max-width: 992px) {
@@ -172,7 +174,7 @@ body {
 
 <div class="attendees-container">
     <div class="attendees-header">
-        <h2 style="color: #5a0a5e !important;">Attendees</h2>
+        <h2>Attendees</h2>
         <form class="search-box" method="get">
             <input type="text" name="attendee_name" placeholder="Search by name..." />
         </form>
@@ -204,7 +206,7 @@ body {
                         <?php echo ucfirst(strtolower($attendee['firstname'])) . ' ' . ucfirst(strtolower($attendee['lastname'])); ?>
                     </div>
 
-                    <button class="say-hello-btn epr-btn-four" data-toggle="modal" data-target=".chat-<?php echo $attendee['attendee_id']; ?>">
+                    <button class="say-hello-btn" data-toggle="modal" data-target=".chat-<?php echo $attendee['attendee_id']; ?>">
                         Say Hello
                     </button>
                 </div>

@@ -7,39 +7,20 @@
  * Time: 16:53
  */
 
-
 namespace App\Modules\Api\Models;
 
 use CodeIgniter\Model;
 
 class TblAttendeesModel extends Model
 {
-    protected string $DBGroup      = 'default';
-    protected string $table        = 'tbl_attendees';
-    protected string $primaryKey   = 'id';
-
-    protected array $allowedFields = [
-        'attendee_id',
-        'firstname',
-        'lastname',
-        'telephone',
-        'country',
-        'state',
-        'city',
-        'profile_picture',
-        'company',
-        'position',
-        'facebook',
-        'twitter',
-        'instagram',
-        'linkedin',
-        'ipaddress',
-        'is_verified',
-        'registration_timestamp',
-        'created_at',
-        'updated_at'
+    protected string $table            = 'tbl_attendees';
+    protected string $primaryKey       = 'id';
+    protected string $returnType       = 'array';
+    protected bool $useSoftDeletes   = false;
+    protected array $allowedFields    = [
+        'attendee_id', 'firstname', 'lastname', 'telephone', 'country',
+        'city', 'state', 'useremail', 'userpassword', 'ipaddress',
+        'uid', 'is_verified', 'registration_timestamp',
+        'created_at', 'updated_at'
     ];
-
-    protected string $returnType    = 'array';
-    protected bool $useTimestamps = false;
 }

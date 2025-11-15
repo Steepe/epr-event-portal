@@ -135,7 +135,7 @@ echo module_view('Web', 'includes/topbar');
             <span class="epr-text-purple">Speakers</span>
         </a>
 
-        <a href="https://staging.eprglobalmembers.com.signin" class="networking-item speakers">
+        <a href="<?php echo base_url('attendees/communities'); ?>" class="networking-item speakers">
             <img src="<?php echo asset_url('images/community-icon.png'); ?>" alt="communities">
             <span class="epr-text-purple">Communities</span>
         </a>

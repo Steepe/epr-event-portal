@@ -117,7 +117,7 @@ echo module_view('MobileApp', 'includes/header'); ?>
         padding: 25px 20px 40px;
         text-align: center;
         overflow-y: auto;
-        height: 800px;
+        max-height: 85vh;
     }
 
     .profile-drawer.active {
@@ -147,7 +147,7 @@ echo module_view('MobileApp', 'includes/header'); ?>
         right: 20px;
         background: none;
         border: none;
-        color: #dba4d1;
+        color: #f3bb1a;
         font-size: 26px;
         font-weight: 700;
         cursor: pointer;
@@ -164,7 +164,7 @@ echo module_view('MobileApp', 'includes/header'); ?>
 
     .drawer-name {
         font-weight: 700;
-        color: #dba4d1;
+        color: #f3bb1a;
         margin-top: 15px;
         font-size: 1.1rem;
     }
@@ -192,7 +192,7 @@ echo module_view('MobileApp', 'includes/header'); ?>
     }
 
     .drawer-sessions h5 {
-        color: #dba4d1;
+        color: #f3bb1a;
         margin-bottom: 8px;
         font-size: 0.95rem;
         font-weight: 600;
@@ -207,7 +207,7 @@ echo module_view('MobileApp', 'includes/header'); ?>
     .drawer-sessions li {
         font-size: 0.85rem;
         color: #fff;
-        margin-bottom: 20px;
+        margin-bottom: 6px;
         padding-left: 10px;
         position: relative;
     }
@@ -216,120 +216,8 @@ echo module_view('MobileApp', 'includes/header'); ?>
         content: "•";
         position: absolute;
         left: 0;
-        color: #dba4d1;
+        color: #EFB11E;
     }
-
-    /* Vertical Tabs Layout */
-    .vertical-tabs {
-        display: flex;
-        margin-top: 20px;
-        height: 500px;
-    }
-
-    .tab-nav {
-        width: 120px;
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        border-right: 1px solid rgba(255,255,255,0.2);
-    }
-
-    .tab-nav li {
-        padding: 7px;
-        font-size: 0.9rem;
-        font-weight: 600;
-        color: #dba4d1;
-        cursor: pointer;
-        border-radius: 8px;
-        margin-bottom: 130px;
-    }
-
-    .tab-nav li.active {
-        background: rgba(255,255,255,0.12);
-    }
-
-    .tab-content {
-        flex: 1;
-        padding-left: 15px;
-    }
-
-    .tab-pane {
-        display: none;
-    }
-
-    .tab-pane.active {
-        display: block;
-    }
-
-    /* Offer Box */
-    .offer-item {
-        background: #fafafa;
-        padding: 14px;
-        border-radius: 10px;
-        margin-bottom: 15px;
-        color: #333;
-    }
-
-    .offer-item h5 {
-        color: #A70B91;
-        margin-bottom: 6px;
-    }
-
-    .offer-btn {
-        margin-top: 8px;
-        display: inline-block;
-        padding: 6px 12px;
-        background: #A70B91;
-        color: #fff;
-        border-radius: 8px;
-        font-size: 0.8rem;
-    }
-
-    /* Horizontal form layout */
-    .horizontal-form {
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-        gap: 14px;
-        margin-top: 10px;
-    }
-
-    .h-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-    }
-
-    .h-row-full {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .h-row label {
-        width: 110px;
-        color: #dba4d1;
-        font-weight: 600;
-        font-size: 0.85rem;
-    }
-
-    .h-row input,
-    .h-row textarea {
-        flex: 1;
-        padding: 10px 12px;
-        background: rgba(255,255,255,0.10);
-        border: 1px solid rgba(255,255,255,0.18);
-        color: #fff;
-        border-radius: 8px;
-        font-size: 0.85rem;
-    }
-
-    .h-row textarea {
-        height: 80px;
-        resize: none;
-        width: 100%;
-    }
-
 </style>
 
 <div class="speakers-container">
@@ -338,44 +226,30 @@ echo module_view('MobileApp', 'includes/header'); ?>
     <div class="speakers-grid">
         <?php if (!empty($speakers)): ?>
             <?php foreach ($speakers as $speaker): ?>
-
                 <?php
-                $image     = base_url('uploads/speakers/' . $speaker['speaker_photo']);
-                $speakerId = $speaker['speaker_id'];
-
-                // Load offers for this speaker (direct model call)
-                $offers = (new \App\Modules\MobileApp\Models\SpeakersModel())
-                    ->getOffersBySpeaker($speakerId);
+                    $image = base_url('uploads/speaker_pictures/' . $speaker['speaker_photo']);
+                    $speakerId = $speaker['speaker_id'];
                 ?>
-
                 <div class="speaker-card">
-
                     <img src="<?php echo $image; ?>"
                          alt="<?php echo esc($speaker['speaker_name']); ?>"
                          class="speaker-photo"
                          onerror="this.src='<?php echo asset_url('images/user.png'); ?>';">
-
                     <div class="speaker-name"><?php echo esc($speaker['speaker_name']); ?></div>
-
                     <div class="speaker-meta">
                         <?php echo esc($speaker['speaker_title']); ?><br>
                         <small><?php echo esc($speaker['speaker_company']); ?></small>
                     </div>
-
                     <button class="view-profile-btn open-drawer epr-btn-two"
                             data-name="<?php echo esc($speaker['speaker_name']); ?>"
                             data-title="<?php echo esc($speaker['speaker_title']); ?>"
                             data-company="<?php echo esc($speaker['speaker_company']); ?>"
-                            data-bio="<?php echo nl2br(esc($speaker['bio'])); ?>"
-                            data-sessions='<?php echo json_encode($speaker['sessions']); ?>'
-                            data-offers='<?php echo json_encode($offers ?? []); ?>'
-                            data-email="<?php echo esc($speaker['speaker_email']); ?>"
+                            data-bio="<?php echo nl2br(esc($speaker['bio'] ?? 'No biography available.')); ?>"
+                            data-sessions='<?php echo json_encode($speaker['sessions'] ?? []); ?>'
                             data-photo="<?php echo $image; ?>">
                         View Profile
                     </button>
-
                 </div>
-
             <?php endforeach; ?>
         <?php else: ?>
             <p class="text-center mt-5 text-white">No speakers found.</p>
@@ -389,178 +263,55 @@ echo module_view('MobileApp', 'includes/header'); ?>
 <!-- Drawer -->
 <div class="profile-drawer" id="profileDrawer">
     <button class="drawer-close" id="closeDrawer">&times;</button>
-
-    <!-- Profile Header -->
     <img id="drawerPhoto" class="drawer-photo" src="" alt="">
     <h4 id="drawerName" class="drawer-name"></h4>
     <p id="drawerTitle" class="drawer-title"></p>
-
-    <!-- VERTICAL TABS -->
-    <div class="vertical-tabs">
-        <ul class="tab-nav">
-            <li class="active" data-tab="aboutTab">About</li>
-            <li data-tab="messageTab">Message</li>
-            <li data-tab="offersTab">Offers & Deals</li>
-        </ul>
-
-        <div class="tab-content">
-
-            <!-- ABOUT TAB -->
-            <div id="aboutTab" class="tab-pane active">
-                <div id="drawerBio" class="drawer-bio"></div>
-
-                <div id="drawerSessions" class="drawer-sessions"></div>
-            </div>
-
-            <!-- MESSAGE TAB -->
-            <div id="messageTab" class="tab-pane">
-
-                <form action="<?php echo base_url('mobile/speakers/sendMessage'); ?>" method="post">
-
-                    <input type="hidden" id="msgSpeakerId" name="speaker_id">
-                    <input type="hidden" id="msgSpeakerEmail" name="speaker_email">
-
-                    <div class="form-row">
-                        <input type="text"
-                               name="name"
-                               placeholder="Your Name"
-                               value="<?php echo esc(session('firstname').' '.session('lastname')); ?>"
-                               readonly>
-                    </div>
-
-                    <div class="form-row">
-                        <input type="email"
-                               name="email"
-                               placeholder="Your Email"
-                               value="<?php echo esc(session('user_email')); ?>"
-                               readonly>
-                    </div>
-
-                    <div class="form-row">
-                        <input type="text"
-                               name="subject"
-                               placeholder="Subject"
-                               required>
-                    </div>
-
-                    <div class="form-row">
-            <textarea name="message"
-                      placeholder="Write your message..."
-                      rows="4"
-                      required></textarea>
-                    </div>
-
-                    <button class="speaker-send-btn">Send Message</button>
-                </form>
-
-            </div>
-
-            <!-- OFFERS TAB -->
-            <div id="offersTab" class="tab-pane">
-                <div id="offersContainer"></div>
-            </div>
-
-        </div>
-    </div>
+    <div id="drawerBio" class="drawer-bio"></div>
+    <div id="drawerSessions" class="drawer-sessions"></div>
 </div>
-
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-
-        const drawer = document.getElementById("profileDrawer");
-        const overlay = document.getElementById("drawerOverlay");
-
-        const closeDrawer = document.getElementById("closeDrawer");
-        const nameEl = document.getElementById("drawerName");
-        const titleEl = document.getElementById("drawerTitle");
-        const bioEl = document.getElementById("drawerBio");
-        const sessionsEl = document.getElementById("drawerSessions");
-        const photoEl = document.getElementById("drawerPhoto");
-        const offersContainer = document.getElementById("offersContainer");
-
-        // HIDDEN MESSAGE FORM FIELDS
-        const msgSpeakerId = document.getElementById("msgSpeakerId");
-        const msgSpeakerEmail = document.getElementById("msgSpeakerEmail");
-
-        /* ================================================================
-           OPEN DRAWER — ONE UNIFIED HANDLER
-        ================================================================= */
-        document.querySelectorAll(".open-drawer").forEach(btn => {
-            btn.addEventListener("click", () => {
-
-                // Core data
-                const speakerId = btn.dataset.id;
-                const email = btn.dataset.email;
-                const offers = JSON.parse(btn.dataset.offers || "[]");
-                const sessions = JSON.parse(btn.dataset.sessions || "[]");
-
-                // Populate UI
-                nameEl.textContent = btn.dataset.name;
-                titleEl.textContent = `${btn.dataset.title}, ${btn.dataset.company}`;
-                bioEl.innerHTML = btn.dataset.bio;
-                photoEl.src = btn.dataset.photo;
-
-                // Message form hidden fields
-                msgSpeakerId.value = speakerId || "";
-                msgSpeakerEmail.value = email || "";
-
-                // Populate Sessions
-                let html = "<h5>Sessions:</h5><ul>";
-                sessions.forEach(s => html += `<li>${s.sessions_name}</li>`);
-                html += "</ul>";
-                sessionsEl.innerHTML = html;
-
-                // Populate Offers
-                offersContainer.innerHTML = "";
-                if (offers.length > 0) {
-                    offers.forEach(o => {
-                        offersContainer.innerHTML += `
-                        <div class="offer-item">
-                            <h5>${o.title}</h5>
-                            <p>${o.summary}</p>
-                            ${o.price ? `<p><strong>Price:</strong> ${o.price}</p>` : ""}
-                            ${o.cta_link ? `<a href="${o.cta_link}" target="_blank" class="offer-btn">Learn More</a>` : ""}
-                        </div>
-                    `;
-                    });
-                } else {
-                    offersContainer.innerHTML = `<p class="text-white">No offers available.</p>`;
-                }
-
-                // Show drawer
-                drawer.classList.add("active");
-                overlay.classList.add("active");
-            });
-        });
-
-        /* ================================================================
-           CLOSE DRAWER
-        ================================================================= */
-        function closeProfileDrawer() {
-            drawer.classList.remove("active");
-            overlay.classList.remove("active");
-        }
-
-        closeDrawer.addEventListener("click", closeProfileDrawer);
-        overlay.addEventListener("click", closeProfileDrawer);
-
-        /* ================================================================
-           VERTICAL TABS
-        ================================================================= */
-        document.querySelectorAll(".tab-nav li").forEach(tab => {
-            tab.addEventListener("click", () => {
-                const selected = tab.dataset.tab;
-
-                document.querySelectorAll(".tab-nav li").forEach(li => li.classList.remove("active"));
-                tab.classList.add("active");
-
-                document.querySelectorAll(".tab-pane").forEach(pane => pane.classList.remove("active"));
-                document.getElementById(selected).classList.add("active");
-            });
-        });
-
-    });
-</script>
 
 <?php echo module_view('MobileApp', 'includes/footer'); ?>
 
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const drawer = document.getElementById("profileDrawer");
+    const overlay = document.getElementById("drawerOverlay");
+    const closeDrawer = document.getElementById("closeDrawer");
+    const nameEl = document.getElementById("drawerName");
+    const titleEl = document.getElementById("drawerTitle");
+    const bioEl = document.getElementById("drawerBio");
+    const sessionsEl = document.getElementById("drawerSessions");
+    const photoEl = document.getElementById("drawerPhoto");
+
+    document.querySelectorAll(".open-drawer").forEach(btn => {
+        btn.addEventListener("click", () => {
+            nameEl.textContent = btn.dataset.name;
+            titleEl.textContent = `${btn.dataset.title}, ${btn.dataset.company}`;
+            bioEl.innerHTML = btn.dataset.bio;
+            photoEl.src = btn.dataset.photo;
+
+            const sessions = JSON.parse(btn.dataset.sessions);
+            sessionsEl.innerHTML = "";
+            if (sessions.length > 0) {
+                let html = "<h5>Sessions:</h5><ul>";
+                sessions.forEach(s => {
+                    html += `<li>${s.sessions_name}</li>`;
+                });
+                html += "</ul>";
+                sessionsEl.innerHTML = html;
+            }
+
+            drawer.classList.add("active");
+            overlay.classList.add("active");
+        });
+    });
+
+    function closeProfileDrawer() {
+        drawer.classList.remove("active");
+        overlay.classList.remove("active");
+    }
+
+    closeDrawer.addEventListener("click", closeProfileDrawer);
+    overlay.addEventListener("click", closeProfileDrawer);
+});
+</script>

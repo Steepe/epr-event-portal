@@ -164,7 +164,7 @@ echo module_view('MobileApp', 'includes/header'); ?>
             <span>Speakers</span>
         </a>
 
-        <a href="https://staging.eprglobalmembers.com/signin" class="networking-item communities">
+        <a href="<?php echo base_url('mobile/communities'); ?>" class="networking-item communities">
             <img src="<?php echo asset_url('images/community-icon.png'); ?>" alt="Communities">
             <span>Communities</span>
         </a>
