@@ -26,7 +26,7 @@ echo module_view('Web', 'includes/topbar');
     }
 
     .envision-container h4 {
-        color: #9D0F82;
+        color: #fff;
         font-weight: 700;
         margin-bottom: 50px;
         text-transform: uppercase;
@@ -56,7 +56,6 @@ echo module_view('Web', 'includes/topbar');
     <h4>Our Community</h4>
 
     <div class="envision-video">
-        <div style="position:relative;padding-top:56.25%;"><iframe src="https://iframe.mediadelivery.net/embed/542640/69baaced-f075-4c9e-8a89-5fda8a4eb156?autoplay=true&loop=false&muted=false&preload=true&responsive=true" loading="lazy" style="border:0;position:absolute;top:0;height:100%;width:100%;" allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;" allowfullscreen="true"></iframe></div>    </div>
-</div>
+        <div style="position:relative;padding-top:56.25%;"><iframe src="https://iframe.mediadelivery.net/embed/542640/74e30304-6556-4aff-bf05-5c5ae2cb3b40?autoplay=false&loop=false&muted=false&preload=true&responsive=true" loading="lazy" style="border:0;position:absolute;top:0;height:100%;width:100%;" allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;" allowfullscreen="true"></iframe></div></div>
 
 <?php echo module_view('Web', 'includes/scripts'); ?>

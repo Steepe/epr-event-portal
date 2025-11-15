@@ -116,17 +116,6 @@ body {
       <span>NEED ASSISTANCE?</span>
     </a>
 
-    <!-- Want Some Merch -->
-    <a href="https://shop.eprglobal.com" target="_blank" class="emergence-item">
-      <img src="<?php echo asset_url('images/merch.png'); ?>" alt="Want Some Merch">
-      <span>WANT SOME MERCH?</span>
-    </a>
-
-    <!-- Join The Community -->
-    <a href="https://community.eprglobal.com" target="_blank" class="emergence-item">
-      <img src="<?php echo asset_url('images/community.png'); ?>" alt="Join the Community">
-      <span>JOIN THE COMMUNITY</span>
-    </a>
 
   </div>
 </div>

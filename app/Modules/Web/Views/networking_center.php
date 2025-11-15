@@ -122,7 +122,7 @@ echo module_view('Web', 'includes/topbar');
 
 <div class="networking-container">
 
-    <h2>Networking Center</h2>
+    <h2 class="text-white">Networking Center</h2>
 
     <div class="networking-grid">
         <a href="<?php echo base_url('attendees/attendees'); ?>" class="networking-item attendees">

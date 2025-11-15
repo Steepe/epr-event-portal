@@ -189,10 +189,6 @@ echo module_view('MobileApp', 'includes/header'); ?>
         <!-- Want Some Merch -->
 
         <!-- Join The Community -->
-        <a href="https://eprglobalmembers.com" target="_blank" class="emergence-item">
-            <img src="<?php echo asset_url('images/community.png'); ?>" alt="Join the Community">
-            <span>Join the Community</span>
-        </a>
     </div>
 </div>
 
@@ -244,4 +240,4 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>
 
-<?php echo module_view('MobileApp', 'includes/footer'); ?>
+<?php echo module_view('MobileApp', 'includes/footer_home'); ?>
