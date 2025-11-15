@@ -32,7 +32,7 @@ echo module_view('MobileApp', 'includes/header'); ?>
 
     .emergence-title {
         font-weight: 700;
-        color: #f3bb1a;
+        color: #fff;
         margin-bottom: 2rem;
         text-transform: uppercase;
         letter-spacing: 1px;
@@ -129,7 +129,7 @@ echo module_view('MobileApp', 'includes/header'); ?>
     }
 
     .support-modal h4 {
-        color: #EFB11E;
+        color: #fff;
         text-align: center;
         margin-bottom: 15px;
     }
@@ -169,7 +169,7 @@ echo module_view('MobileApp', 'includes/header'); ?>
         position: absolute;
         top: 10px;
         right: 18px;
-        color: #f3bb1a;
+        color: #ffffff;
         font-size: 24px;
         font-weight: bold;
         cursor: pointer;
@@ -187,13 +187,9 @@ echo module_view('MobileApp', 'includes/header'); ?>
         </button>
 
         <!-- Want Some Merch -->
-        <a href="https://shop.eprglobal.com" target="_blank" class="emergence-item">
-            <img src="<?php echo asset_url('images/merch.png'); ?>" alt="Want Some Merch">
-            <span>Want Some Merch?</span>
-        </a>
 
         <!-- Join The Community -->
-        <a href="https://community.eprglobal.com" target="_blank" class="emergence-item">
+        <a href="https://eprglobalmembers.com" target="_blank" class="emergence-item">
             <img src="<?php echo asset_url('images/community.png'); ?>" alt="Join the Community">
             <span>Join the Community</span>
         </a>
@@ -208,7 +204,7 @@ echo module_view('MobileApp', 'includes/header'); ?>
         <input type="text" name="name" placeholder="Your Name" required>
         <input type="email" name="email" placeholder="Your Email" required>
         <textarea name="message" rows="4" placeholder="Describe your issue..." required></textarea>
-        <button class="epr-btn-two" type="submit">Send Message</button>
+        <button class="epr-btn-four" type="submit">Send Message</button>
     </form>
 </div>
 
