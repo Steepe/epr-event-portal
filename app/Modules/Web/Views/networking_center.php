@@ -122,32 +122,22 @@ echo module_view('Web', 'includes/topbar');
 
 <div class="networking-container">
 
-    <h2 class="epr-text-purple">Networking Center</h2>
+    <h2>Networking Center</h2>
 
     <div class="networking-grid">
         <a href="<?php echo base_url('attendees/attendees'); ?>" class="networking-item attendees">
             <img src="<?php echo asset_url('images/attendees-icon.png'); ?>" alt="Attendees">
-            <span class="epr-text-purple">Attendees</span>
+            <span>Attendees</span>
         </a>
 
         <a href="<?php echo base_url('attendees/speakers'); ?>" class="networking-item speakers">
             <img src="<?php echo asset_url('images/speakers-icon.png'); ?>" alt="Speakers">
-            <span class="epr-text-purple">Speakers</span>
+            <span>Speakers</span>
         </a>
 
         <a href="<?php echo base_url('attendees/communities'); ?>" class="networking-item speakers">
             <img src="<?php echo asset_url('images/community-icon.png'); ?>" alt="communities">
-            <span class="epr-text-purple">Communities</span>
-        </a>
-
-        <a href="<?php echo base_url('attendees/points'); ?>" class="networking-item points">
-            <img src="<?php echo asset_url('images/earnpoints-icon.png'); ?>" alt="Earn Points">
-            <span class="epr-text-purple">Earn Points</span>
-        </a>
-
-        <a href="<?php echo base_url('attendees/leaderboard'); ?>" class="networking-item leaderboard">
-            <img src="<?php echo asset_url('images/leaderboard-icon.png'); ?>" alt="Leaderboard">
-            <span class="epr-text-purple">Leaderboard</span>
+            <span>Communities</span>
         </a>
     </div>
 </div>
