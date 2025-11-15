@@ -111,7 +111,7 @@ body {
   <div class="emergence-grid">
 
     <!-- Need Assistance -->
-    <a href="https://wa.me/2348033868618" target="_blank" class="emergence-item">
+    <a href="mailto:support@eprglobal.com" target="_blank" class="emergence-item">
       <img src="<?php echo asset_url('images/assistance.png'); ?>" alt="Need Assistance">
       <span>NEED ASSISTANCE?</span>
     </a>
