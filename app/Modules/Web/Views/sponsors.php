@@ -133,7 +133,7 @@ body {
                 <div class="sponsor-card <?php echo strtolower($sponsor['tier']); ?>" title="<?php echo esc($sponsor['name']); ?>">
                     <?php if (!empty($sponsor['website'])): ?>
                         <a href="<?php echo esc($sponsor['website']); ?>" target="_blank">
-                            <img src="<?php echo base_url('uploads/sponsors_logo/' . $sponsor['logo']); ?>"
+                            <img src="<?php echo base_url('uploads/sponsors/' . $sponsor['logo']); ?>"
                                  alt="<?php echo esc($sponsor['name']); ?>"
                                  onerror="this.src='<?php echo asset_url('images/sponsors/default-logo.png'); ?>';">
                         </a>

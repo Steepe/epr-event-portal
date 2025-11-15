@@ -205,7 +205,6 @@ body {
 .session-list li {
     margin-bottom: 5px;
 }
-
 /* Responsive */
 @media (max-width: 992px) {
     .speakers-container { padding: 80px 6%; }
