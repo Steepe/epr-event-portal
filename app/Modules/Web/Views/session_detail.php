@@ -214,7 +214,7 @@ if (!empty($vimeo_id)) {
                         <div class="speaker-summary-bg">
                             <div class="speaker-summary d-flex">
                                 <div>
-                                    <img src="<?php echo  base_url('uploads/speaker_pictures/' . $speaker['speaker_photo']) ?>"
+                                    <img src="<?php echo  base_url('uploads/speakers/' . $speaker['speaker_photo']) ?>"
                                          alt="<?php echo  esc($speaker['speaker_name']) ?>"
                                          onerror="this.src='<?php echo  asset_url('images/user.png') ?>';"
                                          style="width:120px;height:120px;">
