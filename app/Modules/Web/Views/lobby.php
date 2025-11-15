@@ -119,7 +119,7 @@ $country = session('reg_country') ?? 'Nigeria';
     .networking { background: radial-gradient(circle at top left, #8b4ac0, #693b9c); top: 40%; left: 45%; }
     .envision   { background: radial-gradient(circle at top left, #a04fc0, #6a239a); top: 18%; right: 24%; }
     .exhibitors { background: radial-gradient(circle at top left, #d61be3, #9b0eaa); bottom: 22%; left: 25%; }
-    .sponsors   { background: radial-gradient(circle at top left, #a82ad2, #7200a4); bottom: 10%; left: 45%; }
+    .sponsors   { background: radial-gradient(circle at top left, #a82ad2, #7200a4); bottom: 64%; left: 65%; }
     .emergence  { background: radial-gradient(circle at top left, #e988a2, #c95c7c); bottom: 20%; right: 25%; }
 
     .bubble a {
