@@ -77,11 +77,20 @@ class AgendaController extends BaseController
                 $grouped[$date] = array_values($sessions);
             }
 
+// Always read premium from DB (instant unlock)
+            $user = $db->table('tbl_users')
+                ->where('id', $session->get('user_id'))
+                ->get()
+                ->getRow();
+
+            $premium = $user->premium_access ?? 0;
+
             $data = [
                 'sessionsByDate' => $grouped,
                 'timezone'       => $session->get('user_timezone') ?? 'Africa/Lagos',
-                'plan'           => $session->get('plan') ?? 1,
+                'premium'        => $premium,   // <-- ADD THIS
                 'attendee_id'    => $session->get('attendee_id'),
+                'conference_id'  => $conferenceId,
             ];
 
             return module_view('Web', 'agenda', $data);

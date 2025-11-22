@@ -666,6 +666,6 @@ echo module_view('Web', 'includes/scripts');
     })();
 </script>
 
-
+<?php echo  module_view('Web', 'includes/footer');?>
 </body>
 </html>

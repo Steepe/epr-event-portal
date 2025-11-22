@@ -49,11 +49,11 @@
 
 </div>
 
-<!--<footer class="footer text-center text-sm-left fixed-bottom font-12" style="background-color: #9D0F82; padding-left: 10px; padding-right: 10px; color: #ffffff;">
+<footer class="footer text-center text-sm-left fixed-bottom font-12" style="background-color: #9d0f8217; padding-left: 60px; padding-right: 40px; color: #ffffff;">
     <div class="boxed-footer">
-        &copy; <?php /*echo date("Y");*/?> Powered By EPR Global. <span class="d-none d-sm-inline-block float-right">Crafted with <i class="fa fa-heart" aria-hidden="true"></i> by <a href="https://www.linkedin.com/in/steepe/" target="_blank" style="color: #EFB11E;">Crèyatif</a> </span>
+        &copy; <?php /*echo date("Y");*/?> Powered By EPR Global. <span class="d-none d-sm-inline-block float-right">Crafted with <i class="fa fa-heart" aria-hidden="true"></i> by <a href="https://about.me/steepe" target="_blank" style="color: #EFB11E;">Crèyatif</a> </span>
     </div>
-</footer>-->
+</footer>
 <!--end footer-->
 </div>
 </div>

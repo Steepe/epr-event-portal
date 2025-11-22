@@ -85,6 +85,15 @@ $routes->group('api', ['namespace' => 'App\Modules\Api\Controllers', 'filter'   
 
     $routes->get('speakers/(:num)/offers', 'SpeakersController::offers/$1');
 
+    $routes->get('payments/status/(:num)', 'PaymentsController::status/$1');
+    $routes->post('payments/initialize', 'PaymentsController::initialize');
+
+    $routes->get('payments/flutterwave-callback', 'PaymentsController::flutterwaveCallback');
+    $routes->get('payments/paypal-success', 'PaymentsController::paypalSuccess');
+    $routes->get('payments/paypal-cancel', 'PaymentsController::paypalCancel');
+
+    $routes->get('payments/price', 'PaymentsController::price');
+
 
 
 });

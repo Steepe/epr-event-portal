@@ -20,6 +20,12 @@ $routes->group('attendees', ['namespace' => 'App\Modules\Web\Controllers'], func
     $routes->get('login', 'LoginController::index');
     $routes->get('logout', 'LoginController::logout');
     $routes->get('reset-password', 'LoginController::resetPassword');
+    $routes->post('webhooks/flutterwave', 'PaymentWebhookController::flutterwave');
+    $routes->post('webhooks/paypal',    'PaymentWebhookController::paypal');
+
+    $routes->get('payments/success', 'PaymentsController::success');
+    $routes->get('payments/cancelled', 'PaymentsController::cancelled');
+
 
 });
 
@@ -62,6 +68,15 @@ $routes->group('attendees', ['namespace' => 'App\Modules\Web\Controllers', 'filt
     $routes->post('profile/update', 'ProfileController::update');
     $routes->post('profile/upload-photo', 'ProfileController::uploadPhoto');
     $routes->post('speakers/sendMessage', 'SpeakersController::sendMessage');
+
+    $routes->get('upgrade/(:num)', 'UpgradeController::index/$1');
+
+    $routes->post('admin/payments/initiate', 'App\Modules\Web\Controllers\UpgradeController::initiate');
+
+
+
+
+
 
 
 
