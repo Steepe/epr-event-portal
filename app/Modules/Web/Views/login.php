@@ -142,6 +142,7 @@ document.addEventListener("DOMContentLoaded", () => {
         });
 
         const result = await res.json();
+        console.log(result);
         if (result.status === "success") {
             showToast("Login successful!");
             setTimeout(() => window.location.href = "<?php echo base_url('attendees/start'); ?>", 1500);
