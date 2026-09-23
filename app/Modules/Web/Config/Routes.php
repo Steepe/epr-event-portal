@@ -24,6 +24,7 @@ $routes->group('attendees', ['namespace' => 'App\Modules\Web\Controllers'], func
 });
 
 $routes->get('emergence/funnel', '\App\Modules\Web\Controllers\EmergenceFunnelController::index');
+$routes->options('emergence/funnel/register', '\App\Modules\Api\Controllers\EmergenceFunnelController::preflight');
 $routes->post('emergence/funnel/register', '\App\Modules\Api\Controllers\EmergenceFunnelController::register');
 $routes->get('emergence/checkout', '\App\Modules\Web\Controllers\CheckoutController::emergence');
 $routes->get('checkout/verify', '\App\Modules\Web\Controllers\CheckoutController::verify');

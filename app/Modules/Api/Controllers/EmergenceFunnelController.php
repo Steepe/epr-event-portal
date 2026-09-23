@@ -21,6 +21,8 @@ class EmergenceFunnelController extends BaseController
 
     public function register(): ResponseInterface
     {
+        $this->applyFunnelCorsHeaders();
+
         $payload = $this->request->getJSON(true) ?: $this->request->getPost();
         $payload = $this->normalisePayload($payload);
         $errors = $this->validatePayload($payload);
@@ -83,6 +85,13 @@ class EmergenceFunnelController extends BaseController
             'attendee_id' => $attendeeId,
             'mailchimp' => $mailchimp['status'],
         ]);
+    }
+
+    public function preflight(): ResponseInterface
+    {
+        $this->applyFunnelCorsHeaders();
+
+        return $this->response->setStatusCode(204);
     }
 
     private function normalisePayload(array $payload): array
@@ -231,5 +240,27 @@ class EmergenceFunnelController extends BaseController
         $timestamp = strtotime($submittedAt);
 
         return $timestamp ? date('Y-m-d H:i:s', $timestamp) : null;
+    }
+
+    private function applyFunnelCorsHeaders(): void
+    {
+        $origin = $this->request->getHeaderLine('Origin');
+        $allowedOrigins = [
+            'https://portal.eprglobal.com',
+            'https://eventportal.creyatif',
+            'http://localhost:8080',
+            'http://127.0.0.1:8080',
+            'http://localhost:8099',
+            'http://127.0.0.1:8099',
+        ];
+
+        if ($origin !== '' && in_array($origin, $allowedOrigins, true)) {
+            $this->response->setHeader('Access-Control-Allow-Origin', $origin);
+            $this->response->setHeader('Vary', 'Origin');
+        }
+
+        $this->response->setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+        $this->response->setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Requested-With');
+        $this->response->setHeader('Access-Control-Max-Age', '7200');
     }
 }

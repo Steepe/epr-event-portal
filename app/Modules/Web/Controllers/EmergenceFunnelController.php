@@ -10,11 +10,11 @@ class EmergenceFunnelController extends BaseController
     {
         $checkoutUrl = env('funnel.emergence.checkoutUrl');
         if (! $checkoutUrl || str_contains($checkoutUrl, 'your-checkout-url')) {
-            $checkoutUrl = site_url('emergence/checkout');
+            $checkoutUrl = '/emergence/checkout';
         }
 
         return module_view('Web', 'emergence_funnel', [
-            'apiEndpoint' => site_url('emergence/funnel/register'),
+            'apiEndpoint' => '/emergence/funnel/register',
             'checkoutUrl' => $checkoutUrl,
             'upsellPrice' => env('funnel.emergence.upsellPrice') ?: '$50',
             'mailchimpTags' => env('funnel.emergence.mailchimpTags') ?: 'emergence-registrant',
