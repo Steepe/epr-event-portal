@@ -23,6 +23,9 @@ $routes->group('attendees', ['namespace' => 'App\Modules\Web\Controllers'], func
 
 });
 
+$routes->get('emergence/funnel', '\App\Modules\Web\Controllers\EmergenceFunnelController::index');
+$routes->post('emergence/funnel/register', '\App\Modules\Api\Controllers\EmergenceFunnelController::register');
+
 
 $routes->group('attendees', ['namespace' => 'App\Modules\Web\Controllers', 'filter' => 'auth'], function ($routes) {
     $routes->get('home', 'HomeController::index');

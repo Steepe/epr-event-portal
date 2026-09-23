@@ -23,6 +23,10 @@ $routes->group('admin', ['namespace' => 'App\Modules\Admin\Controllers'], functi
     // Auth (login/logout)
     $routes->get('login', 'AuthController::login');           // /admin/login
     $routes->post('login', 'AuthController::attempt');
+    $routes->get('forgot-password', 'AuthController::forgotPassword');
+    $routes->post('forgot-password', 'AuthController::sendResetLink');
+    $routes->get('reset-password/(:segment)', 'AuthController::resetPasswordForm/$1');
+    $routes->post('reset-password/(:segment)', 'AuthController::resetPassword/$1');
     $routes->get('logout', 'AuthController::logout');
 
     // Protected group (requires 'adminAuth' filter registered in app/Filters)
