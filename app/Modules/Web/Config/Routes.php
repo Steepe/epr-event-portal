@@ -25,6 +25,12 @@ $routes->group('attendees', ['namespace' => 'App\Modules\Web\Controllers'], func
 
 $routes->get('emergence/funnel', '\App\Modules\Web\Controllers\EmergenceFunnelController::index');
 $routes->post('emergence/funnel/register', '\App\Modules\Api\Controllers\EmergenceFunnelController::register');
+$routes->get('emergence/checkout', '\App\Modules\Web\Controllers\CheckoutController::emergence');
+$routes->get('checkout/verify', '\App\Modules\Web\Controllers\CheckoutController::verify');
+$routes->post('checkout/flutterwave/webhook', '\App\Modules\Web\Controllers\CheckoutController::flutterwaveWebhook');
+$routes->post('checkout/paypal/order', '\App\Modules\Web\Controllers\CheckoutController::createPaypalOrder');
+$routes->post('checkout/paypal/capture', '\App\Modules\Web\Controllers\CheckoutController::capturePaypalOrder');
+$routes->get('emergence/checkout/complete', '\App\Modules\Web\Controllers\CheckoutController::complete');
 
 
 $routes->group('attendees', ['namespace' => 'App\Modules\Web\Controllers', 'filter' => 'auth'], function ($routes) {
@@ -65,6 +71,7 @@ $routes->group('attendees', ['namespace' => 'App\Modules\Web\Controllers', 'filt
     $routes->post('profile/update', 'ProfileController::update');
     $routes->post('profile/upload-photo', 'ProfileController::uploadPhoto');
     $routes->post('speakers/sendMessage', 'SpeakersController::sendMessage');
+    $routes->get('checkout', 'CheckoutController::attendee');
 
 
 

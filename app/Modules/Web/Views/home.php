@@ -53,6 +53,14 @@ $country = session('reg_country') ?? 'Nigeria';
     }
 </style>
 
+<div id="paymentNotice" class="alert alert-warning text-center">
+    <strong>Access Restricted:</strong>
+    This is a paid event. Please complete your registration payment to unlock all sessions.
+    <span id="priceInfo"></span>
+    <a href="<?php echo site_url('attendees/checkout'); ?>" class="btn btn-sm epr-btn-one ml-2">Pay now</a>
+    <button id="closeNotice">&times;</button>
+</div>
+
 
 
 
