@@ -109,7 +109,7 @@ class EmergenceFunnelController extends BaseController
             'referral_source' => trim((string) ($payload['referral_source'] ?? '')),
             'marketing_consent' => filter_var($payload['marketing_consent'] ?? false, FILTER_VALIDATE_BOOLEAN),
             'mailchimp' => [
-                'tags' => $mailchimp['tags'] ?? ['emergence-registrant'],
+                'tags' => $this->mailchimpTags($mailchimp['tags'] ?? []),
                 'status_if_new' => $mailchimp['status_if_new'] ?? 'transactional',
             ],
             'utm' => [
@@ -229,6 +229,27 @@ class EmergenceFunnelController extends BaseController
         $value = trim((string) $value);
 
         return $value === '' ? null : $value;
+    }
+
+    private function mailchimpTags(array|string $submittedTags): array
+    {
+        $tags = array_merge(
+            $this->splitTags(env('funnel.emergence.mailchimpTags') ?: 'emergence-registrant'),
+            $this->splitTags(env('funnel.emergence.conferenceTag') ?: 'conference-2026'),
+            is_array($submittedTags) ? $submittedTags : $this->splitTags($submittedTags)
+        );
+
+        $tags = array_map(
+            static fn ($tag): string => trim((string) $tag),
+            $tags
+        );
+
+        return array_values(array_unique(array_filter($tags)));
+    }
+
+    private function splitTags(string $tags): array
+    {
+        return array_map('trim', explode(',', $tags));
     }
 
     private function submittedAt(?string $submittedAt): ?string
