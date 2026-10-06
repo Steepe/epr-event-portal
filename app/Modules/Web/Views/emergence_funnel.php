@@ -324,7 +324,14 @@
                 <input name="city" autocomplete="address-level2" placeholder="e.g. Lagos">
             </label>
             <label>Country
-                <input name="country" autocomplete="country-name" placeholder="e.g. Nigeria">
+                <select name="country" autocomplete="country-name">
+                    <option value="">Select country</option>
+                    <?php foreach (($countries ?? []) as $country): ?>
+                        <option value="<?php echo esc($country['country_name'] ?? ''); ?>">
+                            <?php echo esc($country['country_name'] ?? ''); ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
             </label>
         </div>
 

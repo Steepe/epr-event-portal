@@ -18,7 +18,24 @@ class EmergenceFunnelController extends BaseController
             'checkoutUrl' => $checkoutUrl,
             'upsellPrice' => env('funnel.emergence.upsellPrice') ?: '$50',
             'mailchimpTags' => implode(',', $this->mailchimpTags()),
+            'countries' => $this->countries(),
         ]);
+    }
+
+    private function countries(): array
+    {
+        try {
+            return db_connect()
+                ->table('tbl_countries')
+                ->select('country_name')
+                ->orderBy('country_name', 'ASC')
+                ->get()
+                ->getResultArray();
+        } catch (\Throwable $e) {
+            log_message('error', 'Emergence funnel country fetch failed: ' . $e->getMessage());
+
+            return [];
+        }
     }
 
     private function mailchimpTags(): array
