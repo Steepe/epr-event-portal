@@ -346,7 +346,7 @@
                 <input name="city" autocomplete="address-level2" placeholder="e.g. Lagos">
             </label>
             <label>Country
-                <select name="country" autocomplete="country-name">
+                <select name="country" autocomplete="country-name" required>
                     <option value="">Select country</option>
                     <?php foreach (($countries ?? []) as $country): ?>
                         <option value="<?php echo esc($country['country_name'] ?? ''); ?>">
@@ -354,6 +354,7 @@
                         </option>
                     <?php endforeach; ?>
                 </select>
+                <span class="error" data-error="country"></span>
             </label>
         </div>
 
@@ -488,6 +489,7 @@
         if (!payload.first_name) errors.first_name = 'Required';
         if (!payload.last_name) errors.last_name = 'Required';
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.email)) errors.email = 'Enter a valid email';
+        if (!payload.country) errors.country = 'Required';
         if (payload.phone && payload.phone.replace(/\D/g, '').length < 7) errors.phone = 'Enter a valid phone number';
         return errors;
     };

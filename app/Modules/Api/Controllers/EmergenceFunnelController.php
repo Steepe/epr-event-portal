@@ -137,6 +137,10 @@ class EmergenceFunnelController extends BaseController
             $errors['email'] = 'A valid email is required.';
         }
 
+        if ($payload['country'] === '') {
+            $errors['country'] = 'Country is required.';
+        }
+
         if ($payload['phone'] !== '' && strlen(preg_replace('/\D+/', '', $payload['phone'])) < 7) {
             $errors['phone'] = 'Enter a valid phone number.';
         }
