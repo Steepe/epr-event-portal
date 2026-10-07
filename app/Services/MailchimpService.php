@@ -90,6 +90,12 @@ class MailchimpService
             'LNAME' => (string) ($payload['last_name'] ?? ''),
         ];
 
+        foreach ($this->defaultMergeFields() as $mergeTag => $value) {
+            if (! isset($fields[$mergeTag]) || $fields[$mergeTag] === '') {
+                $fields[$mergeTag] = $value;
+            }
+        }
+
         $configuredFields = (string) env('mailchimp.mergeFields', '');
         foreach (array_filter(array_map('trim', explode(',', $configuredFields))) as $mapping) {
             [$mergeTag, $payloadKey] = array_pad(array_map('trim', explode(':', $mapping, 2)), 2, '');
@@ -104,6 +110,23 @@ class MailchimpService
         }
 
         return $fields;
+    }
+
+    private function defaultMergeFields(): array
+    {
+        $defaults = [];
+        $configuredDefaults = (string) env('mailchimp.defaultMergeFields', 'MMERGE7:Not provided,MMERGE8:Not provided');
+
+        foreach (array_filter(array_map('trim', explode(',', $configuredDefaults))) as $mapping) {
+            [$mergeTag, $value] = array_pad(array_map('trim', explode(':', $mapping, 2)), 2, '');
+            if ($mergeTag === '' || $value === '') {
+                continue;
+            }
+
+            $defaults[strtoupper($mergeTag)] = $value;
+        }
+
+        return $defaults;
     }
 
     private function normaliseTags(array|string $tags): array
