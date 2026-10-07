@@ -420,7 +420,6 @@
         <p>Confirmation sent to <strong id="doneEmail"></strong>.</p>
         <div class="done-actions">
             <button class="button secondary" type="button" id="calendarButton">Save to Calendar</button>
-            <a class="button upgrade" id="portalLink" target="_top" href="<?php echo esc($portalUrl ?? site_url('attendees/login')); ?>">Go to Portal</a>
         </div>
         <a class="plain" id="googleCalendarLink" target="_blank" rel="noopener" href="#">Add to Google Calendar</a>
     </section>
@@ -447,10 +446,7 @@
     const doneEmail = document.getElementById('doneEmail');
     const calendarButton = document.getElementById('calendarButton');
     const googleCalendarLink = document.getElementById('googleCalendarLink');
-    const portalLink = document.getElementById('portalLink');
     let currentPayload = null;
-
-    portalLink.href = portalUrl;
 
     const postHeight = () => {
         try {
