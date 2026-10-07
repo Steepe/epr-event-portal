@@ -293,6 +293,30 @@
             margin: 0;
         }
 
+        .done-actions {
+            display: grid;
+            gap: 10px;
+            grid-template-columns: 1fr;
+            margin-top: 8px;
+        }
+
+        .secondary {
+            background: #FFFFFF;
+            border: 1px solid var(--line);
+            color: var(--ink);
+        }
+
+        .secondary:hover {
+            border-color: var(--pink);
+            color: var(--pink);
+        }
+
+        @media (min-width: 460px) {
+            .done-actions {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
         @keyframes spin {
             to {
                 transform: rotate(360deg);
@@ -394,6 +418,11 @@
         <span class="success-dot" style="height:40px;width:40px;font-size:18px;">✓</span>
         <h2>You're registered.</h2>
         <p>Confirmation sent to <strong id="doneEmail"></strong>.</p>
+        <div class="done-actions">
+            <button class="button secondary" type="button" id="calendarButton">Save to Calendar</button>
+            <a class="button upgrade" id="portalLink" target="_top" href="<?php echo esc($portalUrl ?? site_url('attendees/login')); ?>">Go to Portal</a>
+        </div>
+        <a class="plain" id="googleCalendarLink" target="_blank" rel="noopener" href="#">Add to Google Calendar</a>
     </section>
 </main>
 
@@ -401,6 +430,8 @@
 (() => {
     const apiEndpoint = <?php echo json_encode($apiEndpoint); ?>;
     const checkoutUrl = <?php echo json_encode($checkoutUrl); ?>;
+    const portalUrl = <?php echo json_encode($portalUrl ?? site_url('attendees/login')); ?>;
+    const calendarEvent = <?php echo json_encode($calendarEvent ?? []); ?>;
     const mailchimpTags = <?php echo json_encode($mailchimpTags); ?>;
     const showUpsellOffer = <?php echo json_encode((bool) ($showUpsell ?? false)); ?>;
     const form = document.getElementById('funnelForm');
@@ -414,7 +445,12 @@
     const confirmLine = document.getElementById('confirmLine');
     const upsellTitle = document.getElementById('upsellTitle');
     const doneEmail = document.getElementById('doneEmail');
+    const calendarButton = document.getElementById('calendarButton');
+    const googleCalendarLink = document.getElementById('googleCalendarLink');
+    const portalLink = document.getElementById('portalLink');
     let currentPayload = null;
+
+    portalLink.href = portalUrl;
 
     const postHeight = () => {
         try {
@@ -486,6 +522,99 @@
             submitted_at: new Date().toISOString()
         };
     };
+
+    const parseDate = (value) => value ? new Date(value) : null;
+
+    const pad = (value) => String(value).padStart(2, '0');
+
+    const formatIcsDate = (date, allDay = false) => {
+        if (allDay) {
+            return `${date.getUTCFullYear()}${pad(date.getUTCMonth() + 1)}${pad(date.getUTCDate())}`;
+        }
+
+        return `${date.getUTCFullYear()}${pad(date.getUTCMonth() + 1)}${pad(date.getUTCDate())}T${pad(date.getUTCHours())}${pad(date.getUTCMinutes())}${pad(date.getUTCSeconds())}Z`;
+    };
+
+    const escapeIcs = (value) => String(value || '')
+        .replace(/\\/g, '\\\\')
+        .replace(/\n/g, '\\n')
+        .replace(/,/g, '\\,')
+        .replace(/;/g, '\\;');
+
+    const calendarDates = () => {
+        const start = parseDate(calendarEvent.start);
+        const end = parseDate(calendarEvent.end);
+
+        return start && end ? { start, end } : null;
+    };
+
+    const calendarDescription = () => {
+        const base = calendarEvent.description || 'Your registration is confirmed.';
+        return `${base}\n\nPortal: ${portalUrl}`;
+    };
+
+    const googleCalendarUrl = () => {
+        const dates = calendarDates();
+        if (!dates) return '#';
+
+        const allDay = Boolean(calendarEvent.allDay);
+        const start = formatIcsDate(dates.start, allDay);
+        const end = formatIcsDate(dates.end, allDay);
+        const params = new URLSearchParams({
+            action: 'TEMPLATE',
+            text: calendarEvent.title || 'EPR Global Conference',
+            dates: `${start}/${end}`,
+            details: calendarDescription(),
+            location: calendarEvent.location || 'Online',
+        });
+
+        return `https://calendar.google.com/calendar/render?${params.toString()}`;
+    };
+
+    const downloadCalendar = () => {
+        const dates = calendarDates();
+        if (!dates) return;
+
+        const allDay = Boolean(calendarEvent.allDay);
+        const startLine = allDay
+            ? `DTSTART;VALUE=DATE:${formatIcsDate(dates.start, true)}`
+            : `DTSTART:${formatIcsDate(dates.start)}`;
+        const endLine = allDay
+            ? `DTEND;VALUE=DATE:${formatIcsDate(dates.end, true)}`
+            : `DTEND:${formatIcsDate(dates.end)}`;
+        const uidEmail = (currentPayload?.email || 'registration').replace(/[^a-z0-9@._-]/gi, '');
+        const ics = [
+            'BEGIN:VCALENDAR',
+            'VERSION:2.0',
+            'PRODID:-//EPR Global//Emergence Funnel//EN',
+            'CALSCALE:GREGORIAN',
+            'METHOD:PUBLISH',
+            'BEGIN:VEVENT',
+            `UID:${Date.now()}-${uidEmail}@eprglobal.com`,
+            `DTSTAMP:${formatIcsDate(new Date())}`,
+            startLine,
+            endLine,
+            `SUMMARY:${escapeIcs(calendarEvent.title || 'EPR Global Conference')}`,
+            `DESCRIPTION:${escapeIcs(calendarDescription())}`,
+            `LOCATION:${escapeIcs(calendarEvent.location || 'Online')}`,
+            `URL:${portalUrl}`,
+            'END:VEVENT',
+            'END:VCALENDAR',
+        ].join('\r\n');
+        const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'epr-global-conference.ics';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        setTimeout(() => URL.revokeObjectURL(link.href), 500);
+
+        if (currentPayload) emit('calendar_download', { email: currentPayload.email });
+    };
+
+    googleCalendarLink.href = googleCalendarUrl();
+    calendarButton.addEventListener('click', downloadCalendar);
 
     const showUpsell = (result) => {
         const firstName = currentPayload.first_name || 'there';
