@@ -12,6 +12,10 @@ echo module_view('Web', 'includes/home_topbar');
 
 $attendee_id = session('attendee_id') ?? null;
 $country = session('reg_country') ?? 'Nigeria';
+$portalLocked = (bool) ($portal_locked ?? false);
+$checkoutEnabled = (bool) ($checkout_enabled ?? false);
+$ticketPrice = $ticket_price ?? null;
+$ticketCurrency = $ticket_currency ?? 'USD';
 ?>
 
 <style>
@@ -33,8 +37,8 @@ $country = session('reg_country') ?? 'Nigeria';
         border-radius: 8px;
         padding: 10px 15px;
         box-shadow: 0 3px 6px rgba(0,0,0,0.2);
-        display: none;
-        height: 60px;
+        display: <?php echo $portalLocked ? 'block' : 'none'; ?>;
+        min-height: 60px;
     }
 
     #paymentNotice a {
@@ -55,10 +59,15 @@ $country = session('reg_country') ?? 'Nigeria';
 
 <div id="paymentNotice" class="alert alert-warning text-center">
     <strong>Access Restricted:</strong>
-    This is a paid event. Please complete your registration payment to unlock all sessions.
-    <span id="priceInfo"></span>
-    <a href="<?php echo site_url('attendees/checkout'); ?>" class="btn btn-sm epr-btn-one ml-2">Pay now</a>
-    <button id="closeNotice">&times;</button>
+    Your registration is saved, but portal access is locked until payment is confirmed.
+    <?php if ($ticketPrice !== null): ?>
+        <span id="priceInfo">Ticket: <?php echo esc($ticketCurrency); ?> <?php echo esc(number_format((float) $ticketPrice, 2)); ?></span>
+    <?php endif; ?>
+    <?php if ($checkoutEnabled): ?>
+        <a href="<?php echo site_url('attendees/checkout'); ?>" class="btn btn-sm epr-btn-one ml-2">Pay now</a>
+    <?php else: ?>
+        <span class="ml-2">Payment will open soon.</span>
+    <?php endif; ?>
 </div>
 
 
@@ -70,90 +79,15 @@ $country = session('reg_country') ?? 'Nigeria';
     </div>
 </div>
 
-<div class="row w-100 mt-4 text-center">
-    <a href="<?php echo base_url('attendees/lobby'); ?>"
-       class="btn epr-btn-one"
-       style="margin: auto; font-size: 17px;">ENTER LOBBY</a>
-</div>
+<?php if (! $portalLocked): ?>
+    <div class="row w-100 mt-4 text-center">
+        <a href="<?php echo base_url('attendees/lobby'); ?>"
+           class="btn epr-btn-one"
+           style="margin: auto; font-size: 17px;">ENTER LOBBY</a>
+    </div>
+<?php endif; ?>
 
 <?php echo module_view('Web', 'includes/scripts'); ?>
-
-<script>
-    document.addEventListener("DOMContentLoaded", async () => {
-        const attendeeId = "<?php echo $attendee_id; ?>";
-        const country = "<?php echo $country; ?>";
-        const apiBase = "<?php echo rtrim(base_url('api'), '/'); ?>";
-        const apiKey  = "<?php echo env('api.securityKey'); ?>";
-
-        // ✅ Helper to call any GET API securely
-        async function apiGet(endpoint) {
-            const res = await fetch(`${apiBase}/${endpoint}`, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-API-KEY": apiKey
-                }
-            });
-            if (!res.ok) throw new Error(`API ${endpoint} failed (${res.status})`);
-            return res.json();
-        }
-
-        try {
-            // ✅ 1. Get live conference
-            const confData = await apiGet("conferences/live");
-            const conf = confData?.data;
-            if (!conf) return; // No live conference
-
-
-            const isPaidEvent  = conf.is_paid;
-            const conferenceId = conf.conference_id;
-            console.log(conferenceId);
-
-            // ✅ 2. Get ticket price by user’s country
-            const priceData = await apiGet(`ticket-prices/${conferenceId}/${country}`);
-
-            // ✅ 3. Get payment record for attendee
-            const payData = await apiGet(`payments/check/${attendeeId}`);
-            const hasPaid = payData?.data && Object.keys(payData.data).length > 0;
-
-            // ✅ 4. Show notice if not paid
-            if (isPaidEvent && !hasPaid) {
-                const notice = document.getElementById("paymentNotice");
-                const priceInfo = document.getElementById("priceInfo");
-
-                if (priceData.status === "success") {
-                    priceInfo.textContent = `Ticket: ${priceData.currency} ${priceData.price}`;
-                } else {
-                    priceInfo.textContent = "Ticket pricing unavailable.";
-                }
-
-                notice.style.display = "block";
-            }
-        } catch (err) {
-            console.error("Error loading conference/payment info:", err);
-        }
-    });
-
-    // Dismissible notice
-    document.addEventListener("DOMContentLoaded", () => {
-        const closeNotice = document.getElementById("closeNotice");
-        const paymentNotice = document.getElementById("paymentNotice");
-
-        if (closeNotice && paymentNotice) {
-            closeNotice.addEventListener("click", () => {
-                paymentNotice.style.opacity = "0";
-                paymentNotice.style.transition = "opacity 0.4s ease";
-                setTimeout(() => {
-                    if (paymentNotice && paymentNotice.style.display !== "none") {
-                        paymentNotice.style.opacity = "0";
-                        setTimeout(() => paymentNotice.style.display = "none", 400);
-                    }
-                }, 8000);
-            });
-        }
-    });
-
-</script>
 
 </body>
 </html>

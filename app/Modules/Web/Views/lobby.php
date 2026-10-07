@@ -10,6 +10,8 @@ echo module_view('Web', 'includes/lobby_topbar');
 
 $attendee_id = session('attendee_id') ?? null;
 $country = session('reg_country') ?? 'Nigeria';
+$accessRequiresPayment = (bool) ($access_requires_payment ?? false);
+$checkoutEnabled = (bool) ($checkout_enabled ?? false);
 ?>
 
 <style>
@@ -175,7 +177,11 @@ $country = session('reg_country') ?? 'Nigeria';
             This is a paid event. Please complete your registration payment to unlock all sessions.
             <span id="priceInfo"></span>
         </div>
-        <a href="<?php echo site_url('attendees/checkout'); ?>" class="btn btn-sm epr-btn-one">Pay now</a>
+        <?php if ($checkoutEnabled): ?>
+            <a href="<?php echo site_url('attendees/checkout'); ?>" class="btn btn-sm epr-btn-one">Pay now</a>
+        <?php else: ?>
+            <span>Payment will open soon.</span>
+        <?php endif; ?>
         <button id="closeNotice">&times;</button>
     </div>
 </div>
@@ -266,6 +272,11 @@ echo module_view('Web', 'includes/scripts');
         const country = "<?php echo  $country; ?>";
         const apiBase = "<?php echo  rtrim(base_url('api'), '/'); ?>";
         const apiKey = "<?php echo  env('api.securityKey'); ?>";
+        const accessRequiresPayment = <?php echo $accessRequiresPayment ? 'true' : 'false'; ?>;
+
+        if (!accessRequiresPayment) {
+            return;
+        }
 
         async function apiGet(endpoint) {
             const res = await fetch(`${apiBase}/${endpoint}`, {

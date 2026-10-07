@@ -11,9 +11,7 @@
 namespace App\Modules\Web\Controllers;
 
 use App\Controllers\BaseController;
-use App\Modules\Api\Models\TblConferencesModel;
-use App\Modules\Api\Models\TblTicketPricesModel;
-use App\Modules\Api\Models\TblAttendeePaymentsModel;
+use App\Services\PortalAccessService;
 
 class HomeController extends BaseController
 {
@@ -25,46 +23,27 @@ class HomeController extends BaseController
             return redirect()->to(base_url('attendees/login'));
         }
 
-        // ✅ Get the live conference securely through helper
-        $conferenceData = api_get('conferences/live');
-        $conference     = $conferenceData['data'] ?? null;
-
+        $access = new PortalAccessService();
+        $conference = $access->liveConference();
         $isPaid = false;
         $ticketPrice = null;
         $ticketCurrency = 'USD';
+        $portalLocked = false;
 
         if ($conference) {
-            // ✅ Determine ticket price via API
-            //$slug = $conference['slug'];
-            //$priceData = api_get("ticket-prices?conference_slug={$slug}");
-            $ticket = $priceData['data'][0] ?? null;
+            $session->set('live-conference-id', $conference['conference_id']);
 
-            // Simplify logic for country → currency mapping
-            $country = strtolower($session->get('reg_country') ?? '');
-            if ($ticket) {
-                switch ($country) {
-                    case 'nigeria':
-                        $ticketPrice = $ticket['amount_naira'];
-                        $ticketCurrency = 'NGN';
-                        break;
-                    case 'kenya':
-                        $ticketPrice = $ticket['amount_shillings'];
-                        $ticketCurrency = 'KES';
-                        break;
-                    case 'south africa':
-                        $ticketPrice = $ticket['amount_rands'];
-                        $ticketCurrency = 'ZAR';
-                        break;
-                    default:
-                        $ticketPrice = $ticket['amount_dollar'];
-                        $ticketCurrency = 'USD';
-                        break;
-                }
-            }
-
-            // ✅ Check if attendee has paid (you can extend api_get for POST later)
-            $payments = api_get("attendee-payments/{$session->get('attendee_id')}");
-            $isPaid = !empty($payments['data']);
+            $price = $access->ticketPriceForCountry(
+                (int) $conference['conference_id'],
+                (string) $session->get('reg_country')
+            );
+            $ticketPrice = $price['amount'];
+            $ticketCurrency = $price['currency'];
+            $isPaid = $access->attendeeHasPaid(
+                (int) $session->get('user_id'),
+                (int) $session->get('attendee_id'),
+                (int) $conference['conference_id']
+            );
         }
 
         $data = [
@@ -72,6 +51,8 @@ class HomeController extends BaseController
             'ticket_price' => $ticketPrice,
             'ticket_currency' => $ticketCurrency,
             'is_paid' => $isPaid,
+            'portal_locked' => $portalLocked,
+            'checkout_enabled' => $access->checkoutEnabled(),
         ];
 
         return module_view('Web', 'home', $data);

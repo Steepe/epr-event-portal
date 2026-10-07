@@ -3,6 +3,7 @@
 namespace App\Modules\Web\Controllers;
 
 use App\Controllers\BaseController;
+use App\Services\PortalAccessService;
 
 class CheckoutController extends BaseController
 {
@@ -15,6 +16,12 @@ class CheckoutController extends BaseController
 
     public function emergence()
     {
+        if (! (new PortalAccessService())->checkoutEnabled()) {
+            return $this->checkoutResult(false, 'Payment is not open yet. Your registration is saved.', null, [
+                'success_url' => site_url('emergence/funnel'),
+            ]);
+        }
+
         $email = strtolower(trim((string) $this->request->getGet('email')));
         $name = trim((string) $this->request->getGet('name'));
         $user = $email !== '' ? $this->findUserByEmail($email) : null;
@@ -43,6 +50,12 @@ class CheckoutController extends BaseController
 
     public function attendee()
     {
+        if (! (new PortalAccessService())->checkoutEnabled()) {
+            return $this->checkoutResult(false, 'Payment is not open yet. Your registration is saved, but portal access remains locked until payment is confirmed.', null, [
+                'success_url' => site_url('attendees/home'),
+            ]);
+        }
+
         $userId = (int) (session('user_id') ?: session('attendee_id'));
         if ($userId <= 0) {
             return redirect()->to(site_url('attendees/login'))->with('error', 'Please log in to continue checkout.');

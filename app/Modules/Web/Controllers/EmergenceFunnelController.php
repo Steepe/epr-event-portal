@@ -19,6 +19,7 @@ class EmergenceFunnelController extends BaseController
             'upsellPrice' => env('funnel.emergence.upsellPrice') ?: '$50',
             'mailchimpTags' => implode(',', $this->mailchimpTags()),
             'countries' => $this->countries(),
+            'showUpsell' => $this->envBoolean('funnel.emergence.showUpsell', false),
         ]);
     }
 
@@ -51,5 +52,15 @@ class EmergenceFunnelController extends BaseController
     private function splitTags(string $tags): array
     {
         return array_map('trim', explode(',', $tags));
+    }
+
+    private function envBoolean(string $key, bool $default): bool
+    {
+        $value = env($key);
+        if ($value === null || $value === '') {
+            return $default;
+        }
+
+        return filter_var($value, FILTER_VALIDATE_BOOLEAN);
     }
 }

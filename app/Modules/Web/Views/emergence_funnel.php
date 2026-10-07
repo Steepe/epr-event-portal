@@ -402,6 +402,7 @@
     const apiEndpoint = <?php echo json_encode($apiEndpoint); ?>;
     const checkoutUrl = <?php echo json_encode($checkoutUrl); ?>;
     const mailchimpTags = <?php echo json_encode($mailchimpTags); ?>;
+    const showUpsellOffer = <?php echo json_encode((bool) ($showUpsell ?? false)); ?>;
     const form = document.getElementById('funnelForm');
     const submitButton = document.getElementById('submitButton');
     const submitLabel = document.getElementById('submitLabel');
@@ -489,6 +490,15 @@
     const showUpsell = (result) => {
         const firstName = currentPayload.first_name || 'there';
         form.style.display = 'none';
+
+        if (!showUpsellOffer) {
+            done.style.display = 'flex';
+            doneEmail.textContent = currentPayload.email;
+            emit('registered', { status: result.status, email: currentPayload.email });
+            postHeight();
+            return;
+        }
+
         upsell.style.display = 'flex';
         confirmLine.textContent = result.status === 'updated' ? "Welcome back - you're registered" : "You're registered";
         upsellTitle.textContent = `One more thing, ${firstName}.`;
