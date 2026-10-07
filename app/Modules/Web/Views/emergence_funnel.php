@@ -280,10 +280,12 @@
         }
 
         .done {
+            align-items: center;
             display: none;
             flex-direction: column;
             gap: 12px;
             padding: 12px 0;
+            text-align: center;
         }
 
         .done p {
@@ -298,6 +300,8 @@
             gap: 10px;
             grid-template-columns: 1fr;
             margin-top: 8px;
+            max-width: 240px;
+            width: 100%;
         }
 
         .secondary {
@@ -309,12 +313,6 @@
         .secondary:hover {
             border-color: var(--pink);
             color: var(--pink);
-        }
-
-        @media (min-width: 460px) {
-            .done-actions {
-                grid-template-columns: 1fr 1fr;
-            }
         }
 
         @keyframes spin {
