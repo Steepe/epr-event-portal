@@ -339,11 +339,12 @@
                 <span class="error" data-error="email"></span>
             </label>
             <label>Phone
-                <input type="tel" name="phone" autocomplete="tel" placeholder="+234 800 000 0000">
+                <input type="tel" name="phone" autocomplete="tel" placeholder="+234 800 000 0000" required>
                 <span class="error" data-error="phone"></span>
             </label>
             <label>City
-                <input name="city" autocomplete="address-level2" placeholder="e.g. Lagos">
+                <input name="city" autocomplete="address-level2" placeholder="e.g. Lagos" required>
+                <span class="error" data-error="city"></span>
             </label>
             <label>Country
                 <select name="country" autocomplete="country-name" required>
@@ -359,7 +360,7 @@
         </div>
 
         <label>How did you hear about us?
-            <select name="referral_source">
+            <select name="referral_source" required>
                 <option value="">Select one</option>
                 <option value="instagram">Instagram</option>
                 <option value="facebook">Facebook</option>
@@ -369,12 +370,14 @@
                 <option value="search">Google search</option>
                 <option value="other">Other</option>
             </select>
+            <span class="error" data-error="referral_source"></span>
         </label>
 
         <label class="check-row">
-            <input type="checkbox" name="marketing_consent">
+            <input type="checkbox" name="marketing_consent" required>
             <span>Send me updates on speakers, registration and the agenda.</span>
         </label>
+        <span class="error" data-error="marketing_consent"></span>
 
         <div class="alert" id="submitError" hidden></div>
 
@@ -489,7 +492,11 @@
         if (!payload.first_name) errors.first_name = 'Required';
         if (!payload.last_name) errors.last_name = 'Required';
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.email)) errors.email = 'Enter a valid email';
+        if (!payload.phone) errors.phone = 'Required';
+        if (!payload.city) errors.city = 'Required';
         if (!payload.country) errors.country = 'Required';
+        if (!payload.referral_source) errors.referral_source = 'Required';
+        if (!payload.marketing_consent) errors.marketing_consent = 'Required';
         if (payload.phone && payload.phone.replace(/\D/g, '').length < 7) errors.phone = 'Enter a valid phone number';
         return errors;
     };

@@ -137,8 +137,24 @@ class EmergenceFunnelController extends BaseController
             $errors['email'] = 'A valid email is required.';
         }
 
+        if ($payload['phone'] === '') {
+            $errors['phone'] = 'Phone is required.';
+        }
+
+        if ($payload['city'] === '') {
+            $errors['city'] = 'City is required.';
+        }
+
         if ($payload['country'] === '') {
             $errors['country'] = 'Country is required.';
+        }
+
+        if ($payload['referral_source'] === '') {
+            $errors['referral_source'] = 'Referral source is required.';
+        }
+
+        if (! $payload['marketing_consent']) {
+            $errors['marketing_consent'] = 'Marketing consent is required.';
         }
 
         if ($payload['phone'] !== '' && strlen(preg_replace('/\D+/', '', $payload['phone'])) < 7) {
