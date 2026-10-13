@@ -52,6 +52,7 @@ $routes->group('attendees', ['namespace' => 'App\Modules\Web\Controllers', 'filt
 
     $routes->get('past_conferences', 'PastConferencesController::index');
     $routes->get('sponsors', 'SponsorsController::index');
+    $routes->get('notifications', 'NotificationsController::index');
 
     $routes->get('exhibitors', 'ExhibitorsController::index');
     $routes->get('exhibitors/(:num)', 'ExhibitorsController::booth/$1'); // "Enter Booth" page

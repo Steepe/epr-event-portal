@@ -1,156 +1,87 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: oluwamayowasteepe
- * Project: epr-event-portal
- * Date: 31/10/2025
- * Time: 21:41
- */
-
 echo module_view('Web', 'includes/header');
 echo module_view('Web', 'includes/topbar');
+
+$tiers = [];
+if (!empty($sponsors)) {
+    foreach ($sponsors as $sponsor) {
+        $tier = $sponsor['tier'] ?? 'Partner';
+        $tiers[$tier][] = $sponsor;
+    }
+}
+
+$tierSettings = [
+    'platinum' => ['label' => 'PLATINUM', 'color' => '#ffffff', 'width' => '220px', 'height' => '130px', 'glow' => '0 0 30px rgba(255,255,255,.45)'],
+    'gold' => ['label' => 'GOLD', 'color' => '#EFB11E', 'width' => '180px', 'height' => '108px', 'glow' => '0 0 26px rgba(239,177,30,.45)'],
+    'silver' => ['label' => 'SILVER', 'color' => '#c8c8c8', 'width' => '150px', 'height' => '90px', 'glow' => '0 0 22px rgba(200,200,200,.35)'],
+];
+$tierOrder = ['platinum' => 1, 'gold' => 2, 'silver' => 3];
+uksort($tiers, static function ($a, $b) use ($tierOrder) {
+    $aKey = strtolower(trim((string) $a));
+    $bKey = strtolower(trim((string) $b));
+    return ($tierOrder[$aKey] ?? 99) <=> ($tierOrder[$bKey] ?? 99) ?: strcmp($aKey, $bKey);
+});
 ?>
 
-<style>
-body {
-    background: url('<?php echo asset_url('images/brain-Events6-Portal-2025.png'); ?>') no-repeat center center fixed;
-    background-size: cover;
-    overflow-x: hidden;
-    font-family: 'Poppins', sans-serif;
-    color: #fff;
-}
+<main class="rc-page rc-page-center" data-screen-label="Sponsors">
+    <div class="rc-container" style="max-width:1120px;gap:40px">
+        <div class="rc-title-stack">
+            <span class="rc-kicker">Accelerate 2026</span>
+            <span class="rc-page-title">Sponsors</span>
+            <span class="rc-page-sub">The partners powering Accelerate 2026.</span>
+        </div>
 
-/* Container */
-.sponsors-container {
-    padding: 120px 10%;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-}
-
-/* Page title */
-.sponsors-container h2 {
-    font-weight: 700;
-    color: #fff;
-    text-transform: uppercase;
-    margin-bottom: 70px;
-    letter-spacing: 1px;
-}
-
-/* Grid layout */
-.sponsor-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 60px;
-    justify-items: center;
-    align-items: center;
-    width: 90%;
-    max-width: 1000px;
-}
-
-/* Circular sponsor bubble */
-.sponsor-card {
-    width: 180px;
-    height: 180px;
-    border-radius: 50%;
-    background: #fff;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 0 25px rgba(255, 255, 255, 0.2);
-    transition: all 0.4s ease;
-    overflow: hidden;
-    position: relative;
-}
-
-.sponsor-card:hover {
-    transform: scale(1.07);
-    box-shadow: 0 0 35px rgba(239, 177, 30, 0.4);
-}
-
-/* Logo inside the circle */
-.sponsor-card img {
-    width: 70%;
-    height: auto;
-    object-fit: contain;
-    transition: transform 0.4s ease;
-}
-
-.sponsor-card:hover img {
-    transform: scale(1.1);
-}
-
-/* Subtle glow overlay on hover */
-.sponsor-card::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    background: radial-gradient(circle at center, rgba(239,177,30,0.2), transparent 70%);
-    opacity: 0;
-    transition: opacity 0.4s ease;
-}
-.sponsor-card:hover::after {
-    opacity: 1;
-}
-
-.sponsor-card::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    padding: 4px;
-    background: radial-gradient(circle at 50% 50%, #bf159f, #790584);
-    -webkit-mask:
-            linear-gradient(#fff 0 0) content-box,
-            linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
-}
-@keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
-}
-.sponsor-card {
-    animation: float 6s ease-in-out infinite;
-}
-
-.sponsor-card.platinum { box-shadow: 0 0 25px rgba(255, 255, 255, 0.6); }
-.sponsor-card.gold { box-shadow: 0 0 25px rgba(239,177,30,0.5); }
-.sponsor-card.silver { box-shadow: 0 0 25px rgba(200,200,200,0.4); }
-
-</style>
-
-<div class="sponsors-container">
-    <h2>SPONSORS</h2>
-
-    <div class="sponsor-grid">
-        <?php if (!empty($sponsors)): ?>
-            <?php foreach ($sponsors as $sponsor): ?>
-                <div class="sponsor-card <?php echo strtolower($sponsor['tier']); ?>" title="<?php echo esc($sponsor['name']); ?>">
-                    <?php if (!empty($sponsor['website'])): ?>
-                        <a href="<?php echo esc($sponsor['website']); ?>" target="_blank">
-                            <img src="<?php echo base_url('uploads/sponsors/' . $sponsor['logo']); ?>"
-                                 alt="<?php echo esc($sponsor['name']); ?>"
-                                 >
-                        </a>
-                    <?php else: ?>
-                        <img loading="lazy" src="<?php echo base_url('uploads/sponsors/' . $sponsor['logo']); ?>"
-                             alt="<?php echo esc($sponsor['name']); ?>"
-                             >
-                    <?php endif; ?>
-                </div>
+        <?php if (!empty($tiers)): ?>
+            <?php foreach ($tiers as $tier => $items): ?>
+                <?php
+                $key = strtolower(trim((string) $tier));
+                $setting = $tierSettings[$key] ?? [
+                    'label' => strtoupper((string) $tier),
+                    'color' => '#ff78d1',
+                    'width' => '165px',
+                    'height' => '96px',
+                    'glow' => '0 0 24px rgba(216,25,142,.35)',
+                ];
+                ?>
+                <section class="rc-sponsor-tier">
+                    <div class="rc-sponsor-label">
+                        <span class="rc-mono" style="font-size:12px;letter-spacing:.22em;color:<?php echo esc($setting['color']); ?>"><?php echo esc($setting['label']); ?></span>
+                        <span class="rc-mono" style="font-size:11px;color:rgba(255,255,255,.5)"><?php echo count($items); ?> <?php echo count($items) === 1 ? 'partner' : 'partners'; ?></span>
+                    </div>
+                    <div class="rc-sponsor-logos">
+                        <?php foreach ($items as $sponsor): ?>
+                            <?php
+                            $logoFile = $sponsor['logo'] ?? '';
+                            $logoPath = 'uploads/sponsors/' . $logoFile;
+                            if (!empty($logoFile) && file_exists(FCPATH . 'uploads/sponsors_logo/' . $logoFile)) {
+                                $logoPath = 'uploads/sponsors_logo/' . $logoFile;
+                            }
+                            $logo = base_url($logoPath);
+                            $website = !empty($sponsor['website']) ? $sponsor['website'] : null;
+                            ?>
+                            <a href="<?php echo !empty($sponsor['website']) ? esc($sponsor['website']) : '#'; ?>"
+                               target="<?php echo $website ? '_blank' : '_self'; ?>"
+                               rel="noopener"
+                               title="<?php echo esc($sponsor['name']); ?>"
+                               class="rc-sponsor-tile"
+                               style="width:<?php echo esc($setting['width']); ?>;height:<?php echo esc($setting['height']); ?>;box-shadow:0 0 0 3px #bd159e, <?php echo esc($setting['glow']); ?>">
+                                <img src="<?php echo $logo; ?>"
+                                     alt="<?php echo esc($sponsor['name']); ?>"
+                                     onerror="this.src='<?php echo asset_url('images/company-placeholder.png'); ?>';">
+                            </a>
+                        <?php endforeach; ?>
+                    </div>
+                </section>
             <?php endforeach; ?>
         <?php else: ?>
-            <p class="text-center text-light">No sponsors found.</p>
+            <div class="rc-empty">No sponsors found.</div>
         <?php endif; ?>
     </div>
+</main>
+
+</div>
 </div>
 
 <?php echo module_view('Web', 'includes/scripts'); ?>
-
 </body>
 </html>

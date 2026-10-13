@@ -21,9 +21,14 @@
     <link rel="shortcut icon" href="<?php echo asset_url('images/favicon.png')?>">
 
     <!-- App css -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?php echo asset_url('css/bootstrap.min.css')?>" type="text/css">
     <link href="<?php echo asset_url('css/eprglobal.css')?>" rel="stylesheet" type="text/css" />
     <link href="<?php echo asset_url('font-awesome/css/font-awesome.min.css')?>" rel="stylesheet" type="text/css" />
+    <link href="<?php echo asset_url('css/accelerate-portal.css')?>" rel="stylesheet" type="text/css" />
+    <script defer src="<?php echo asset_url('js/accelerate-background.js')?>"></script>
 
     <script>
         /* Storing user's device details in a variable*/

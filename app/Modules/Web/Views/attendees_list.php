@@ -1,276 +1,766 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: oluwamayowasteepe
- * Project: epr-event-portal
- * Date: 31/10/2025
- * Time: 00:09
- */
-
 echo module_view('Web', 'includes/header');
 echo module_view('Web', 'includes/topbar');
+
+$tabs = [
+    ['ATTENDEES', base_url('attendees/attendees'), true],
+    ['SPEAKERS', base_url('attendees/speakers'), false],
+    ['COMMUNITIES', base_url('attendees/communities'), false],
+];
+
+$searchValue = (string) service('request')->getGet('attendee_name');
+$currentUserId = (int) (session('user_id') ?: session('attendee_id'));
 ?>
 
-<style>
-body {
-    background: url('<?php echo asset_url('images/brain-Events-Portal4-2025.png'); ?>') no-repeat center center fixed;
-    background-size: cover;
-    color: #fff;
-    font-family: 'Poppins', sans-serif;
-}
+<main class="rc-page rc-page-center" data-screen-label="Attendees">
+    <div class="rc-container" style="gap:24px">
+        <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap">
+            <div style="display:flex;flex-direction:column;gap:8px">
+                <a href="<?php echo base_url('attendees/networking_center'); ?>" class="rc-kicker" style="align-self:flex-start;display:flex;gap:8px;align-items:center">
+                    <i class="fa fa-arrow-left" aria-hidden="true"></i>Networking Center
+                </a>
+                <span class="rc-page-title">Attendees</span>
+                <span class="rc-page-sub"><span data-attendee-count><?php echo !empty($attendees) ? count($attendees) : 0; ?></span> people in your network</span>
+            </div>
 
-.attendees-container {
-    padding: 100px 10%;
-    min-height: 100vh;
-}
+            <div class="rc-net-tabs">
+                <?php foreach ($tabs as [$label, $url, $active]): ?>
+                    <a href="<?php echo $url; ?>"
+                       class="rc-net-tab <?php echo $active ? 'is-active' : ''; ?>">
+                        <?php echo esc($label); ?>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+        </div>
 
-.attendees-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 40px;
-    flex-wrap: wrap;
-}
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <form method="get" data-attendee-search-form style="position:relative;flex:1;min-width:240px;max-width:380px;display:flex">
+                <i class="fa fa-search" style="position:absolute;left:16px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.6)" aria-hidden="true"></i>
+                <input class="rc-input rc-attendee-search" type="text" name="attendee_name" value="<?php echo esc($searchValue, 'attr'); ?>" placeholder="Search by name, company or role" autocomplete="off" style="padding-left:42px;background:#1d0a21!important;border-radius:12px!important">
+            </form>
 
-.attendees-header h2 {
-    color: #fff;
-    font-weight: 700;
-    text-transform: uppercase;
-}
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <a class="rc-outline-pill" href="<?php echo base_url('attendees/attendees'); ?>">All</a>
+                <?php if (!empty($alphabet_count)): ?>
+                    <?php foreach (array_slice($alphabet_count, 0, 8) as $alphabet): ?>
+                        <a class="rc-outline-pill" href="?sort=<?php echo urlencode($alphabet['firstCharacter']); ?>">
+                            <?php echo esc($alphabet['firstCharacter']); ?>
+                        </a>
+                    <?php endforeach; ?>
+                <?php endif; ?>
+            </div>
+        </div>
 
-.search-box input {
-    border-radius: 30px;
-    border: solid 1px #9D0F82;
-    padding: 10px 20px;
-    width: 280px;
-    outline: none;
-    background: rgba(255,255,255,0.1);
-    color: #fff;
-}
-.search-box input::placeholder {
-    color: rgba(255,255,255,0.7);
-}
-
-.alphabet-filter {
-    text-align: right;
-    margin-bottom: 40px;
-}
-.alphabet-filter span,
-.alphabet-filter a {
-    color: #fff;
-    font-size: 13px;
-    margin: 0 3px;
-    text-decoration: none;
-    transition: color .3s ease;
-}
-.alphabet-filter a:hover,
-.alphabet-filter a.active {
-    color: #EFB11E;
-    text-decoration: underline;
-}
-
-/* === Grid layout === */
-.attendees-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 25px;
-    justify-items: center;
-}
-
-.attendee-card {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 15px;
-    padding: 20px;
-    text-align: center;
-    width: 100%;
-    max-width: 320px;
-    transition: background .3s ease, transform .3s ease;
-}
-.attendee-card:hover {
-    background: rgba(255, 255, 255, 0.12);
-    transform: translateY(-4px);
-}
-
-.attendee-card img {
-    width: 110px;
-    height: 110px;
-    border-radius: 50%;
-    object-fit: cover;
-    border: 3px solid transparent;
-    margin-bottom: 15px;
-    transition: transform .4s ease, box-shadow .4s ease;
-}
-.attendee-card:hover img {
-    transform: scale(1.05);
-    box-shadow: 0 0 20px rgba(255,255,255,0.3);
-}
-
-.attendee-name {
-    font-size: 16px;
-    font-weight: 600;
-    color: #fff;
-    margin-bottom: 10px;
-    text-transform: capitalize;
-}
-
-.say-hello-btn {
-    background-image: url("<?php echo asset_url('images/button-bg-short.png')?>");
-    background-repeat: repeat-y;
-    border: none;
-    color: #fff;
-    font-weight: 600;
-    border-radius: 30px;
-    padding: 8px 25px;
-    transition: all .3s ease;
-    white-space: nowrap;
-}
-.say-hello-btn:hover {
-    background-image: url("<?php echo asset_url('images/button-light-bg-short.png')?>");
-    transform: scale(1.05);
-}
-
-/* === Modal styling === */
-.modal-content {
-    border-radius: 12px;
-    background-color: #fff;
-}
-.modal-header {
-    border: none;
-}
-.modal-body textarea {
-    border: 2px solid #9D0F82;
-    border-radius: 10px;
-    width: 100%;
-    padding: 12px;
-    font-size: 14px;
-    resize: none;
-    outline: none;
-}
-.btn-epr-purple {
-    background: linear-gradient(90deg, #9D0F82, #EFB11E);
-    border: none;
-    color: #fff;
-    font-weight: 600;
-    border-radius: 25px;
-    padding: 8px 24px;
-    transition: all .3s ease;
-}
-.btn-epr-purple:hover {
-    background: linear-gradient(90deg, #EFB11E, #9D0F82);
-}
-
-@media (max-width: 992px) {
-    .attendees-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-@media (max-width: 600px) {
-    .attendees-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-</style>
-
-<div class="attendees-container">
-    <div class="attendees-header">
-        <h2>Attendees</h2>
-        <form class="search-box" method="get">
-            <input type="text" name="attendee_name" placeholder="Search by name..." />
-        </form>
-    </div>
-
-    <div class="alphabet-filter">
-        <span>Sort By:</span>
-        <?php if (!empty($alphabet_count)): ?>
-            <?php foreach ($alphabet_count as $alphabet): ?>
-                <a href="?sort=<?php echo $alphabet['firstCharacter']; ?>"><?php echo $alphabet['firstCharacter']; ?></a>
-            <?php endforeach; ?>
-        <?php endif; ?>
-        <a href="<?php echo base_url('attendees/attendees'); ?>">View All</a>
-    </div>
-
-    <div class="attendees-grid">
         <?php if (!empty($attendees)): ?>
-            <?php foreach ($attendees as $attendee): ?>
-                <?php
-                    $firstLetter = strtoupper(substr($attendee['firstname'], 0, 1));
-                    $image = base_url('uploads/attendee_pictures/' . $attendee['profile_picture']);
-                ?>
-                <div class="attendee-card">
-                    <img src="<?php echo $image; ?>"
-                         alt="<?php echo $attendee['firstname']; ?>"
-                         onerror="this.src='<?php echo asset_url('images/default_pics/'.$firstLetter.'3.png'); ?>';">
+            <section class="rc-attendee-grid" data-attendee-grid>
+                <?php foreach ($attendees as $attendee): ?>
+                    <?php
+                    $firstName = ucfirst(strtolower($attendee['firstname'] ?? ''));
+                    $lastName = ucfirst(strtolower($attendee['lastname'] ?? ''));
+                    $fullName = trim($firstName . ' ' . $lastName);
+                    $firstLetter = strtoupper(substr($firstName ?: 'A', 0, 1));
+                    $image = !empty($attendee['profile_picture'])
+                        ? base_url('uploads/attendee_pictures/' . $attendee['profile_picture'])
+                        : asset_url('images/user.png');
+                    $role = trim((string) ($attendee['position'] ?? $attendee['job_title'] ?? $attendee['occupation'] ?? 'Attendee'));
+                    $company = trim((string) ($attendee['company'] ?? $attendee['organization'] ?? ''));
+                    $messageRole = ($role ?: 'Attendee') . ($company !== '' ? ' · ' . $company : '');
+                    $place = trim((string) (($attendee['city'] ?? '') . (!empty($attendee['country']) ? ', ' . $attendee['country'] : '')));
+                    $isOnline = !empty($attendee['is_online']) && (int) $attendee['is_online'] === 1;
+                    $isConnected = !empty($attendee['is_connected']) && (int) $attendee['is_connected'] === 1;
+                    $connectionStatus = (string) ($attendee['connection_status'] ?? '');
+                    $connectionDirection = (string) ($attendee['connection_direction'] ?? '');
+                    $connectionId = (int) ($attendee['connection_id'] ?? 0);
+                    $isSelf = (int) ($attendee['attendee_id'] ?? 0) === $currentUserId;
+                    $connectLabel = 'Connect';
+                    $connectIcon = 'fa-user-plus';
+                    $connectMuted = false;
+                    $connectDisabled = false;
 
-                    <div class="attendee-name">
-                        <?php echo ucfirst(strtolower($attendee['firstname'])) . ' ' . ucfirst(strtolower($attendee['lastname'])); ?>
-                    </div>
+                    if ($isSelf) {
+                        $connectLabel = 'You';
+                        $connectIcon = 'fa-user';
+                        $connectMuted = true;
+                        $connectDisabled = true;
+                    } elseif ($isConnected || $connectionStatus === 'accepted') {
+                        $connectLabel = 'Connected';
+                        $connectIcon = 'fa-check';
+                        $connectMuted = true;
+                        $connectDisabled = true;
+                    } elseif ($connectionStatus === 'pending' && $connectionDirection === 'sent') {
+                        $connectLabel = 'Requested';
+                        $connectIcon = 'fa-clock-o';
+                        $connectMuted = true;
+                        $connectDisabled = true;
+                    } elseif ($connectionStatus === 'pending' && $connectionDirection === 'received') {
+                        $connectLabel = 'Accept';
+                        $connectIcon = 'fa-check';
+                    }
 
-                    <button class="say-hello-btn" data-toggle="modal" data-target=".chat-<?php echo $attendee['attendee_id']; ?>">
-                        Say Hello
-                    </button>
-                </div>
-
-                <!-- 💬 Message Modal -->
-                <div class="modal fade chat-<?php echo $attendee['attendee_id']; ?>" tabindex="-1" role="dialog" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span>&times;</span>
-                                </button>
+                    $searchIndex = strtolower(trim($fullName . ' ' . $role . ' ' . $company . ' ' . $place));
+                    $socials = [
+                        'facebook' => trim((string) ($attendee['facebook'] ?? '')),
+                        'twitter' => trim((string) ($attendee['twitter'] ?? '')),
+                        'instagram' => trim((string) ($attendee['instagram'] ?? '')),
+                        'linkedin' => trim((string) ($attendee['linkedin'] ?? '')),
+                    ];
+                    ?>
+                    <article class="rc-person-card rc-attendee-card"
+                             role="button"
+                             tabindex="0"
+                             aria-label="View profile for <?php echo esc($fullName ?: 'Attendee', 'attr'); ?>"
+                             data-attendee-card
+                             data-search="<?php echo esc($searchIndex, 'attr'); ?>"
+                             data-profile-id="<?php echo (int) $attendee['attendee_id']; ?>"
+                             data-profile-name="<?php echo esc($fullName ?: 'Attendee', 'attr'); ?>"
+                             data-profile-role="<?php echo esc($role ?: 'Attendee', 'attr'); ?>"
+                             data-profile-company="<?php echo esc($company, 'attr'); ?>"
+                             data-profile-location="<?php echo esc($place ?: 'Conference portal', 'attr'); ?>"
+                             data-profile-initial="<?php echo esc($firstLetter, 'attr'); ?>"
+                             data-profile-avatar="<?php echo esc($image, 'attr'); ?>"
+                             data-profile-online="<?php echo $isOnline ? '1' : '0'; ?>"
+                             data-profile-connected="<?php echo $isConnected ? '1' : '0'; ?>"
+                             data-profile-connection-id="<?php echo $connectionId; ?>"
+                             data-profile-connection-status="<?php echo esc($connectionStatus, 'attr'); ?>"
+                             data-profile-connection-direction="<?php echo esc($connectionDirection, 'attr'); ?>"
+                             data-profile-self="<?php echo $isSelf ? '1' : '0'; ?>"
+                             data-social-facebook="<?php echo esc($socials['facebook'], 'attr'); ?>"
+                             data-social-twitter="<?php echo esc($socials['twitter'], 'attr'); ?>"
+                             data-social-instagram="<?php echo esc($socials['instagram'], 'attr'); ?>"
+                             data-social-linkedin="<?php echo esc($socials['linkedin'], 'attr'); ?>"
+                             style="padding:20px;display:flex;flex-direction:column;gap:14px">
+                        <div style="display:flex;align-items:center;gap:14px">
+                            <div class="rc-avatar-token">
+                                <span data-avatar-fallback style="display:none"><?php echo esc($firstLetter); ?></span>
+                                <img src="<?php echo $image; ?>"
+                                     alt="<?php echo esc($fullName); ?>"
+                                     onerror="this.remove();this.parentNode.querySelector('[data-avatar-fallback]').style.display='inline';"
+                                     style="width:100%;height:100%;object-fit:cover">
+                                <?php if ($isOnline): ?>
+                                    <span class="rc-status-dot" aria-label="Online"></span>
+                                <?php endif; ?>
                             </div>
-                            <div class="modal-body">
-                                <form class="attendee-message-form">
-                                    <textarea rows="6" name="d_message" placeholder="Type your message here..." required></textarea>
-                                    <input type="hidden" name="attendee_id_to" value="<?php echo $attendee['attendee_id']; ?>">
-                                    <input type="hidden" name="attendee_id_from" value="<?php echo session('attendee_id'); ?>">
-                                    <div class="text-center mt-3">
-                                        <button type="submit" class="btn-epr-purple">Send</button>
-                                    </div>
-                                </form>
+                            <div style="display:flex;flex-direction:column;gap:2px;min-width:0">
+                                <span style="font-size:16px;font-weight:600"><?php echo esc($fullName ?: 'Attendee'); ?></span>
+                                <span style="font-size:13px;color:rgba(255,255,255,.78)"><?php echo esc($role ?: 'Attendee'); ?></span>
+                                <span style="font-size:13px;color:rgba(255,255,255,.62)"><?php echo esc($company); ?></span>
                             </div>
                         </div>
-                    </div>
-                </div>
-            <?php endforeach; ?>
+
+                        <div style="display:flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;color:rgba(255,255,255,.65)">
+                            <i class="fa fa-map-marker" aria-hidden="true"></i><?php echo esc($place ?: 'Conference portal'); ?>
+                        </div>
+
+                        <div style="display:flex;gap:6px;flex-wrap:wrap">
+                            <span class="rc-card-tag">Operations</span>
+                            <span class="rc-card-tag">Execution</span>
+                        </div>
+
+                        <div style="margin-top:auto;display:flex;gap:8px">
+                            <button type="button"
+                                    class="rc-card-action rc-connect-toggle <?php echo $connectMuted ? 'is-muted' : ''; ?>"
+                                    <?php echo $connectDisabled ? 'disabled' : ''; ?>>
+                                <i class="fa <?php echo $connectIcon; ?>" aria-hidden="true"></i><span><?php echo esc($connectLabel); ?></span>
+                            </button>
+                            <button type="button"
+                                    class="rc-icon-action rc-message-toggle"
+                                    title="Message"
+                                    aria-label="Message <?php echo esc($fullName ?: 'Attendee', 'attr'); ?>"
+                                    data-attendee-id="<?php echo (int) $attendee['attendee_id']; ?>"
+                                    data-attendee-name="<?php echo esc($fullName ?: 'Attendee', 'attr'); ?>"
+                                    data-attendee-role="<?php echo esc($messageRole, 'attr'); ?>"
+                                    data-attendee-initial="<?php echo esc($firstLetter, 'attr'); ?>"
+                                    data-attendee-avatar="<?php echo esc($image, 'attr'); ?>"
+                                    data-attendee-online="<?php echo $isOnline ? '1' : '0'; ?>"
+                                    data-sender-id="<?php echo esc((string) $currentUserId, 'attr'); ?>">
+                                <i class="fa fa-comment-o" aria-hidden="true"></i>
+                            </button>
+                        </div>
+                    </article>
+                <?php endforeach; ?>
+            </section>
+            <div class="rc-empty rc-attendee-empty" data-attendee-empty hidden>No attendees match that search.</div>
         <?php else: ?>
-            <p>No attendees found.</p>
+            <div class="rc-empty">No attendees match that search.</div>
         <?php endif; ?>
     </div>
+</main>
+
+<div class="rc-profile-backdrop" data-rc-profile-close></div>
+<aside class="rc-profile-drawer" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Attendee profile">
+    <button type="button" class="rc-profile-close" data-rc-profile-close aria-label="Close attendee profile">&times;</button>
+    <div class="rc-profile-hero">
+        <span class="rc-profile-avatar" data-profile-avatar>
+            <span data-profile-initial>A</span>
+        </span>
+        <span class="rc-profile-online" data-profile-online hidden>Online now</span>
+        <h2 data-profile-name>Attendee</h2>
+        <p data-profile-role>Attendee</p>
+    </div>
+    <div class="rc-profile-body">
+        <div class="rc-profile-meta">
+            <span><i class="fa fa-briefcase" aria-hidden="true"></i><strong>Company</strong><em data-profile-company></em></span>
+            <span><i class="fa fa-map-marker" aria-hidden="true"></i><strong>Location</strong><em data-profile-location>Conference portal</em></span>
+        </div>
+        <div class="rc-profile-social-section">
+            <div class="rc-profile-section-title">Social Links</div>
+            <div class="rc-profile-socials" data-profile-socials></div>
+            <div class="rc-profile-social-lock" data-profile-social-lock>
+                Connect with this attendee to view their social links.
+            </div>
+        </div>
+        <div class="rc-profile-actions">
+            <button type="button" class="rc-card-action" data-profile-connect>
+                <i class="fa fa-user-plus" aria-hidden="true"></i><span>Connect</span>
+            </button>
+            <button type="button" class="rc-icon-action" data-profile-message aria-label="Message attendee">
+                <i class="fa fa-comment-o" aria-hidden="true"></i>
+            </button>
+        </div>
+    </div>
+</aside>
+
+<div class="rc-dm-backdrop" data-rc-dm-close></div>
+<aside class="rc-dm-drawer" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Direct message">
+    <div class="rc-dm-head">
+        <span class="rc-dm-avatar" data-rc-dm-avatar>
+            <span data-rc-dm-initial>A</span>
+            <span class="rc-status-dot"></span>
+        </span>
+        <div class="rc-dm-person">
+            <span data-rc-dm-name>Attendee</span>
+            <small data-rc-dm-role>Attendee</small>
+        </div>
+        <button type="button" class="rc-dm-close" data-rc-dm-close aria-label="Close message panel">&times;</button>
+    </div>
+    <div class="rc-dm-messages" data-rc-dm-messages>
+        <div class="rc-dm-empty">Start the conversation. Mention a session you both attended or what you're working on.</div>
+    </div>
+    <form class="rc-dm-compose" data-rc-dm-form>
+        <input type="text" data-rc-dm-input placeholder="Write a message..." autocomplete="off" required>
+        <button type="submit">Send</button>
+    </form>
+</aside>
+
+</div>
 </div>
 
 <?php echo module_view('Web', 'includes/scripts'); ?>
 
 <script>
-$(document).ready(function() {
-    $(".attendee-message-form").on("submit", function(e) {
-        e.preventDefault();
-        const form = $(this);
-        const data = {
-            sender_id: form.find('input[name=attendee_id_from]').val(),
-            receiver_id: form.find('input[name=attendee_id_to]').val(),
-            message: form.find('textarea[name=d_message]').val()
-        };
+(function() {
+    const searchForm = document.querySelector("[data-attendee-search-form]");
+    const searchInput = document.querySelector(".rc-attendee-search");
+    const attendeeCards = Array.from(document.querySelectorAll("[data-attendee-card]"));
+    const attendeeCount = document.querySelector("[data-attendee-count]");
+    const attendeeEmpty = document.querySelector("[data-attendee-empty]");
 
-        $.ajax({
-            url: "<?php echo base_url('api/messages/send'); ?>",
-            method: "POST",
-            contentType: "application/json",
-            data: JSON.stringify(data),
-            success: function(res) {
-                if (res.status === "success") {
-                    alert("✅ Message sent successfully.");
-                    form[0].reset();
-                    $('.modal').modal('hide');
-                } else {
-                    alert("⚠️ Message could not be sent.");
+    const profileDrawer = document.querySelector(".rc-profile-drawer");
+    const profileBackdrop = document.querySelector(".rc-profile-backdrop");
+    const profileAvatar = profileDrawer?.querySelector("[data-profile-avatar]");
+    const profileOnline = profileDrawer?.querySelector("[data-profile-online]");
+    const profileName = profileDrawer?.querySelector("[data-profile-name]");
+    const profileRole = profileDrawer?.querySelector("[data-profile-role]");
+    const profileCompany = profileDrawer?.querySelector("[data-profile-company]");
+    const profileLocation = profileDrawer?.querySelector("[data-profile-location]");
+    const profileSocials = profileDrawer?.querySelector("[data-profile-socials]");
+    const profileSocialLock = profileDrawer?.querySelector("[data-profile-social-lock]");
+    const profileConnect = profileDrawer?.querySelector("[data-profile-connect]");
+    const profileMessage = profileDrawer?.querySelector("[data-profile-message]");
+
+    const drawer = document.querySelector(".rc-dm-drawer");
+    const backdrop = document.querySelector(".rc-dm-backdrop");
+    const avatar = document.querySelector("[data-rc-dm-avatar]");
+    const nameNode = document.querySelector("[data-rc-dm-name]");
+    const roleNode = document.querySelector("[data-rc-dm-role]");
+    const messagesNode = document.querySelector("[data-rc-dm-messages]");
+    const form = document.querySelector("[data-rc-dm-form]");
+    const input = document.querySelector("[data-rc-dm-input]");
+    const messages = {};
+    let activeThread = null;
+    let activeProfile = null;
+
+    const socialMeta = {
+        facebook: { label: "Facebook", icon: "fa-facebook", base: "https://facebook.com/" },
+        twitter: { label: "X", icon: "fa-twitter", base: "https://twitter.com/" },
+        instagram: { label: "Instagram", icon: "fa-instagram", base: "https://instagram.com/" },
+        linkedin: { label: "LinkedIn", icon: "fa-linkedin", base: "https://linkedin.com/in/" }
+    };
+
+    function text(value) {
+        return value || "";
+    }
+
+    function isOnline(value) {
+        return value === true || value === "1" || value === 1;
+    }
+
+    function createAvatar(target, details, sizeClass) {
+        const initial = text(details.initial).slice(0, 1).toUpperCase() || "A";
+        target.innerHTML = "";
+
+        if (details.avatar) {
+            const image = document.createElement("img");
+            image.src = details.avatar;
+            image.alt = details.name || "Attendee";
+            image.addEventListener("error", function() {
+                target.innerHTML = "";
+                const fallback = document.createElement("span");
+                fallback.textContent = initial;
+                target.appendChild(fallback);
+                if (isOnline(details.online)) {
+                    const status = document.createElement("span");
+                    status.className = "rc-status-dot";
+                    target.appendChild(status);
                 }
+            }, { once: true });
+            target.appendChild(image);
+        } else {
+            const fallback = document.createElement("span");
+            fallback.textContent = initial;
+            target.appendChild(fallback);
+        }
+
+        if (isOnline(details.online)) {
+            const status = document.createElement("span");
+            status.className = "rc-status-dot";
+            target.appendChild(status);
+        }
+
+        if (sizeClass) {
+            target.classList.add(sizeClass);
+        }
+    }
+
+    function detailsFromCard(card) {
+        return {
+            receiverId: card.dataset.profileId,
+            senderId: "<?php echo esc((string) $currentUserId, 'js'); ?>",
+            name: card.dataset.profileName,
+            role: card.dataset.profileRole,
+            company: card.dataset.profileCompany,
+            location: card.dataset.profileLocation,
+            initial: card.dataset.profileInitial,
+            avatar: card.dataset.profileAvatar,
+            online: card.dataset.profileOnline,
+            connected: card.dataset.profileConnected === "1",
+            connectionId: card.dataset.profileConnectionId,
+            connectionStatus: card.dataset.profileConnectionStatus,
+            connectionDirection: card.dataset.profileConnectionDirection,
+            isSelf: card.dataset.profileSelf === "1",
+            socials: {
+                facebook: card.dataset.socialFacebook,
+                twitter: card.dataset.socialTwitter,
+                instagram: card.dataset.socialInstagram,
+                linkedin: card.dataset.socialLinkedin
+            }
+        };
+    }
+
+    function detailsFromMessageButton(button) {
+        return {
+            receiverId: button.dataset.attendeeId,
+            senderId: button.dataset.senderId,
+            name: button.dataset.attendeeName,
+            role: button.dataset.attendeeRole,
+            initial: button.dataset.attendeeInitial,
+            avatar: button.dataset.attendeeAvatar,
+            online: button.dataset.attendeeOnline
+        };
+    }
+
+    function normalizeSocialUrl(network, value) {
+        const cleanValue = text(value).trim();
+        if (!cleanValue) {
+            return "";
+        }
+        if (/^https?:\/\//i.test(cleanValue)) {
+            return cleanValue;
+        }
+        return socialMeta[network].base + cleanValue.replace(/^@+/, "").replace(/^\/+/, "");
+    }
+
+    function renderProfileSocials(details) {
+        profileSocials.innerHTML = "";
+        profileSocialLock.hidden = details.connected;
+
+        if (!details.connected) {
+            return;
+        }
+
+        const links = Object.keys(socialMeta)
+            .map(function(network) {
+                return {
+                    network: network,
+                    url: normalizeSocialUrl(network, details.socials[network])
+                };
+            })
+            .filter(function(item) {
+                return item.url;
+            });
+
+        if (!links.length) {
+            const empty = document.createElement("span");
+            empty.className = "rc-profile-social-empty";
+            empty.textContent = "No social links added yet.";
+            profileSocials.appendChild(empty);
+            return;
+        }
+
+        links.forEach(function(item) {
+            const meta = socialMeta[item.network];
+            const link = document.createElement("a");
+            link.href = item.url;
+            link.target = "_blank";
+            link.rel = "noopener noreferrer";
+            link.setAttribute("aria-label", meta.label);
+            link.innerHTML = '<i class="fa ' + meta.icon + '" aria-hidden="true"></i>';
+            profileSocials.appendChild(link);
+        });
+    }
+
+    function setConnectButton(button, state, busy) {
+        if (!button) {
+            return;
+        }
+
+        const icon = button.querySelector("i");
+        const label = button.querySelector("span");
+        const connected = !!state.connected || state.connectionStatus === "accepted";
+        const pendingSent = state.connectionStatus === "pending" && state.connectionDirection === "sent";
+        const pendingReceived = state.connectionStatus === "pending" && state.connectionDirection === "received";
+        let iconClass = "fa-user-plus";
+        let text = "Connect";
+        let muted = false;
+        let disabled = false;
+
+        if (busy) {
+            iconClass = "fa-spinner";
+            text = pendingReceived ? "Accepting..." : "Sending...";
+            muted = true;
+            disabled = true;
+        } else if (state.isSelf) {
+            iconClass = "fa-user";
+            text = "You";
+            muted = true;
+            disabled = true;
+        } else if (connected) {
+            iconClass = "fa-check";
+            text = "Connected";
+            muted = true;
+            disabled = true;
+        } else if (pendingSent) {
+            iconClass = "fa-clock-o";
+            text = "Requested";
+            muted = true;
+            disabled = true;
+        } else if (pendingReceived) {
+            iconClass = "fa-check";
+            text = "Accept";
+        }
+
+        button.classList.toggle("is-muted", muted);
+        button.disabled = disabled;
+
+        if (icon) {
+            icon.className = "fa " + iconClass;
+        }
+        if (label) {
+            label.textContent = text;
+        }
+    }
+
+    function updateConnectionState(card, data) {
+        if (!card || !data) {
+            return;
+        }
+
+        card.dataset.profileConnected = data.is_connected ? "1" : "0";
+        card.dataset.profileConnectionId = data.connection_id || "";
+        card.dataset.profileConnectionStatus = data.connection_status || "";
+        card.dataset.profileConnectionDirection = data.connection_direction || "";
+
+        const details = detailsFromCard(card);
+        setConnectButton(card.querySelector(".rc-connect-toggle"), details);
+
+        if (activeProfile && activeProfile.receiverId === details.receiverId) {
+            activeProfile.connected = details.connected;
+            activeProfile.connectionId = details.connectionId;
+            activeProfile.connectionStatus = details.connectionStatus;
+            activeProfile.connectionDirection = details.connectionDirection;
+            renderProfileSocials(activeProfile);
+            setConnectButton(profileConnect, activeProfile);
+        }
+    }
+
+    function sendConnectionRequest(card, button) {
+        if (!card) {
+            return;
+        }
+
+        const details = detailsFromCard(card);
+        if (details.isSelf || details.connected || (details.connectionStatus === "pending" && details.connectionDirection === "sent")) {
+            setConnectButton(button, details);
+            return;
+        }
+
+        setConnectButton(button, details, true);
+
+        fetch("<?php echo base_url('api/connections'); ?>", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
             },
-            error: function() {
-                alert("❌ An error occurred while sending the message.");
+            body: JSON.stringify({
+                receiver_id: details.receiverId
+            })
+        })
+            .then(function(response) {
+                return response.json().catch(function() {
+                    return {};
+                }).then(function(payload) {
+                    if (!response.ok || payload.status !== "success") {
+                        throw new Error(payload.message || "connection-failed");
+                    }
+                    updateConnectionState(card, payload.data);
+                });
+            })
+            .catch(function() {
+                setConnectButton(button, details);
+                const label = button?.querySelector("span");
+                if (label) {
+                    label.textContent = "Try again";
+                }
+            });
+    }
+
+    function openProfile(details) {
+        closeDrawer();
+        activeProfile = details;
+        profileName.textContent = details.name || "Attendee";
+        profileRole.textContent = details.role || "Attendee";
+        profileCompany.textContent = details.company || "";
+        profileLocation.textContent = details.location || "Conference portal";
+        profileOnline.hidden = !isOnline(details.online);
+        createAvatar(profileAvatar, details);
+        renderProfileSocials(details);
+        setConnectButton(profileConnect, details);
+
+        profileDrawer.classList.add("is-open");
+        profileBackdrop.classList.add("is-open");
+        profileDrawer.setAttribute("aria-hidden", "false");
+        window.setTimeout(function() {
+            profileDrawer.querySelector("[data-rc-profile-close]")?.focus();
+        }, 120);
+    }
+
+    function closeProfile() {
+        profileDrawer.classList.remove("is-open");
+        profileBackdrop.classList.remove("is-open");
+        profileDrawer.setAttribute("aria-hidden", "true");
+        activeProfile = null;
+    }
+
+    function renderMessages() {
+        const threadMessages = activeThread ? (messages[activeThread.receiverId] || []) : [];
+        messagesNode.innerHTML = "";
+
+        if (!threadMessages.length) {
+            const empty = document.createElement("div");
+            empty.className = "rc-dm-empty";
+            empty.textContent = "Start the conversation. Mention a session you both attended or what you're working on.";
+            messagesNode.appendChild(empty);
+            return;
+        }
+
+        threadMessages.forEach(function(item) {
+            const row = document.createElement("div");
+            row.className = "rc-dm-bubble-row" + (item.fromMe ? " is-me" : "");
+
+            const bubble = document.createElement("div");
+            bubble.className = "rc-dm-bubble" + (item.fromMe ? " is-me" : "") + (item.system ? " is-system" : "");
+            bubble.textContent = item.message;
+
+            row.appendChild(bubble);
+            messagesNode.appendChild(row);
+        });
+
+        messagesNode.scrollTop = messagesNode.scrollHeight;
+    }
+
+    function openDrawer(details) {
+        closeProfile();
+        activeThread = details;
+        nameNode.textContent = details.name || "Attendee";
+        roleNode.textContent = details.role || "Attendee";
+        createAvatar(avatar, details);
+        renderMessages();
+        drawer.classList.add("is-open");
+        backdrop.classList.add("is-open");
+        drawer.setAttribute("aria-hidden", "false");
+        window.setTimeout(function() {
+            input.focus();
+        }, 120);
+    }
+
+    function closeDrawer() {
+        drawer.classList.remove("is-open");
+        backdrop.classList.remove("is-open");
+        drawer.setAttribute("aria-hidden", "true");
+        activeThread = null;
+    }
+
+    function applySearch() {
+        const query = (searchInput?.value || "").trim().toLowerCase();
+        let visible = 0;
+
+        attendeeCards.forEach(function(card) {
+            const matches = !query || card.dataset.search.includes(query);
+            card.hidden = !matches;
+            if (matches) {
+                visible++;
             }
         });
+
+        if (attendeeCount) {
+            attendeeCount.textContent = visible;
+        }
+        if (attendeeEmpty) {
+            attendeeEmpty.hidden = visible !== 0;
+        }
+    }
+
+    function isInteractiveTarget(target) {
+        return !!target.closest("button, a, input, textarea, select, [data-rc-profile-close], [data-rc-dm-close]");
+    }
+
+    if (searchForm) {
+        searchForm.addEventListener("submit", function(event) {
+            event.preventDefault();
+            applySearch();
+        });
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener("input", applySearch);
+        applySearch();
+    }
+
+    document.addEventListener("click", function(event) {
+        const connectButton = event.target.closest(".rc-connect-toggle");
+        if (connectButton) {
+            const card = connectButton.closest("[data-attendee-card]");
+            sendConnectionRequest(card, connectButton);
+            return;
+        }
+
+        const messageButton = event.target.closest(".rc-message-toggle");
+        if (messageButton) {
+            openDrawer(detailsFromMessageButton(messageButton));
+            return;
+        }
+
+        if (event.target.closest("[data-rc-dm-close]")) {
+            closeDrawer();
+            return;
+        }
+
+        if (event.target.closest("[data-rc-profile-close]")) {
+            closeProfile();
+            return;
+        }
+
+        if (event.target.closest("[data-profile-message]") && activeProfile) {
+            openDrawer({
+                receiverId: activeProfile.receiverId,
+                senderId: activeProfile.senderId,
+                name: activeProfile.name,
+                role: activeProfile.role + (activeProfile.company ? " · " + activeProfile.company : ""),
+                initial: activeProfile.initial,
+                avatar: activeProfile.avatar,
+                online: activeProfile.online
+            });
+            return;
+        }
+
+        if (event.target.closest("[data-profile-connect]") && activeProfile) {
+            const card = document.querySelector('[data-attendee-card][data-profile-id="' + activeProfile.receiverId + '"]');
+            sendConnectionRequest(card, profileConnect);
+            return;
+        }
+
+        const card = event.target.closest("[data-attendee-card]");
+        if (card && !isInteractiveTarget(event.target)) {
+            openProfile(detailsFromCard(card));
+        }
     });
-});
+
+    document.addEventListener("keydown", function(event) {
+        if (event.key === "Escape") {
+            if (drawer.classList.contains("is-open")) {
+                closeDrawer();
+            }
+            if (profileDrawer.classList.contains("is-open")) {
+                closeProfile();
+            }
+            return;
+        }
+
+        if ((event.key === "Enter" || event.key === " ") && event.target.matches("[data-attendee-card]")) {
+            event.preventDefault();
+            openProfile(detailsFromCard(event.target));
+        }
+    });
+
+    form.addEventListener("submit", function(event) {
+        event.preventDefault();
+        if (!activeThread) {
+            return;
+        }
+
+        const message = input.value.trim();
+        if (!message) {
+            return;
+        }
+
+        const threadMessages = messages[activeThread.receiverId] || [];
+        threadMessages.push({ fromMe: true, message: message });
+        messages[activeThread.receiverId] = threadMessages;
+        input.value = "";
+        renderMessages();
+
+        const receiverId = activeThread.receiverId;
+        fetch("<?php echo base_url('api/messages/send'); ?>", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                sender_id: activeThread.senderId,
+                receiver_id: activeThread.receiverId,
+                message: message
+            })
+        })
+            .then(function(response) {
+                return response.json().catch(function() {
+                    return {};
+                }).then(function(payload) {
+                    if (!response.ok || (payload.status && payload.status !== "success")) {
+                        throw new Error("send-failed");
+                    }
+                });
+            })
+            .catch(function() {
+                messages[receiverId].push({
+                    system: true,
+                    message: "Message could not be sent. Please try again."
+                });
+                if (activeThread && activeThread.receiverId === receiverId) {
+                    renderMessages();
+                }
+            });
+    });
+})();
 </script>
+</body>
+</html>

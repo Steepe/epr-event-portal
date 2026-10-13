@@ -54,6 +54,9 @@ $routes->group('api', ['namespace' => 'App\Modules\Api\Controllers', 'filter'   
     // 👥 Attendees
     $routes->get('attendees', 'AttendeesController::index');
     $routes->get('attendees/(:num)', 'AttendeesController::show/$1');
+    $routes->post('connections', 'ConnectionsController::create');
+    $routes->post('connections/(:num)/accept', 'ConnectionsController::accept/$1');
+    $routes->post('connections/(:num)/decline', 'ConnectionsController::decline/$1');
 
     // 🎙️ Speakers
     $routes->get('speakers', 'SpeakersController::index');

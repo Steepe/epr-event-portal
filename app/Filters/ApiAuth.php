@@ -22,7 +22,10 @@ class ApiAuth implements FilterInterface
         $session = Services::session();
 
         // ✅ Allow logged-in attendees via session
-        if ($session->has('attendee_id') && !empty($session->get('attendee_id'))) {
+        if (
+            ($session->has('user_id') && !empty($session->get('user_id')))
+            || ($session->has('attendee_id') && !empty($session->get('attendee_id')))
+        ) {
             return;
         }
 
