@@ -46,7 +46,7 @@ uksort($tiers, static function ($a, $b) use ($tierOrder) {
                 <section class="rc-sponsor-tier">
                     <div class="rc-sponsor-label">
                         <span class="rc-mono" style="font-size:12px;letter-spacing:.22em;color:<?php echo esc($setting['color']); ?>"><?php echo esc($setting['label']); ?></span>
-                        <span class="rc-mono" style="font-size:11px;color:rgba(255,255,255,.5)"><?php echo count($items); ?> <?php echo count($items) === 1 ? 'partner' : 'partners'; ?></span>
+                        <span class="rc-mono" style="font-size:11px;color:rgba(255,255,255,.5)"><?php echo count($items); ?> PARTNERS</span>
                     </div>
                     <div class="rc-sponsor-logos">
                         <?php foreach ($items as $sponsor): ?>

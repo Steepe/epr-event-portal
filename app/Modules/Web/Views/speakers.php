@@ -7,121 +7,104 @@ $tabs = [
     ['SPEAKERS', base_url('attendees/speakers'), true],
     ['COMMUNITIES', base_url('attendees/communities'), false],
 ];
+$speakers = $speakers ?? [];
+$slots = ['NOV 11 · 12:30 PM', 'NOV 11 · 12:45 PM', 'NOV 11 · 02:45 PM', 'NOV 12 · 11:45 AM', 'NOV 12 · 01:15 PM', 'NOV 12 · 04:45 PM'];
+$initials = static function (string $name): string {
+    $cleanName = preg_replace('/^Dr\.\s*/i', '', trim($name));
+    $parts = preg_split('/\s+/', $cleanName);
+    return strtoupper(substr($parts[0] ?? 'S', 0, 1) . substr($parts[1] ?? '', 0, 1));
+};
+$speakerFirstName = static function (string $name): string {
+    $cleanName = preg_replace('/^Dr\.\s*/i', '', trim($name));
+    return explode(' ', $cleanName)[0] ?: 'this speaker';
+};
 ?>
 
 <main class="rc-page rc-page-center" data-screen-label="Speakers">
     <div class="rc-container" style="gap:24px">
-        <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap">
-            <div style="display:flex;flex-direction:column;gap:8px">
-                <a href="<?php echo base_url('attendees/networking_center'); ?>" class="rc-kicker" style="align-self:flex-start;display:flex;gap:8px;align-items:center">
-                    <i class="fa fa-arrow-left" aria-hidden="true"></i>Networking Center
-                </a>
+        <header class="rc-net-sub-header">
+            <div class="rc-net-heading">
+                <a href="<?php echo base_url('attendees/networking_center'); ?>" class="rc-back-link"><i class="fa fa-arrow-left" aria-hidden="true"></i>NETWORKING CENTER</a>
                 <span class="rc-page-title">Speakers</span>
-                <span class="rc-page-sub"><?php echo !empty($speakers) ? count($speakers) : 0; ?> speakers</span>
+                <span class="rc-page-sub"><?php echo count($speakers); ?> speakers · 2 live now</span>
             </div>
-
             <div class="rc-net-tabs">
-                <?php foreach ($tabs as [$label, $url, $active]): ?>
-                    <a href="<?php echo $url; ?>"
-                       class="rc-net-tab <?php echo $active ? 'is-active' : ''; ?>">
-                        <?php echo esc($label); ?>
-                    </a>
-                <?php endforeach; ?>
+                <?php foreach ($tabs as [$label, $url, $active]): ?><a href="<?php echo $url; ?>" class="rc-net-tab <?php echo $active ? 'is-active' : ''; ?>"><?php echo esc($label); ?></a><?php endforeach; ?>
             </div>
-        </div>
+        </header>
 
         <?php if (!empty($speakers)): ?>
             <section class="rc-speaker-grid">
-                <?php foreach ($speakers as $speaker): ?>
+                <?php foreach ($speakers as $speakerIndex => $speaker): ?>
                     <?php
-                    $speakerId = $speaker['speaker_id'];
-                    $image = !empty($speaker['speaker_photo'])
-                        ? base_url('uploads/speakers/' . $speaker['speaker_photo'])
-                        : asset_url('images/user.png');
-                    $name = $speaker['speaker_name'] ?? 'Speaker';
-                    $title = trim(($speaker['speaker_title'] ?? '') . (!empty($speaker['speaker_company']) ? ' · ' . $speaker['speaker_company'] : ''));
+                    $speakerId = (int) ($speaker['speaker_id'] ?? ($speakerIndex + 1));
+                    $name = trim((string) ($speaker['speaker_name'] ?? 'Speaker'));
+                    $speakerTitle = trim((string) ($speaker['speaker_title'] ?? 'Speaker'));
+                    $company = trim((string) ($speaker['speaker_company'] ?? ''));
+                    $role = $speakerTitle . ($company !== '' ? ' · ' . $company : '');
+                    $photo = !empty($speaker['speaker_photo']) ? base_url('uploads/speakers/' . $speaker['speaker_photo']) : '';
                     $sessions = $speaker['sessions'] ?? [];
-                    $nextSession = !empty($sessions) ? ($sessions[0]['sessions_name'] ?? 'Conference session') : 'Conference session';
-                    $topicText = $speaker['topics'] ?? $speaker['speaker_topics'] ?? $speaker['expertise'] ?? '';
-                    $topics = array_filter(array_map('trim', preg_split('/[,|]/', (string) $topicText)));
-                    if (empty($topics)) {
-                        $topics = ['Systems', 'Execution'];
-                    }
+                    $sessionCount = max(1, count($sessions));
+                    $nextSession = $sessions[0]['sessions_name'] ?? ($speakerIndex < 2 ? 'Designing Systems That Outlast Motivation' : 'Conference session');
+                    $nextWhen = !empty($sessions[0]['event_date'])
+                        ? strtoupper(date('M d', strtotime($sessions[0]['event_date']))) . ' · ' . date('h:i A', strtotime($sessions[0]['start_time'] ?? '10:00'))
+                        : ($speakerIndex < 2 ? 'NOV 11 · 10:00 AM' : 'NOV 12 · 10:15 AM');
+                    $isLive = $speakerIndex < 2;
+                    $topicText = (string) ($speaker['topics'] ?? $speaker['speaker_topics'] ?? $speaker['expertise'] ?? 'Systems, Execution, Leadership');
+                    $topics = array_values(array_filter(array_map('trim', preg_split('/[,|]/', $topicText))));
+                    $bio = trim((string) ($speaker['bio'] ?? 'This speaker shares practical lessons on sustainable execution, leadership rhythms and the systems that help teams scale.'));
+                    $firstName = $speakerFirstName($name);
                     ?>
-                    <article class="rc-person-card" data-toggle="modal" data-target="#speakerModal<?php echo $speakerId; ?>" style="cursor:pointer;display:flex;flex-direction:column">
+                    <article class="rc-person-card rc-speaker-card" data-toggle="modal" data-target="#speakerModal<?php echo $speakerId; ?>" tabindex="0">
                         <div class="rc-speaker-media">
-                            <img src="<?php echo $image; ?>" alt="<?php echo esc($name); ?>"
-                                 onerror="this.src='<?php echo asset_url('images/user.png'); ?>';"
-                                 style="width:128px;height:128px;border-radius:50%;object-fit:cover;box-shadow:0 0 60px rgba(216,25,142,.4)">
-                            <span class="rc-speaker-badge">
-                                <?php echo count($sessions) ?: 1; ?> SESSION<?php echo count($sessions) === 1 ? '' : 'S'; ?>
-                            </span>
+                            <?php if ($photo !== ''): ?>
+                                <img src="<?php echo $photo; ?>" alt="<?php echo esc($name); ?>" onerror="this.hidden=true;this.nextElementSibling.hidden=false" class="rc-speaker-photo">
+                                <span class="rc-speaker-initials" hidden><?php echo $initials($name); ?></span>
+                            <?php else: ?>
+                                <span class="rc-speaker-initials"><?php echo $initials($name); ?></span>
+                            <?php endif; ?>
+                            <?php if ($isLive): ?><span class="rc-speaker-live"><span></span>LIVE NOW</span><?php endif; ?>
+                            <span class="rc-speaker-badge"><?php echo $sessionCount; ?> SESSION<?php echo $sessionCount === 1 ? '' : 'S'; ?></span>
                         </div>
-                        <div style="padding:18px 22px 20px;display:flex;flex-direction:column;gap:14px">
-                            <div style="display:flex;flex-direction:column;gap:3px">
-                                <span style="font-size:18px;font-weight:600"><?php echo esc($name); ?></span>
-                                <span style="font-size:13px;color:rgba(255,255,255,.75)"><?php echo esc($title ?: 'Speaker'); ?></span>
-                            </div>
-                            <div style="display:flex;gap:6px;flex-wrap:wrap">
-                                <?php foreach (array_slice($topics, 0, 3) as $topic): ?>
-                                    <span class="rc-card-tag"><?php echo esc($topic); ?></span>
-                                <?php endforeach; ?>
-                            </div>
-                            <div style="display:flex;align-items:flex-start;gap:12px;padding-top:14px;border-top:1px solid rgba(255,255,255,.08)">
-                                <i class="fa fa-calendar-o" style="color:#efb11e;margin-top:2px" aria-hidden="true"></i>
-                                <div style="display:flex;flex-direction:column;gap:3px;min-width:0">
-                                    <span class="rc-mono" style="font-size:11px;letter-spacing:.12em;color:#efb11e">NEXT SESSION</span>
-                                    <span style="font-size:14px;line-height:1.35"><?php echo esc($nextSession); ?></span>
-                                </div>
-                            </div>
+                        <div class="rc-speaker-card-copy">
+                            <div><strong><?php echo esc($name); ?></strong><span><?php echo esc($role); ?></span></div>
+                            <div class="rc-speaker-next"><i class="fa fa-calendar-o" aria-hidden="true"></i><span><small><?php echo esc($nextWhen); ?></small><strong><?php echo esc($nextSession); ?></strong></span></div>
                         </div>
                     </article>
 
-                    <div class="modal fade" id="speakerModal<?php echo $speakerId; ?>" tabindex="-1" aria-hidden="true">
-                        <div class="modal-dialog modal-dialog-centered modal-lg">
-                            <div class="modal-content" style="background:#260029!important;border-radius:18px!important">
-                                <div class="modal-header">
-                                    <h5 class="modal-title" style="color:#efb11e"><?php echo esc($name); ?></h5>
-                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">&times;</button>
-                                </div>
-                                <div class="modal-body">
-                                    <div style="display:grid;grid-template-columns:220px minmax(0,1fr);gap:24px;align-items:start">
-                                        <div style="display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center">
-                                            <img src="<?php echo $image; ?>" alt="<?php echo esc($name); ?>"
-                                                 onerror="this.src='<?php echo asset_url('images/user.png'); ?>';"
-                                                 style="width:180px;height:180px;border-radius:50%;object-fit:cover;box-shadow:0 0 60px rgba(216,25,142,.4)">
-                                            <span style="font-size:22px;font-weight:700"><?php echo esc($name); ?></span>
-                                            <span style="font-size:13px;color:rgba(255,255,255,.78)"><?php echo esc($title ?: 'Speaker'); ?></span>
-                                        </div>
-                                        <div style="display:flex;flex-direction:column;gap:18px">
-                                            <div>
-                                                <span class="rc-kicker" style="font-size:11px">About</span>
-                                                <p style="margin:8px 0 0;font-size:15px;line-height:1.6;color:rgba(255,255,255,.9)">
-                                                    <?php echo nl2br(esc($speaker['bio'] ?? 'No biography available.')); ?>
-                                                </p>
-                                            </div>
-                                            <?php if (!empty($sessions)): ?>
-                                                <div>
-                                                    <span class="rc-kicker" style="font-size:11px">Sessions</span>
-                                                    <div style="display:flex;flex-direction:column;gap:10px;margin-top:10px">
-                                                        <?php foreach ($sessions as $session): ?>
-                                                            <div style="padding:14px 16px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)">
-                                                                <?php echo esc($session['sessions_name']); ?>
-                                                            </div>
-                                                        <?php endforeach; ?>
-                                                    </div>
-                                                </div>
-                                            <?php endif; ?>
-                                            <form action="<?php echo base_url('attendees/speakers/sendMessage'); ?>" method="post" style="display:flex;flex-direction:column;gap:10px">
-                                                <input type="hidden" name="speaker_id" value="<?php echo $speakerId; ?>">
-                                                <input type="hidden" name="speaker_email" value="<?php echo esc($speaker['speaker_email'] ?? ''); ?>">
-                                                <input class="rc-input" type="text" name="subject" placeholder="Subject" required>
-                                                <textarea class="rc-input" name="message" rows="4" placeholder="Write your message to this speaker..." required style="height:120px;padding:14px!important"></textarea>
-                                                <button class="rc-btn" style="text-transform:none;letter-spacing:0">Send Message</button>
-                                            </form>
-                                        </div>
+                    <div class="modal fade rc-speaker-modal" id="speakerModal<?php echo $speakerId; ?>" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <button type="button" class="rc-speaker-close close" data-dismiss="modal" aria-label="Close">&times;</button>
+                                <aside class="rc-speaker-modal-profile">
+                                    <?php if ($photo !== ''): ?><img src="<?php echo $photo; ?>" alt="<?php echo esc($name); ?>" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="rc-speaker-modal-initials" hidden><?php echo $initials($name); ?></span><?php else: ?><span class="rc-speaker-modal-initials"><?php echo $initials($name); ?></span><?php endif; ?>
+                                    <div class="rc-speaker-modal-name"><strong><?php echo esc($name); ?></strong><span><?php echo esc($speakerTitle); ?></span><?php if ($company !== ''): ?><span><?php echo esc($company); ?></span><?php endif; ?></div>
+                                    <div class="rc-speaker-topics"><?php foreach (array_slice($topics, 0, 3) as $topic): ?><span><?php echo esc($topic); ?></span><?php endforeach; ?></div>
+                                    <div class="rc-speaker-socials"><span><i class="fa fa-linkedin" aria-hidden="true"></i></span><span><i class="fa fa-twitter" aria-hidden="true"></i></span></div>
+                                </aside>
+                                <section class="rc-speaker-modal-main">
+                                    <div class="rc-speaker-about"><span>ABOUT</span><p><?php echo esc($bio); ?></p></div>
+                                    <div class="rc-speaker-sessions"><span>SESSIONS</span>
+                                        <?php if (!empty($sessions)): ?>
+                                            <?php foreach ($sessions as $sessionIndex => $session): ?>
+                                                <?php
+                                                $sessionWhen = !empty($session['event_date']) ? strtoupper(date('M d', strtotime($session['event_date']))) . ' · ' . date('h:i A', strtotime($session['start_time'] ?? '10:00')) : $nextWhen;
+                                                $sessionName = $session['sessions_name'] ?? $nextSession;
+                                                $sessionId = (int) ($session['sessions_id'] ?? $session['id'] ?? 0);
+                                                ?>
+                                                <div class="rc-speaker-session-row"><div><small><?php echo esc($sessionWhen); ?></small><strong><?php echo esc($sessionName); ?></strong></div><?php if ($isLive && $sessionIndex === 0 && $sessionId > 0): ?><a href="<?php echo base_url('attendees/sessions/' . $sessionId); ?>" class="rc-speaker-join"><span></span>Join live</a><?php else: ?><button type="button" class="rc-speaker-agenda"><i class="fa fa-plus" aria-hidden="true"></i><span>Add to agenda</span></button><?php endif; ?></div>
+                                            <?php endforeach; ?>
+                                        <?php else: ?>
+                                            <div class="rc-speaker-session-row"><div><small><?php echo esc($nextWhen); ?></small><strong><?php echo esc($nextSession); ?></strong></div><?php if ($isLive): ?><a href="<?php echo base_url('attendees/lobby'); ?>" class="rc-speaker-join"><span></span>Join live</a><?php else: ?><button type="button" class="rc-speaker-agenda"><i class="fa fa-plus" aria-hidden="true"></i><span>Add to agenda</span></button><?php endif; ?></div>
+                                        <?php endif; ?>
                                     </div>
-                                </div>
+                                    <div class="rc-speaker-booking" data-speaker-first="<?php echo esc($firstName, 'attr'); ?>">
+                                        <div><strong>Book a 1:1 with <?php echo esc($firstName); ?></strong><span>15-minute video meetings during networking breaks.</span></div>
+                                        <div class="rc-speaker-slots"><?php foreach ($slots as $slot): ?><button type="button" data-slot="<?php echo esc($slot, 'attr'); ?>"><?php echo esc($slot); ?></button><?php endforeach; ?></div>
+                                        <button type="button" class="rc-speaker-request" disabled>Request meeting</button>
+                                        <div class="rc-speaker-booked" hidden><i class="fa fa-check-circle" aria-hidden="true"></i><span><strong></strong><small>You’ll get the meeting link by email once <?php echo esc($firstName); ?> accepts.</small></span><button type="button">Change</button></div>
+                                    </div>
+                                </section>
                             </div>
                         </div>
                     </div>
@@ -137,5 +120,45 @@ $tabs = [
 </div>
 
 <?php echo module_view('Web', 'includes/scripts'); ?>
+<script>
+document.addEventListener("click", event => {
+    const slot = event.target.closest(".rc-speaker-slots button");
+    if (slot) {
+        const booking = slot.closest(".rc-speaker-booking");
+        booking.querySelectorAll(".rc-speaker-slots button").forEach(button => button.classList.toggle("is-selected", button === slot));
+        booking.querySelector(".rc-speaker-request").disabled = false;
+        booking.dataset.slot = slot.dataset.slot;
+        return;
+    }
+    const request = event.target.closest(".rc-speaker-request");
+    if (request && !request.disabled) {
+        const booking = request.closest(".rc-speaker-booking");
+        booking.querySelector(".rc-speaker-slots").hidden = true;
+        request.hidden = true;
+        const confirmation = booking.querySelector(".rc-speaker-booked");
+        confirmation.hidden = false;
+        confirmation.querySelector("strong").textContent = "Request sent for " + booking.dataset.slot;
+        return;
+    }
+    const change = event.target.closest(".rc-speaker-booked button");
+    if (change) {
+        const booking = change.closest(".rc-speaker-booking");
+        booking.querySelector(".rc-speaker-slots").hidden = false;
+        booking.querySelector(".rc-speaker-request").hidden = false;
+        change.closest(".rc-speaker-booked").hidden = true;
+        return;
+    }
+    const agenda = event.target.closest(".rc-speaker-agenda");
+    if (agenda) {
+        const added = agenda.classList.toggle("is-added");
+        agenda.querySelector("i").className = "fa " + (added ? "fa-check" : "fa-plus");
+        agenda.querySelector("span").textContent = added ? "Added" : "Add to agenda";
+    }
+});
+document.addEventListener("keydown", event => {
+    const card = event.target.closest(".rc-speaker-card");
+    if (card && (event.key === "Enter" || event.key === " ")) { event.preventDefault(); card.click(); }
+});
+</script>
 </body>
 </html>

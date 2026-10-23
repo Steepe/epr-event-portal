@@ -598,8 +598,7 @@ $eventDate = isset($event['event_date']) ? date('F j, Y', strtotime($event['even
     }
 </script>
 
-<!-- Supabase, Emoji picker (module) and Tribute CSS/JS — include once on page -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Emoji picker (module) and Tribute CSS/JS — include once on page -->
 <script type="module" src="https://unpkg.com/emoji-picker-element@latest/index.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tributejs@5.1.3/dist/tribute.css">
 <script src="https://cdn.jsdelivr.net/npm/tributejs@5.1.3/dist/tribute.min.js"></script>
@@ -616,14 +615,12 @@ $eventDate = isset($event['event_date']) ? date('F j, Y', strtotime($event['even
 
     (async function MobileChatInit() {
         // ---------- Config (server-side values injected via PHP) ----------
-        const SUPABASE_URL = "<?php echo getenv('supabase.url'); ?>";
-        const SUPABASE_ANON = "<?php echo getenv('supabase.anon_key'); ?>";
-
         const sessionId = "<?php echo $event['sessions_id']; ?>";
         const attendeeId = "<?php echo session('attendee_id'); ?>";
         const API_KEY = "<?php echo env('api.securityKey'); ?>"; // used for your CI4 endpoints (if required)
 
         const SEND_ENDPOINT      = "<?php echo base_url('api/chat/send/'); ?>" + sessionId;        // POST
+        const HISTORY_ENDPOINT   = "<?php echo base_url('api/chat/'); ?>" + sessionId;             // GET
         const ATTENDEES_ENDPOINT = "<?php echo base_url('api/attendees/all'); ?>";               // GET
         const USERS_ENDPOINT     = "<?php echo base_url('api/users/'); ?>";                     // GET + id
 
@@ -634,9 +631,6 @@ $eventDate = isset($event['event_date']) ? date('F j, Y', strtotime($event['even
             console.warn("MobileChat: chat DOM elements not found (chat-messages or chatInput). Aborting.");
             return;
         }
-
-        // ---------- Supabase ----------
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
         // ---------- State ----------
         const profileCache = {}; // id -> {firstname, lastname, profile_picture}
@@ -768,17 +762,15 @@ $eventDate = isset($event['event_date']) ? date('F j, Y', strtotime($event['even
             scrollChatDown();
         }
 
-        // ---------- Load history (Supabase REST)
+        // ---------- Load history through the portal API
         async function loadChatHistory() {
             try {
-                const url = `${SUPABASE_URL}/rest/v1/tbl_session_chats?session_id=eq.${sessionId}&order=id.asc`;
-                const res = await fetch(url, {
-                    headers: {
-                        "apikey": SUPABASE_ANON,
-                        "Authorization": `Bearer ${SUPABASE_ANON}`
-                    }
+                const res = await fetch(HISTORY_ENDPOINT, {
+                    headers: { "X-API-KEY": API_KEY },
+                    credentials: "include"
                 });
-                const msgs = await res.json();
+                const payload = await res.json();
+                const msgs = Array.isArray(payload?.data) ? payload.data : [];
                 if (!Array.isArray(msgs)) return;
                 for (const m of msgs) await renderMessage(m);
             } catch (err) {
@@ -874,6 +866,7 @@ $eventDate = isset($event['event_date']) ? date('F j, Y', strtotime($event['even
                 }
                 // NOTE: we don't optimistic-render — we rely on realtime event to deliver the final message
                 chatInput.value = "";
+                loadChatHistory();
             } catch (err) {
                 console.warn("sendMessage error", err);
             }
@@ -924,26 +917,9 @@ $eventDate = isset($event['event_date']) ? date('F j, Y', strtotime($event['even
             }
         }
 
-        // ---------- Realtime subscription ----------
+        // ---------- Realtime updates ----------
         function initRealtime() {
-            try {
-                const channel = supabaseClient
-                    .channel("session-" + sessionId)
-                    .on("postgres_changes", {
-                        event: "INSERT",
-                        schema: "public",
-                        table: "tbl_session_chats",
-                        filter: "session_id=eq." + sessionId
-                    }, payload => {
-                        // payload.new is the new row
-                        renderMessage(payload.new);
-                    })
-                    .subscribe();
-
-                // no .then chain here; subscribe returns a Subscription object (don't call .then)
-            } catch (err) {
-                console.warn("Realtime init error", err);
-            }
+            window.setInterval(loadChatHistory, 3000);
         }
 
         // ---------- Init sequence (mentions first to populate cache) ----------

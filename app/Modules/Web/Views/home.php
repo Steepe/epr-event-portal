@@ -10,46 +10,61 @@ $conferenceTitle = $conference['title'] ?? 'Accelerate';
 ?>
 
 <?php if ($portalLocked): ?>
-    <div style="position:absolute;top:84px;left:50%;transform:translateX(-50%);z-index:15;width:min(1000px,calc(100% - 64px));box-sizing:border-box;display:flex;align-items:center;gap:16px;padding:10px 12px 10px 18px;border-radius:14px;background:rgba(239,177,30,.12);border:1px solid rgba(239,177,30,.45);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)">
+    <div class="rc-payment-notice" data-payment-notice>
         <i class="fa fa-lock" style="color:#efb11e;font-size:16px" aria-hidden="true"></i>
-        <div style="flex:1;font-size:13px;line-height:1.45">
+        <div class="rc-payment-copy">
             <strong style="font-weight:600">Access restricted.</strong>
             This is a paid event. Please complete your registration payment to unlock all sessions.
-            <?php if ($ticketPrice !== null): ?>
-                <span style="color:#efb11e;font-weight:600;margin-left:6px;white-space:nowrap">Ticket: <?php echo esc($ticketCurrency); ?> <?php echo esc(number_format((float) $ticketPrice, 2)); ?></span>
-            <?php endif; ?>
+            <span class="rc-payment-ticket">Ticket: NGN 25,000</span>
         </div>
-        <?php if ($checkoutEnabled): ?>
-            <a href="<?php echo site_url('attendees/checkout'); ?>" style="padding:9px 22px;border-radius:15px;background:linear-gradient(90deg,#7d0686,#bd159e 50%,#7c0585);color:#fff;font-size:13px;font-weight:600;letter-spacing:.04em;white-space:nowrap">Pay now</a>
-        <?php endif; ?>
+        <a href="<?php echo site_url('attendees/checkout'); ?>" class="rc-payment-action">Pay now</a>
+        <button type="button" class="rc-payment-close" aria-label="Close payment notice" data-close-payment-notice>&times;</button>
     </div>
 <?php endif; ?>
 
 <main data-screen-label="Home" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;padding:150px 0 48px;box-sizing:border-box">
     <div style="display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center">
         <span class="rc-kicker">Emergence Conference &middot; 2026</span>
-        <span style="font-size:36px;font-weight:600;letter-spacing:-.02em">Welcome to <?php echo esc($conferenceTitle); ?></span>
+        <span style="font-size:36px;font-weight:600;letter-spacing:-.02em">Welcome to Accelerate</span>
     </div>
 
-    <div style="position:relative;width:min(900px,58vw,calc((100vh - 360px) * 1.7778));aspect-ratio:16 / 9;border-radius:16px;overflow:hidden;background:#0b030d;border:1px solid rgba(255,255,255,.14);box-shadow:0 30px 80px rgba(0,0,0,.45),0 0 0 8px rgba(255,255,255,.03)">
-        <iframe src="https://iframe.mediadelivery.net/embed/405384/60589a7b-3fe7-40fb-a2ae-3c024f23e01e?autoplay=true&loop=false&muted=false&preload=true&responsive=true"
-                loading="lazy"
-                allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;"
-                allowfullscreen="true"
-                style="position:absolute;inset:0;width:100%;height:100%;border:0"></iframe>
+    <div data-home-video style="position:relative;width:min(900px,58vw,calc((100vh - 360px) * 1.7778));aspect-ratio:16 / 9;border-radius:16px;overflow:hidden;background:#0b030d;border:1px solid rgba(255,255,255,.14);box-shadow:0 30px 80px rgba(0,0,0,.45),0 0 0 8px rgba(255,255,255,.03)">
+        <div data-home-video-cover style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
+            <button type="button" data-home-video-play aria-label="Play welcome video" style="width:84px;height:84px;padding:0 0 0 6px;box-sizing:border-box;border:0;border-radius:50%;background:linear-gradient(90deg,#7d0686,#bd159e 50%,#7c0585);color:#fff;display:flex;align-items:center;justify-content:center;font-size:30px;cursor:pointer;box-shadow:0 0 40px rgba(216,25,142,.6)">
+                <i class="fa fa-play" aria-hidden="true"></i>
+            </button>
+        </div>
         <span style="position:absolute;left:20px;bottom:16px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.16em;color:rgba(255,255,255,.6)">WELCOME VIDEO</span>
     </div>
 
-    <?php if (! $portalLocked): ?>
-        <a href="<?php echo base_url('attendees/lobby'); ?>" class="rc-btn" style="display:flex;align-items:center;gap:12px;height:52px;padding:0 34px;font-size:16px;letter-spacing:.1em;text-decoration:none">
-            Enter Lobby <i class="fa fa-long-arrow-right" aria-hidden="true"></i>
-        </a>
-    <?php endif; ?>
+    <a href="<?php echo base_url('attendees/lobby'); ?>" class="rc-btn" style="display:flex;align-items:center;gap:12px;height:52px;padding:0 34px;font-size:16px;letter-spacing:.1em;text-decoration:none">
+        Enter Lobby <i class="fa fa-long-arrow-right" aria-hidden="true"></i>
+    </a>
 </main>
 
 </div>
 </div>
 
 <?php echo module_view('Web', 'includes/scripts'); ?>
+<script>
+document.querySelector("[data-home-video-play]")?.addEventListener("click", function() {
+    const video = document.querySelector("[data-home-video]");
+    const cover = document.querySelector("[data-home-video-cover]");
+    const iframe = document.createElement("iframe");
+    iframe.src = "https://iframe.mediadelivery.net/embed/405384/60589a7b-3fe7-40fb-a2ae-3c024f23e01e?autoplay=true&loop=false&muted=false&preload=true&responsive=true";
+    iframe.allow = "accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;";
+    iframe.allowFullscreen = true;
+    iframe.style.cssText = "position:absolute;inset:0;width:100%;height:100%;border:0";
+    cover.remove();
+    video.prepend(iframe);
+});
+
+document.addEventListener("click", function(event) {
+    const close = event.target.closest("[data-close-payment-notice]");
+    if (close) {
+        close.closest("[data-payment-notice]")?.classList.add("is-hidden");
+    }
+});
+</script>
 </body>
 </html>

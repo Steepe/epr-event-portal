@@ -7,109 +7,111 @@ $tabs = [
     ['SPEAKERS', base_url('attendees/speakers'), false],
     ['COMMUNITIES', base_url('attendees/communities'), true],
 ];
-
 $communities = [
-    ['Founders Circle', 'Operating cadence, delegation, dashboards, and repeatable growth.', 'fa-rocket', '1,284 members · 86 active today', false, true],
-    ['Operations Leaders', 'Weekly reviews, SOPs, hiring rhythms, and execution scorecards.', 'fa-cogs', '842 members · 49 active today', false, false],
-    ['Finance & Controls', 'Cash discipline, controls, reporting, and investor-ready numbers.', 'fa-line-chart', '506 members · 22 active today', true, false],
-    ['Growth Room', 'Funnels, sales systems, partnerships, and customer insight.', 'fa-bullhorn', '719 members · 38 active today', false, false],
+    [
+        'name' => 'Founders Circle', 'icon' => 'fa-rocket', 'members' => 412, 'active' => 38, 'joined' => true, 'private' => false,
+        'desc' => 'For founders building companies that run without them in every meeting.',
+        'posts' => [
+            ['id' => 'fc1', 'name' => 'Zainab Musa', 'role' => 'Founder · Kora Foods', 'ago' => '12m', 'text' => 'After this morning I’m moving our weekly review from Monday to Friday morning. Has anyone tried that? Curious whether it changed how your week started.', 'replies' => 8, 'likes' => 24],
+            ['id' => 'fc2', 'name' => 'Ifeoma Obi', 'role' => 'Founder & CEO · Kindred Health', 'ago' => '34m', 'text' => 'Sharing the one-page operating calendar we use at Kindred Health. Happy to walk anyone through it during the 12:30 break.', 'replies' => 5, 'likes' => 31],
+            ['id' => 'fc3', 'name' => 'Esther Danjuma', 'role' => 'Co-founder · Word Books & Apps', 'ago' => '1h', 'text' => 'What was the first system you put in place when you hired your first manager?', 'replies' => 14, 'likes' => 19],
+        ],
+    ],
+    [
+        'name' => 'Ops Leaders Guild', 'icon' => 'fa-cogs', 'members' => 286, 'active' => 21, 'joined' => false, 'private' => false,
+        'desc' => 'Heads of operations swapping playbooks, templates and hard lessons.',
+        'posts' => [
+            ['id' => 'og1', 'name' => 'Grace Otieno', 'role' => 'Chief Operating Officer · Swiftroute', 'ago' => '8m', 'text' => 'Execution at Scale panel starts at 11:15. Drop your questions here and I’ll raise the ones the moderator doesn’t get to.', 'replies' => 6, 'likes' => 17],
+            ['id' => 'og2', 'name' => 'Chidi Nwosu', 'role' => 'Operations Manager · Ledgerline', 'ago' => '40m', 'text' => 'We cut our weekly ops meeting from 90 to 35 minutes by sending the dashboard 24 hours ahead. Template in the replies.', 'replies' => 11, 'likes' => 42],
+        ],
+    ],
+    [
+        'name' => 'Women Who Execute', 'icon' => 'fa-bolt', 'members' => 358, 'active' => 44, 'joined' => false, 'private' => false,
+        'desc' => 'A community for women leading teams, companies and change.',
+        'posts' => [
+            ['id' => 'ww1', 'name' => 'Bisi Lawal', 'role' => 'Head of People · Savewell', 'ago' => '20m', 'text' => 'Meetup at the Emergence Booth right after Day 1 close. Everyone is welcome.', 'replies' => 9, 'likes' => 36],
+            ['id' => 'ww2', 'name' => 'Halima Bello', 'role' => 'Finance Lead · Tallypay', 'ago' => '1h', 'text' => 'Looking for an accountability partner for the 30-day systems challenge Kemi mentioned this morning.', 'replies' => 7, 'likes' => 22],
+        ],
+    ],
+    [
+        'name' => 'Finance & Growth Desk', 'icon' => 'fa-line-chart', 'members' => 194, 'active' => 12, 'joined' => false, 'private' => false,
+        'desc' => 'Cash flow, fundraising and the numbers behind sustainable growth.',
+        'posts' => [
+            ['id' => 'fg1', 'name' => 'Femi Adebayo', 'role' => 'Head of Strategy · Crestfield Bank', 'ago' => '25m', 'text' => 'How are you forecasting cash with FX this volatile? Monthly re-forecast or a rolling 13-week view?', 'replies' => 10, 'likes' => 15],
+        ],
+    ],
+    [
+        'name' => 'Tech Builders', 'icon' => 'fa-code', 'members' => 231, 'active' => 17, 'joined' => false, 'private' => false,
+        'desc' => 'Product and engineering leaders building the tools teams run on.',
+        'posts' => [
+            ['id' => 'tb1', 'name' => 'Kwame Asante', 'role' => 'Product Lead · Paylink', 'ago' => '15m', 'text' => 'What are you using to keep decision logs? We tried a wiki and lost track within a month.', 'replies' => 12, 'likes' => 20],
+            ['id' => 'tb2', 'name' => 'Samuel Eze', 'role' => 'Engineering Manager · Codeforge', 'ago' => '50m', 'text' => 'Hiring two senior engineers in Accra. Message me if you know someone who likes boring, reliable systems.', 'replies' => 3, 'likes' => 28],
+        ],
+    ],
+    [
+        'name' => 'Emergence Cohort 2026', 'icon' => 'fa-star', 'members' => 48, 'active' => 9, 'joined' => false, 'private' => true,
+        'desc' => 'Private space for the 2026 Emergence founders and their mentors.', 'posts' => [],
+    ],
 ];
-
 $active = $communities[0];
+$initials = static function (string $name): string {
+    $parts = preg_split('/\s+/', trim($name));
+    return strtoupper(substr($parts[0] ?? 'A', 0, 1) . substr($parts[1] ?? '', 0, 1));
+};
 ?>
 
 <main class="rc-page rc-page-center" data-screen-label="Communities">
     <div class="rc-container" style="gap:24px">
-        <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap">
-            <div style="display:flex;flex-direction:column;gap:8px">
-                <a href="<?php echo base_url('attendees/networking_center'); ?>" class="rc-kicker" style="align-self:flex-start;display:flex;gap:8px;align-items:center">
-                    <i class="fa fa-arrow-left" aria-hidden="true"></i>Networking Center
-                </a>
+        <header class="rc-net-sub-header">
+            <div class="rc-net-heading">
+                <a href="<?php echo base_url('attendees/networking_center'); ?>" class="rc-back-link"><i class="fa fa-arrow-left" aria-hidden="true"></i>NETWORKING CENTER</a>
                 <span class="rc-page-title">Communities</span>
                 <span class="rc-page-sub"><?php echo count($communities); ?> communities · join to post and reply</span>
             </div>
-
             <div class="rc-net-tabs">
-                <?php foreach ($tabs as [$label, $url, $activeTab]): ?>
-                    <a href="<?php echo $url; ?>"
-                       class="rc-net-tab <?php echo $activeTab ? 'is-active' : ''; ?>">
-                        <?php echo esc($label); ?>
-                    </a>
-                <?php endforeach; ?>
+                <?php foreach ($tabs as [$label, $url, $activeTab]): ?><a href="<?php echo $url; ?>" class="rc-net-tab <?php echo $activeTab ? 'is-active' : ''; ?>"><?php echo esc($label); ?></a><?php endforeach; ?>
             </div>
-        </div>
+        </header>
 
-        <section class="rc-community-layout" style="display:grid;grid-template-columns:minmax(250px,330px) minmax(0,1fr);gap:24px;align-items:start">
-            <div style="display:flex;flex-direction:column;gap:10px">
-                <?php foreach ($communities as $index => [$name, $desc, $icon, $meta, $private, $joined]): ?>
-                    <article class="rc-community-card rc-community-option <?php echo $index === 0 ? 'is-active' : ''; ?>"
-                             role="button"
-                             tabindex="0"
-                             data-name="<?php echo esc($name, 'attr'); ?>"
-                             data-desc="<?php echo esc($desc, 'attr'); ?>"
-                             data-icon="<?php echo esc($icon, 'attr'); ?>"
-                             data-meta="<?php echo esc($meta, 'attr'); ?>"
-                             data-private="<?php echo $private ? '1' : '0'; ?>"
-                             data-joined="<?php echo $joined ? '1' : '0'; ?>"
-                             style="display:flex;align-items:center;gap:14px;padding:14px 16px;cursor:pointer;background:<?php echo $index === 0 ? 'rgba(157,15,130,.38)' : 'rgba(34,16,38,.72)'; ?>;border-color:<?php echo $index === 0 ? 'rgba(239,177,30,.55)' : 'rgba(255,255,255,.1)'; ?>">
-                        <div style="flex:none;width:44px;height:44px;border-radius:12px;background:<?php echo $index === 0 ? 'linear-gradient(90deg,#7d0686,#bd159e 50%,#7c0585)' : 'rgba(255,255,255,.08)'; ?>;display:flex;align-items:center;justify-content:center;font-size:18px">
-                            <i class="fa <?php echo $icon; ?>" aria-hidden="true"></i>
-                        </div>
-                        <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px">
-                            <span style="font-size:15px;font-weight:600"><?php echo esc($name); ?></span>
-                            <span style="font-size:12px;color:rgba(255,255,255,.7)"><?php echo esc($meta); ?></span>
-                        </div>
-                        <?php if ($joined): ?>
-                            <span class="rc-mono" style="flex:none;font-size:10px;letter-spacing:.14em;color:#efb11e">JOINED</span>
-                        <?php elseif ($private): ?>
-                            <i class="fa fa-lock" style="flex:none;color:rgba(255,255,255,.6)" aria-hidden="true"></i>
-                        <?php endif; ?>
-                    </article>
-                <?php endforeach; ?>
-            </div>
-
-            <article class="rc-panel" style="padding:24px;display:flex;flex-direction:column;gap:22px">
-                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap">
-                    <div style="display:flex;gap:16px;align-items:center">
-                        <span style="width:58px;height:58px;border-radius:16px;background:linear-gradient(90deg,#7d0686,#bd159e 50%,#7c0585);display:flex;align-items:center;justify-content:center;font-size:22px">
-                            <i id="communityActiveIcon" class="fa <?php echo $active[2]; ?>" aria-hidden="true"></i>
-                        </span>
-                        <div>
-                            <h2 id="communityActiveName" style="margin:0;font-size:24px;font-weight:700"><?php echo esc($active[0]); ?></h2>
-                            <p id="communityActiveMeta" style="margin:5px 0 0;color:rgba(255,255,255,.72);font-size:14px"><?php echo esc($active[3]); ?></p>
-                        </div>
-                    </div>
-                    <button id="communityAction" class="rc-card-action is-muted" data-state="joined" style="flex:none;width:auto;height:40px;padding:0 18px" type="button">
-                        <i class="fa fa-check" aria-hidden="true"></i><span>Joined</span>
+        <section class="rc-community-layout">
+            <div class="rc-community-list">
+                <?php foreach ($communities as $index => $community): ?>
+                    <button class="rc-community-option<?php echo $index === 0 ? ' is-active' : ''; ?>" type="button" data-community-index="<?php echo $index; ?>">
+                        <span class="rc-community-option-icon"><i class="fa <?php echo $community['icon']; ?>" aria-hidden="true"></i></span>
+                        <span class="rc-community-option-copy"><strong><?php echo esc($community['name']); ?></strong><small><?php echo $community['members']; ?> members · <?php echo $community['active']; ?> active now</small></span>
+                        <?php if ($community['joined']): ?><span class="rc-community-joined">JOINED</span><?php elseif ($community['private']): ?><i class="fa fa-lock rc-community-lock" aria-hidden="true"></i><?php endif; ?>
                     </button>
-                </div>
+                <?php endforeach; ?>
+            </div>
 
-                <p id="communityActiveDesc" style="margin:0;color:rgba(255,255,255,.86);line-height:1.65"><?php echo esc($active[1]); ?></p>
-
-                <div id="communityOpenState" style="border-top:1px solid rgba(255,255,255,.1);padding-top:18px;display:flex;flex-direction:column;gap:14px">
-                    <div style="display:flex;gap:12px">
-                        <img src="<?php echo asset_url('images/user.png'); ?>" alt="" style="width:42px;height:42px;border-radius:50%;object-fit:cover">
-                        <input id="communityPostInput" class="rc-input" placeholder="Share something with <?php echo esc($active[0]); ?>..." style="background:#1d0a21!important;border-radius:12px!important">
+            <div class="rc-community-feed">
+                <article class="rc-community-hero">
+                    <div class="rc-community-hero-head">
+                        <span class="rc-community-hero-icon"><i id="communityActiveIcon" class="fa <?php echo $active['icon']; ?>" aria-hidden="true"></i></span>
+                        <div class="rc-community-hero-copy"><h2 id="communityActiveName"><?php echo esc($active['name']); ?></h2><p id="communityActiveDesc"><?php echo esc($active['desc']); ?></p></div>
+                        <button id="communityAction" class="rc-community-action is-joined" type="button" data-state="joined"><i class="fa fa-check" aria-hidden="true"></i><span>Joined</span></button>
                     </div>
+                    <div class="rc-community-meta"><span class="rc-community-stack"><span>ZM</span><span>IO</span><span>ED</span><span>GO</span><span>BL</span></span><span id="communityActiveMeta"><?php echo $active['members']; ?> members · <?php echo $active['active']; ?> active now</span></div>
+                </article>
 
-                    <div style="display:flex;flex-direction:column;gap:14px">
-                        <div style="padding:16px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)">
-                            <strong>Ada Okafor</strong>
-                            <p style="margin:8px 0 0;color:rgba(255,255,255,.78)">How is everyone structuring Monday operating reviews after the conference?</p>
-                        </div>
-                        <div style="padding:16px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08)">
-                            <strong>Zainab Musa</strong>
-                            <p style="margin:8px 0 0;color:rgba(255,255,255,.78)">We are trying a simple scorecard plus decision log. Happy to compare notes.</p>
-                        </div>
-                    </div>
+                <div id="communityComposer" class="rc-community-composer">
+                    <img src="<?php echo asset_url('images/user.png'); ?>" alt="">
+                    <input id="communityPostInput" type="text" placeholder="Share something with <?php echo esc($active['name']); ?>...">
+                    <button id="communityPostButton" type="button">Post</button>
                 </div>
+                <div id="communityJoinHint" class="rc-community-join-hint" hidden>Join this community to post and reply.</div>
+                <div id="communityLockedState" class="rc-community-locked" hidden><i class="fa fa-lock" aria-hidden="true"></i><strong>Private community</strong><span>Posts are visible to Emergence 2026 founders and their mentors. Request access and the cohort lead will review it.</span></div>
 
-                <div id="communityLockedState" style="display:none;padding:48px 24px;border-radius:18px;background:rgba(34,16,38,.72);border:1px solid rgba(255,255,255,.1);flex-direction:column;align-items:center;gap:12px;text-align:center">
-                    <i class="fa fa-lock" style="font-size:28px;color:#efb11e" aria-hidden="true"></i>
-                    <span style="font-size:16px;font-weight:600">Private community</span>
-                    <span style="font-size:14px;color:rgba(255,255,255,.75);max-width:360px;line-height:1.5">Posts are visible to Emergence 2026 founders and their mentors. Request access and the cohort lead will review it.</span>
+                <div id="communityPosts" class="rc-community-posts">
+                    <?php foreach ($active['posts'] as $post): ?>
+                        <article class="rc-community-post" data-post-id="<?php echo esc($post['id']); ?>">
+                            <header><span class="rc-community-post-avatar"><?php echo $initials($post['name']); ?></span><span><strong><?php echo esc($post['name']); ?></strong><small><?php echo esc($post['role']); ?></small></span><time><?php echo esc($post['ago']); ?></time></header>
+                            <p><?php echo esc($post['text']); ?></p>
+                            <footer><button type="button" data-community-like><i class="fa fa-heart-o" aria-hidden="true"></i><span><?php echo $post['likes']; ?></span></button><span><i class="fa fa-comment-o" aria-hidden="true"></i><?php echo $post['replies']; ?> replies</span></footer>
+                        </article>
+                    <?php endforeach; ?>
                 </div>
-            </article>
+            </div>
         </section>
     </div>
 </main>
@@ -119,69 +121,75 @@ $active = $communities[0];
 
 <?php echo module_view('Web', 'includes/scripts'); ?>
 <script>
-document.addEventListener("click", function(event) {
-    const option = event.target.closest(".rc-community-option");
-    if (option) {
-        document.querySelectorAll(".rc-community-option").forEach(function(item) {
-            item.classList.remove("is-active");
-            item.style.background = "rgba(34,16,38,.72)";
-            item.style.borderColor = "rgba(255,255,255,.1)";
-            const tile = item.querySelector("div");
-            if (tile) {
-                tile.style.background = "rgba(255,255,255,.08)";
-            }
-        });
+(() => {
+    const communities = <?php echo json_encode($communities, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); ?>;
+    const userAvatar = <?php echo json_encode(asset_url('images/user.png')); ?>;
+    let activeIndex = 0;
+    let newPosts = {};
 
-        option.classList.add("is-active");
-        option.style.background = "rgba(157,15,130,.38)";
-        option.style.borderColor = "rgba(239,177,30,.55)";
-        const activeTile = option.querySelector("div");
-        if (activeTile) {
-            activeTile.style.background = "linear-gradient(90deg,#7d0686,#bd159e 50%,#7c0585)";
-        }
+    const initials = name => name.split(/\s+/).slice(0, 2).map(part => part.charAt(0)).join("").toUpperCase();
+    const escapeHtml = value => String(value).replace(/[&<>"']/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"})[char]);
+    const postMarkup = post => `<article class="rc-community-post" data-post-id="${escapeHtml(post.id)}"><header>${post.me ? `<img class="rc-community-post-image" src="${userAvatar}" alt="">` : `<span class="rc-community-post-avatar">${initials(post.name)}</span>`}<span><strong>${escapeHtml(post.name)}</strong><small>${escapeHtml(post.role || "Attendee")}</small></span><time>${escapeHtml(post.ago)}</time></header><p>${escapeHtml(post.text)}</p><footer><button type="button" data-community-like><i class="fa fa-heart-o" aria-hidden="true"></i><span>${post.likes}</span></button><span><i class="fa fa-comment-o" aria-hidden="true"></i>${post.replies} replies</span></footer></article>`;
 
-        const name = option.dataset.name;
-        const desc = option.dataset.desc;
-        const icon = option.dataset.icon;
-        const meta = option.dataset.meta;
-        const isPrivate = option.dataset.private === "1";
-        const joined = option.dataset.joined === "1";
+    function render(index) {
+        activeIndex = index;
+        const community = communities[index];
+        document.querySelectorAll(".rc-community-option").forEach((button, i) => button.classList.toggle("is-active", i === index));
+        document.getElementById("communityActiveIcon").className = "fa " + community.icon;
+        document.getElementById("communityActiveName").textContent = community.name;
+        document.getElementById("communityActiveDesc").textContent = community.desc;
+        document.getElementById("communityActiveMeta").textContent = `${community.members} members · ${community.active} active now`;
+        document.getElementById("communityPostInput").placeholder = `Share something with ${community.name}...`;
+
         const action = document.getElementById("communityAction");
+        const state = community.joined ? "joined" : community.private ? "private" : "open";
+        action.dataset.state = state;
+        action.dataset.requested = "0";
+        action.className = "rc-community-action" + (community.joined ? " is-joined" : "");
+        action.querySelector("i").className = "fa " + (community.joined ? "fa-check" : community.private ? "fa-lock" : "fa-plus");
+        action.querySelector("span").textContent = community.joined ? "Joined" : community.private ? "Request access" : "Join community";
 
-        document.getElementById("communityActiveName").textContent = name;
-        document.getElementById("communityActiveDesc").textContent = desc;
-        document.getElementById("communityActiveMeta").textContent = meta;
-        document.getElementById("communityActiveIcon").className = "fa " + icon;
-        document.getElementById("communityPostInput").placeholder = "Share something with " + name + "...";
-
-        document.getElementById("communityOpenState").style.display = isPrivate && !joined ? "none" : "flex";
-        document.getElementById("communityLockedState").style.display = isPrivate && !joined ? "flex" : "none";
-
-        action.classList.toggle("is-muted", joined);
-        action.querySelector("i").className = "fa " + (joined ? "fa-check" : isPrivate ? "fa-lock" : "fa-plus");
-        action.querySelector("span").textContent = joined ? "Joined" : isPrivate ? "Request access" : "Join community";
-        action.dataset.state = joined ? "joined" : isPrivate ? "private" : "open";
-        return;
+        const locked = community.private && !community.joined;
+        document.getElementById("communityLockedState").hidden = !locked;
+        document.getElementById("communityPosts").hidden = locked;
+        document.getElementById("communityComposer").hidden = !community.joined;
+        document.getElementById("communityJoinHint").hidden = community.joined || locked;
+        document.getElementById("communityPosts").innerHTML = [...(newPosts[community.name] || []), ...community.posts].map(postMarkup).join("");
     }
 
-    const action = event.target.closest("#communityAction");
-    if (action && action.dataset.state !== "joined") {
-        const requested = action.dataset.requested === "1";
-        action.dataset.requested = requested ? "0" : "1";
-        action.classList.toggle("is-muted", !requested);
-        action.querySelector("i").className = "fa " + (requested ? (action.dataset.state === "private" ? "fa-lock" : "fa-plus") : "fa-clock-o");
-        action.querySelector("span").textContent = requested ? (action.dataset.state === "private" ? "Request access" : "Join community") : "Requested";
-    }
-});
+    document.addEventListener("click", event => {
+        const option = event.target.closest("[data-community-index]");
+        if (option) { render(Number(option.dataset.communityIndex)); return; }
+        const action = event.target.closest("#communityAction");
+        if (action && action.dataset.state !== "joined") {
+            const requested = action.dataset.requested !== "1";
+            action.dataset.requested = requested ? "1" : "0";
+            action.classList.toggle("is-requested", requested);
+            action.querySelector("i").className = "fa " + (requested ? "fa-clock-o" : action.dataset.state === "private" ? "fa-lock" : "fa-plus");
+            action.querySelector("span").textContent = requested ? "Requested" : action.dataset.state === "private" ? "Request access" : "Join community";
+            return;
+        }
+        const like = event.target.closest("[data-community-like]");
+        if (like) {
+            const active = like.classList.toggle("is-liked");
+            const count = like.querySelector("span");
+            count.textContent = String(Number(count.textContent) + (active ? 1 : -1));
+            like.querySelector("i").className = "fa " + (active ? "fa-heart" : "fa-heart-o");
+        }
+    });
 
-document.addEventListener("keydown", function(event) {
-    const option = event.target.closest(".rc-community-option");
-    if (!option || (event.key !== "Enter" && event.key !== " ")) {
-        return;
-    }
-    event.preventDefault();
-    option.click();
-});
+    const submitPost = () => {
+        const input = document.getElementById("communityPostInput");
+        const text = input.value.trim();
+        if (!text) return;
+        const community = communities[activeIndex];
+        newPosts[community.name] = [{ id: "new-" + Date.now(), name: "You", role: "Attendee", ago: "Just now", text, replies: 0, likes: 0, me: true }, ...(newPosts[community.name] || [])];
+        input.value = "";
+        render(activeIndex);
+    };
+    document.getElementById("communityPostButton")?.addEventListener("click", submitPost);
+    document.getElementById("communityPostInput")?.addEventListener("keydown", event => { if (event.key === "Enter") submitPost(); });
+})();
 </script>
 </body>
 </html>

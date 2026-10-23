@@ -21,7 +21,7 @@ $resources = [
     ['Emergence 2025 Impact Report', 'PDF · 3.1 MB', 'fa-file-pdf-o'],
 ];
 
-$topics = ['Programmes', 'Partnerships', 'Speaking', 'Resources'];
+$topics = ['Programmes', 'Partnership', 'Speaking', 'Media'];
 ?>
 
 <main class="rc-page rc-page-center" data-screen-label="Emergence Booth">
@@ -30,7 +30,7 @@ $topics = ['Programmes', 'Partnerships', 'Speaking', 'Resources'];
             <div class="rc-title-stack">
                 <span class="rc-kicker">EPR Global &middot; Host Booth</span>
                 <span class="rc-page-title">Emergence Booth</span>
-                <span class="rc-page-sub" style="max-width:680px;line-height:1.65">Meet the team behind Accelerate. Explore our programmes, take the toolkit home, or book time with us.</span>
+                <span class="rc-page-sub">Meet the team behind Accelerate. Explore our programmes, take the toolkit home, or book time with us.</span>
             </div>
             <span style="display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:999px;background:rgba(34,16,38,.72);border:1px solid rgba(255,255,255,.14);font-size:12px">
                 <span style="width:8px;height:8px;border-radius:50%;background:#4ade80;box-shadow:0 0 10px #4ade80"></span>
@@ -66,12 +66,12 @@ $topics = ['Programmes', 'Partnerships', 'Speaking', 'Resources'];
                             <span style="font-size:14px;font-weight:600"><?php echo esc($name); ?></span>
                             <span style="font-size:12px;color:rgba(255,255,255,.7)"><?php echo esc($role); ?></span>
                         </div>
-                        <button class="rc-card-action rc-em-book" type="button" style="flex:none;width:auto;padding:0 14px;font-size:12px">
+                        <button class="rc-card-action rc-em-book" type="button" style="flex:none;width:auto;font-size:12px">
                             <i class="fa fa-calendar" aria-hidden="true"></i><span>Book 15 min</span>
                         </button>
                     </div>
                 <?php endforeach; ?>
-                <span style="margin-top:auto;padding-top:14px;border-top:1px solid rgba(255,255,255,.08);font-size:12px;color:rgba(255,255,255,.65);line-height:1.5">Booth hours: 9:00 AM - 5:00 PM WAT, all conference days.</span>
+                <span style="margin-top:auto;padding-top:14px;border-top:1px solid rgba(255,255,255,.08);font-size:12px;color:rgba(255,255,255,.65);line-height:1.5">Booth hours: 9:00 AM – 5:00 PM WAT, all conference days.</span>
             </aside>
         </section>
 
@@ -86,7 +86,7 @@ $topics = ['Programmes', 'Partnerships', 'Speaking', 'Resources'];
                         <span class="rc-mono" style="font-size:10px;letter-spacing:.16em;color:#efb11e"><?php echo esc($tag); ?></span>
                         <h3 style="margin:0;font-size:18px;font-weight:600;letter-spacing:-.01em"><?php echo esc($name); ?></h3>
                         <p style="margin:0;color:rgba(255,255,255,.72);font-size:13px;line-height:1.55"><?php echo esc($desc); ?></p>
-                        <button type="button" class="rc-card-action rc-em-interest" style="margin-top:auto;align-self:flex-start;flex:none;width:auto;padding:0 16px;font-size:13px">
+                        <button type="button" class="rc-card-action rc-em-interest" style="margin-top:auto;align-self:flex-start;flex:none;width:auto;font-size:13px">
                             <i class="fa fa-plus" aria-hidden="true"></i><span>Register interest</span>
                         </button>
                     </article>
@@ -122,16 +122,16 @@ $topics = ['Programmes', 'Partnerships', 'Speaking', 'Resources'];
                             <button type="button" class="rc-outline-pill rc-em-topic <?php echo $index === 0 ? 'is-active' : ''; ?>" style="<?php echo $index === 0 ? 'background:rgba(157,15,130,.55);border-color:#d8198e' : ''; ?>"><?php echo esc($topic); ?></button>
                         <?php endforeach; ?>
                     </div>
-                    <textarea class="rc-input" rows="4" placeholder="Add a short note (optional)" style="height:116px;padding:12px 14px!important;resize:none"></textarea>
-                    <button type="button" class="rc-btn rc-em-send" style="height:46px;text-transform:none;letter-spacing:0;display:flex;align-items:center;justify-content:center;gap:10px">
+                    <textarea class="rc-input" rows="4" placeholder="Add a short note (optional)" style="height:auto;padding:12px 14px!important;resize:none"></textarea>
+                    <button type="button" class="rc-btn rc-em-send" style="height:46px;text-transform:none;letter-spacing:0;display:flex;align-items:center;justify-content:center;gap:10px;font-size:14px">
                         <i class="fa fa-phone" aria-hidden="true"></i>Request a callback
                     </button>
                 </div>
                 <div class="rc-em-sent" style="display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:12px;padding:20px 0">
                     <span style="width:56px;height:56px;border-radius:50%;background:rgba(74,222,128,.14);color:#4ade80;display:flex;align-items:center;justify-content:center;font-size:22px"><i class="fa fa-check" aria-hidden="true"></i></span>
                     <span style="font-size:17px;font-weight:600">Card received</span>
-                    <span style="font-size:13px;color:rgba(255,255,255,.72);max-width:300px;line-height:1.5">Thanks. The Emergence team will follow up with you shortly.</span>
-                    <button type="button" class="rc-outline-pill rc-em-reset">Send another</button>
+                    <span class="rc-em-sent-message" style="font-size:13px;color:rgba(255,255,255,.72);max-width:300px;line-height:1.5">The team will contact you about programmes within one working day.</span>
+                    <button type="button" class="rc-em-reset">Send another</button>
                 </div>
             </div>
         </section>
@@ -196,6 +196,11 @@ document.addEventListener("click", function(event) {
     }
 
     if (event.target.closest(".rc-em-send")) {
+        const selectedTopic = document.querySelector(".rc-em-topic.is-active")?.textContent.trim().toLowerCase() || "programmes";
+        const sentMessage = document.querySelector(".rc-em-sent-message");
+        if (sentMessage) {
+            sentMessage.textContent = "The team will contact you about " + selectedTopic + " within one working day.";
+        }
         document.querySelector(".rc-em-form").style.display = "none";
         document.querySelector(".rc-em-sent").style.display = "flex";
         return;

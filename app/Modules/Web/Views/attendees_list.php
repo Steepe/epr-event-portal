@@ -10,17 +10,19 @@ $tabs = [
 
 $searchValue = (string) service('request')->getGet('attendee_name');
 $currentUserId = (int) (session('user_id') ?: session('attendee_id'));
+$onlineCount = count(array_filter($attendees ?? [], static fn (array $attendee): bool => !empty($attendee['is_online']) && (int) $attendee['is_online'] === 1));
+$attendeeFilters = ['All', 'Online now', 'Founders', 'Operations', 'Finance', 'Tech'];
 ?>
 
 <main class="rc-page rc-page-center" data-screen-label="Attendees">
     <div class="rc-container" style="gap:24px">
-        <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap">
-            <div style="display:flex;flex-direction:column;gap:8px">
-                <a href="<?php echo base_url('attendees/networking_center'); ?>" class="rc-kicker" style="align-self:flex-start;display:flex;gap:8px;align-items:center">
-                    <i class="fa fa-arrow-left" aria-hidden="true"></i>Networking Center
+        <header class="rc-net-sub-header">
+            <div class="rc-net-heading">
+                <a href="<?php echo base_url('attendees/networking_center'); ?>" class="rc-back-link">
+                    <i class="fa fa-arrow-left" aria-hidden="true"></i>NETWORKING CENTER
                 </a>
                 <span class="rc-page-title">Attendees</span>
-                <span class="rc-page-sub"><span data-attendee-count><?php echo !empty($attendees) ? count($attendees) : 0; ?></span> people in your network</span>
+                <span class="rc-page-sub"><span data-attendee-count><?php echo !empty($attendees) ? count($attendees) : 0; ?></span> people in your network · <?php echo $onlineCount; ?> online now</span>
             </div>
 
             <div class="rc-net-tabs">
@@ -31,7 +33,7 @@ $currentUserId = (int) (session('user_id') ?: session('attendee_id'));
                     </a>
                 <?php endforeach; ?>
             </div>
-        </div>
+        </header>
 
         <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
             <form method="get" data-attendee-search-form style="position:relative;flex:1;min-width:240px;max-width:380px;display:flex">
@@ -39,15 +41,10 @@ $currentUserId = (int) (session('user_id') ?: session('attendee_id'));
                 <input class="rc-input rc-attendee-search" type="text" name="attendee_name" value="<?php echo esc($searchValue, 'attr'); ?>" placeholder="Search by name, company or role" autocomplete="off" style="padding-left:42px;background:#1d0a21!important;border-radius:12px!important">
             </form>
 
-            <div style="display:flex;gap:8px;flex-wrap:wrap">
-                <a class="rc-outline-pill" href="<?php echo base_url('attendees/attendees'); ?>">All</a>
-                <?php if (!empty($alphabet_count)): ?>
-                    <?php foreach (array_slice($alphabet_count, 0, 8) as $alphabet): ?>
-                        <a class="rc-outline-pill" href="?sort=<?php echo urlencode($alphabet['firstCharacter']); ?>">
-                            <?php echo esc($alphabet['firstCharacter']); ?>
-                        </a>
-                    <?php endforeach; ?>
-                <?php endif; ?>
+            <div class="rc-attendee-filters">
+                <?php foreach ($attendeeFilters as $filterIndex => $filter): ?>
+                    <button type="button" class="rc-attendee-filter<?php echo $filterIndex === 0 ? ' is-active' : ''; ?>" data-attendee-filter="<?php echo esc($filter, 'attr'); ?>"><?php echo esc($filter); ?></button>
+                <?php endforeach; ?>
             </div>
         </div>
 
@@ -67,6 +64,16 @@ $currentUserId = (int) (session('user_id') ?: session('attendee_id'));
                     $messageRole = ($role ?: 'Attendee') . ($company !== '' ? ' · ' . $company : '');
                     $place = trim((string) (($attendee['city'] ?? '') . (!empty($attendee['country']) ? ', ' . $attendee['country'] : '')));
                     $isOnline = !empty($attendee['is_online']) && (int) $attendee['is_online'] === 1;
+                    $tagHaystack = strtolower($role . ' ' . $company);
+                    if (str_contains($tagHaystack, 'founder') || str_contains($tagHaystack, 'owner')) {
+                        $tags = ['Founders', 'Strategy'];
+                    } elseif (str_contains($tagHaystack, 'financ') || str_contains($tagHaystack, 'bank') || str_contains($tagHaystack, 'account')) {
+                        $tags = ['Finance', 'Strategy'];
+                    } elseif (str_contains($tagHaystack, 'engineer') || str_contains($tagHaystack, 'product') || str_contains($tagHaystack, 'tech')) {
+                        $tags = ['Tech', 'Product'];
+                    } else {
+                        $tags = ['Operations', 'Systems'];
+                    }
                     $isConnected = !empty($attendee['is_connected']) && (int) $attendee['is_connected'] === 1;
                     $connectionStatus = (string) ($attendee['connection_status'] ?? '');
                     $connectionDirection = (string) ($attendee['connection_direction'] ?? '');
@@ -111,6 +118,7 @@ $currentUserId = (int) (session('user_id') ?: session('attendee_id'));
                              aria-label="View profile for <?php echo esc($fullName ?: 'Attendee', 'attr'); ?>"
                              data-attendee-card
                              data-search="<?php echo esc($searchIndex, 'attr'); ?>"
+                             data-tags="<?php echo esc(implode('|', $tags), 'attr'); ?>"
                              data-profile-id="<?php echo (int) $attendee['attendee_id']; ?>"
                              data-profile-name="<?php echo esc($fullName ?: 'Attendee', 'attr'); ?>"
                              data-profile-role="<?php echo esc($role ?: 'Attendee', 'attr'); ?>"
@@ -152,8 +160,7 @@ $currentUserId = (int) (session('user_id') ?: session('attendee_id'));
                         </div>
 
                         <div style="display:flex;gap:6px;flex-wrap:wrap">
-                            <span class="rc-card-tag">Operations</span>
-                            <span class="rc-card-tag">Execution</span>
+                            <?php foreach ($tags as $tag): ?><span class="rc-card-tag"><?php echo esc($tag); ?></span><?php endforeach; ?>
                         </div>
 
                         <div style="margin-top:auto;display:flex;gap:8px">
@@ -237,7 +244,15 @@ $currentUserId = (int) (session('user_id') ?: session('attendee_id'));
         <div class="rc-dm-empty">Start the conversation. Mention a session you both attended or what you're working on.</div>
     </div>
     <form class="rc-dm-compose" data-rc-dm-form>
-        <input type="text" data-rc-dm-input placeholder="Write a message..." autocomplete="off" required>
+        <div style="position:relative;display:flex;align-items:center;flex:1;min-width:0">
+            <button type="button" data-rc-dm-emoji-toggle aria-label="Choose an emoji" aria-expanded="false" style="width:38px;height:38px;flex:none;border:0;border-radius:9px;background:transparent;color:rgba(255,255,255,.75);font-size:17px;cursor:pointer"><i class="fa fa-smile-o" aria-hidden="true"></i></button>
+            <input type="text" data-rc-dm-input placeholder="Write a message..." autocomplete="off" required style="flex:1;min-width:0">
+            <div data-rc-dm-emoji-picker hidden role="dialog" aria-label="Emoji picker" style="position:absolute;z-index:25;bottom:46px;left:0;width:216px;padding:8px;border:1px solid rgba(255,255,255,.16);border-radius:12px;background:#29112e;box-shadow:0 14px 32px rgba(0,0,0,.34);grid-template-columns:repeat(6,1fr);gap:3px">
+                <?php foreach (['😀', '😂', '😍', '🥳', '👍', '👏', '🔥', '🎉', '💡', '✅', '🙌', '💯', '🤝', '❤️', '🙏', '👀', '🚀', '✨'] as $emoji): ?>
+                    <button type="button" data-rc-dm-emoji="<?php echo esc($emoji, 'attr'); ?>" aria-label="Add <?php echo esc($emoji, 'attr'); ?>" style="border:0;border-radius:7px;background:transparent;padding:6px;cursor:pointer;font-size:19px;line-height:1"><?php echo $emoji; ?></button>
+                <?php endforeach; ?>
+            </div>
+        </div>
         <button type="submit">Send</button>
     </form>
 </aside>
@@ -252,8 +267,10 @@ $currentUserId = (int) (session('user_id') ?: session('attendee_id'));
     const searchForm = document.querySelector("[data-attendee-search-form]");
     const searchInput = document.querySelector(".rc-attendee-search");
     const attendeeCards = Array.from(document.querySelectorAll("[data-attendee-card]"));
+    const attendeeFilters = Array.from(document.querySelectorAll("[data-attendee-filter]"));
     const attendeeCount = document.querySelector("[data-attendee-count]");
     const attendeeEmpty = document.querySelector("[data-attendee-empty]");
+    let activeFilter = "All";
 
     const profileDrawer = document.querySelector(".rc-profile-drawer");
     const profileBackdrop = document.querySelector(".rc-profile-backdrop");
@@ -276,6 +293,11 @@ $currentUserId = (int) (session('user_id') ?: session('attendee_id'));
     const messagesNode = document.querySelector("[data-rc-dm-messages]");
     const form = document.querySelector("[data-rc-dm-form]");
     const input = document.querySelector("[data-rc-dm-input]");
+    const emojiToggle = document.querySelector("[data-rc-dm-emoji-toggle]");
+    const emojiPicker = document.querySelector("[data-rc-dm-emoji-picker]");
+    const currentUserId = <?php echo json_encode($currentUserId); ?>;
+    const messageThreadUrl = <?php echo json_encode(base_url('api/messages/thread')); ?>;
+    const messageSendUrl = <?php echo json_encode(base_url('api/messages/send')); ?>;
     const messages = {};
     let activeThread = null;
     let activeProfile = null;
@@ -601,6 +623,7 @@ $currentUserId = (int) (session('user_id') ?: session('attendee_id'));
         window.setTimeout(function() {
             input.focus();
         }, 120);
+        loadThread();
     }
 
     function closeDrawer() {
@@ -610,12 +633,66 @@ $currentUserId = (int) (session('user_id') ?: session('attendee_id'));
         activeThread = null;
     }
 
+    function insertEmoji(emoji) {
+        const start = input.selectionStart ?? input.value.length;
+        const end = input.selectionEnd ?? start;
+        input.value = input.value.slice(0, start) + emoji + input.value.slice(end);
+        const cursor = start + emoji.length;
+        input.focus();
+        input.setSelectionRange(cursor, cursor);
+    }
+
+    function loadThread() {
+        if (!activeThread) {
+            return Promise.resolve();
+        }
+
+        const thread = activeThread;
+        const receiverId = Number(thread.receiverId || 0);
+        if (!receiverId) {
+            return Promise.resolve();
+        }
+
+        return fetch(messageThreadUrl + "/" + encodeURIComponent(String(receiverId)), {
+            credentials: "same-origin"
+        })
+            .then(function(response) {
+                return response.json().catch(function() {
+                    return {};
+                }).then(function(payload) {
+                    if (!response.ok || payload.status !== "success") {
+                        throw new Error("thread-load-failed");
+                    }
+
+                    messages[receiverId] = (Array.isArray(payload.data) ? payload.data : []).map(function(item) {
+                        return {
+                            id: item.id,
+                            fromMe: Number(item.sender_id) === currentUserId,
+                            message: item.message || ""
+                        };
+                    });
+
+                    if (activeThread && Number(activeThread.receiverId) === receiverId) {
+                        renderMessages();
+                    }
+                });
+            })
+            .catch(function() {
+                // Keep the drawer usable. The next sync will retry automatically.
+            });
+    }
+
     function applySearch() {
         const query = (searchInput?.value || "").trim().toLowerCase();
         let visible = 0;
 
         attendeeCards.forEach(function(card) {
-            const matches = !query || card.dataset.search.includes(query);
+            const searchMatches = !query || card.dataset.search.includes(query);
+            const tags = (card.dataset.tags || "").split("|");
+            const filterMatches = activeFilter === "All"
+                || (activeFilter === "Online now" && card.dataset.profileOnline === "1")
+                || tags.includes(activeFilter);
+            const matches = searchMatches && filterMatches;
             card.hidden = !matches;
             if (matches) {
                 visible++;
@@ -645,6 +722,16 @@ $currentUserId = (int) (session('user_id') ?: session('attendee_id'));
         searchInput.addEventListener("input", applySearch);
         applySearch();
     }
+
+    attendeeFilters.forEach(function(button) {
+        button.addEventListener("click", function() {
+            activeFilter = button.dataset.attendeeFilter || "All";
+            attendeeFilters.forEach(function(item) {
+                item.classList.toggle("is-active", item === button);
+            });
+            applySearch();
+        });
+    });
 
     document.addEventListener("click", function(event) {
         const connectButton = event.target.closest(".rc-connect-toggle");
@@ -723,20 +810,18 @@ $currentUserId = (int) (session('user_id') ?: session('attendee_id'));
             return;
         }
 
-        const threadMessages = messages[activeThread.receiverId] || [];
-        threadMessages.push({ fromMe: true, message: message });
-        messages[activeThread.receiverId] = threadMessages;
-        input.value = "";
-        renderMessages();
-
         const receiverId = activeThread.receiverId;
-        fetch("<?php echo base_url('api/messages/send'); ?>", {
+        const sendButton = form.querySelector('button[type="submit"]');
+        sendButton.disabled = true;
+        sendButton.textContent = "Sending...";
+
+        fetch(messageSendUrl, {
             method: "POST",
+            credentials: "same-origin",
             headers: {
                 "Content-Type": "application/json"
             },
             body: JSON.stringify({
-                sender_id: activeThread.senderId,
                 receiver_id: activeThread.receiverId,
                 message: message
             })
@@ -748,18 +833,56 @@ $currentUserId = (int) (session('user_id') ?: session('attendee_id'));
                     if (!response.ok || (payload.status && payload.status !== "success")) {
                         throw new Error("send-failed");
                     }
+                    input.value = "";
+                    return loadThread();
                 });
             })
             .catch(function() {
-                messages[receiverId].push({
+                const threadMessages = messages[receiverId] || [];
+                threadMessages.push({
                     system: true,
                     message: "Message could not be sent. Please try again."
                 });
+                messages[receiverId] = threadMessages;
                 if (activeThread && activeThread.receiverId === receiverId) {
                     renderMessages();
                 }
+            })
+            .finally(function() {
+                sendButton.disabled = false;
+                sendButton.textContent = "Send";
             });
     });
+
+    emojiToggle?.addEventListener("click", function() {
+        const isOpen = !emojiPicker.hidden;
+        emojiPicker.hidden = isOpen;
+        emojiPicker.style.display = isOpen ? "none" : "grid";
+        emojiToggle.setAttribute("aria-expanded", String(!isOpen));
+    });
+
+    emojiPicker?.addEventListener("click", function(event) {
+        const button = event.target.closest("[data-rc-dm-emoji]");
+        if (!button) return;
+        insertEmoji(button.dataset.rcDmEmoji || "");
+        emojiPicker.hidden = true;
+        emojiPicker.style.display = "none";
+        emojiToggle?.setAttribute("aria-expanded", "false");
+    });
+
+    document.addEventListener("click", function(event) {
+        if (emojiPicker && !emojiPicker.hidden && !emojiPicker.contains(event.target) && !emojiToggle?.contains(event.target)) {
+            emojiPicker.hidden = true;
+            emojiPicker.style.display = "none";
+            emojiToggle?.setAttribute("aria-expanded", "false");
+        }
+    });
+
+    window.setInterval(function() {
+        if (activeThread) {
+            loadThread();
+        }
+    }, 3000);
 })();
 </script>
 </body>

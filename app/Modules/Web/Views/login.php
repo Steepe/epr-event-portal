@@ -41,7 +41,7 @@
             <div class="rc-reset-card">
                 <div class="rc-reset-head">
                     <span class="rc-reset-title">Reset Password</span>
-                    <button type="button" class="rc-modal-close" id="closeReset" aria-label="Close">&times;</button>
+                    <button type="button" class="rc-modal-close" id="closeReset" data-rc-close-overlay aria-label="Close">&times;</button>
                 </div>
                 <form id="ResetForm" class="rc-reset-body">
                     <p>Enter your registered email. A reset link will be sent to you.</p>

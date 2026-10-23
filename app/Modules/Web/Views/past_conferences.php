@@ -5,8 +5,8 @@ echo module_view('Web', 'includes/topbar');
 
 <main data-screen-label="Past Conferences" style="position:absolute;inset:0">
     <div style="position:absolute;left:7vw;top:112px;display:flex;flex-direction:column;gap:8px">
-        <a href="<?php echo base_url('attendees/start'); ?>" class="rc-kicker" style="cursor:pointer;display:flex;gap:8px;align-items:center">
-            <i class="fa fa-long-arrow-left" aria-hidden="true"></i>Back
+        <a href="<?php echo base_url('attendees/start'); ?>" class="rc-back-link">
+            <i class="fa fa-long-arrow-left" aria-hidden="true"></i>BACK
         </a>
         <span style="font-size:40px;font-weight:700;letter-spacing:-.03em;line-height:1">Past Conferences</span>
     </div>
@@ -42,6 +42,11 @@ echo module_view('Web', 'includes/topbar');
     <div style="position:absolute;left:78%;top:calc(56% + 110px);transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:4px">
         <span style="font-size:16px;font-weight:600">Unleash</span>
         <span class="rc-mono" style="font-size:11px;letter-spacing:.18em;color:rgba(255,255,255,.6)">2025</span>
+    </div>
+
+    <div class="rc-corner-logo" aria-hidden="true">
+        <span class="rc-kicker" style="font-size:11px">Past Conferences &middot; Emergence 2026</span>
+        <img src="<?php echo asset_url('images/accelerate-logo-white.png'); ?>" alt="">
     </div>
 </main>
 

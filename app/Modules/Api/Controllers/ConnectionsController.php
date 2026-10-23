@@ -97,6 +97,50 @@ class ConnectionsController extends BaseController
         return $this->setIncomingStatus((int) $id, 'accepted');
     }
 
+    /**
+     * Returns incoming connection requests for the signed-in attendee.
+     *
+     * This also serves as a browser fallback when the realtime socket is
+     * unavailable, so a missed socket connection never requires a refresh.
+     */
+    public function pending()
+    {
+        $currentUserId = $this->currentUserId();
+        if ($currentUserId <= 0) {
+            return $this->failUnauthorized('Please log in to view connection requests.');
+        }
+
+        try {
+            $query = $this->connections
+                ->where('receiver_id', $currentUserId)
+                ->where('status', 'pending')
+                ->orderBy('created_at', 'DESC');
+
+            $pendingConnections = $query->findAll();
+
+            $requests = [];
+            foreach ($pendingConnections as $connection) {
+                $event = $this->buildConnectionEvent($connection);
+                if ($event) {
+                    $event['type'] = 'connection_request';
+                    $event['to'] = $currentUserId;
+                    $requests[] = $event;
+                }
+            }
+
+            return $this->respond([
+                'status' => 'success',
+                'data' => [
+                    'connections' => $requests,
+                    'pending_count' => count($requests),
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            log_message('error', '[ConnectionsController] Unable to load pending connections: ' . $e->getMessage());
+            return $this->failServerError('Unable to load connection requests.');
+        }
+    }
+
     public function decline($id = null)
     {
         return $this->setIncomingStatus((int) $id, 'declined');

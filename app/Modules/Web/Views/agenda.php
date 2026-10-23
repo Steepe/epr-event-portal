@@ -8,7 +8,7 @@ $dayIndex = 0;
 ?>
 
 <main class="rc-page rc-page-center" data-screen-label="Agenda">
-    <div class="rc-container" style="min-height:0">
+    <div class="rc-container" style="gap:24px;min-height:0">
         <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap">
             <div class="rc-title-stack">
                 <span class="rc-kicker">Accelerate 2026</span>
@@ -76,9 +76,9 @@ $dayIndex = 0;
                                 </div>
 
                                 <?php if ($canAccess): ?>
-                                    <a href="<?php echo base_url('attendees/sessions/' . $s['sessions_id']); ?>" class="rc-pill" style="text-decoration:none">View Session</a>
+                                    <a href="<?php echo base_url('attendees/sessions/' . $s['sessions_id']); ?>" class="rc-session-action">View Session</a>
                                 <?php else: ?>
-                                    <span class="rc-outline-pill" style="color:#efb11e;border-color:rgba(239,177,30,.45)"><i class="fa fa-unlock-alt" aria-hidden="true"></i>Unlock</span>
+                                    <span class="rc-session-unlock"><i class="fa fa-unlock-alt" aria-hidden="true"></i>Unlock</span>
                                 <?php endif; ?>
                             </article>
                         <?php endforeach; ?>

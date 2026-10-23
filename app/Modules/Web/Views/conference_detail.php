@@ -13,8 +13,8 @@ $conferenceTitle = $conference['title'] ?? 'Conference';
                 <span class="rc-page-title"><?php echo esc($conferenceTitle); ?></span>
                 <span class="rc-page-sub">Agenda sessions for this conference.</span>
             </div>
-            <a href="<?php echo base_url('attendees/past_conferences'); ?>" class="rc-outline-pill" style="text-decoration:none">
-                <i class="fa fa-long-arrow-left" aria-hidden="true"></i>Archive
+            <a href="<?php echo base_url('attendees/past_conferences'); ?>" class="rc-back-link">
+                <i class="fa fa-long-arrow-left" aria-hidden="true"></i>BACK TO ARCHIVE
             </a>
         </div>
 

@@ -11,8 +11,8 @@ echo module_view('Web', 'includes/topbar');
                 <span class="rc-page-title">Vision Birthing Exercise</span>
                 <span class="rc-page-sub">A guided video exercise for clarifying execution goals.</span>
             </div>
-            <a href="<?php echo base_url('attendees/start'); ?>" class="rc-outline-pill" style="text-decoration:none">
-                <i class="fa fa-long-arrow-left" aria-hidden="true"></i>Gateways
+            <a href="<?php echo base_url('attendees/start'); ?>" class="rc-back-link">
+                <i class="fa fa-long-arrow-left" aria-hidden="true"></i>BACK
             </a>
         </div>
 

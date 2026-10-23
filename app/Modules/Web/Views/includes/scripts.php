@@ -23,9 +23,18 @@
         const config = window.EPR_PORTAL_REALTIME || {};
         const userId = Number(config.userId || 0);
         const wsUrl = config.wsUrl || "";
+        const pendingConnectionsUrl = config.pendingConnectionsUrl || "";
         let socket = null;
         let reconnectTimer = null;
         let reconnectDelay = 1200;
+        let pollingTimer = null;
+        const receivedConnectionIds = new Set();
+        document.querySelectorAll("[data-connection-id]").forEach(function(row) {
+            const connectionId = Number(row.dataset.connectionId || 0);
+            if (connectionId) {
+                receivedConnectionIds.add(connectionId);
+            }
+        });
 
         function showToast(message, isError) {
             let toast = document.querySelector("[data-rc-toast]");
@@ -57,36 +66,46 @@
             badge.hidden = next === 0;
         }
 
+        function setBellCount(count) {
+            const badge = document.querySelector(".rc-bell-badge");
+            if (!badge) {
+                return;
+            }
+
+            const next = Math.max(0, Number(count) || 0);
+            badge.textContent = String(next);
+            badge.hidden = next === 0;
+        }
+
         function appendConnectionRequest(event) {
             const group = document.querySelector('.notification-group[data-group="TODAY"]');
             if (!group || !event.connection_id || group.querySelector('[data-connection-id="' + event.connection_id + '"]')) {
                 return;
             }
 
-            const label = group.querySelector(".rc-mono");
+            const label = group.querySelector(".rc-notification-group-title, .rc-mono");
             const row = document.createElement("div");
-            row.className = "notification-row";
+            row.className = "notification-row rc-notification-row";
             row.dataset.category = "Networking";
             row.dataset.unread = "1";
             row.dataset.connectionId = String(event.connection_id);
-            row.style.cssText = "display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:14px;align-items:start;padding:14px 16px;border-top:1px solid rgba(255,255,255,.06);background:rgba(157,15,130,.16)";
             row.innerHTML =
-                '<span style="width:44px;height:44px;border-radius:12px;background:#efb11e;color:#260029;display:flex;align-items:center;justify-content:center;font-size:17px">' +
+                '<span class="rc-notification-tile" style="background:#efb11e;color:#260029">' +
                     '<i class="fa fa-user-plus" aria-hidden="true"></i>' +
                 '</span>' +
-                '<span style="display:flex;flex-direction:column;gap:4px;min-width:0">' +
-                    '<strong style="font-size:14px;font-weight:600;line-height:1.35;color:#fff">Connection request</strong>' +
-                    '<span data-connection-message style="font-size:13px;color:rgba(255,255,255,.72);white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></span>' +
-                    '<span class="rc-mono" data-connection-email style="font-size:10px;letter-spacing:.08em;color:rgba(255,255,255,.5)"></span>' +
-                '</span>' +
-                '<span style="display:flex;align-items:center;gap:8px">' +
-                    '<button type="button" class="rc-outline-pill" data-connection-action="accept" style="border-color:rgba(74,222,128,.55);color:#4ade80;background:rgba(74,222,128,.10)">Accept</button>' +
-                    '<button type="button" class="rc-outline-pill" data-connection-action="decline" style="border-color:rgba(255,255,255,.18);color:rgba(255,255,255,.76);background:rgba(255,255,255,.05)">Decline</button>' +
-                    '<span class="notification-dot" style="width:8px;height:8px;border-radius:50%;background:#d8198e;"></span>' +
-                '</span>';
+                '<div class="rc-notification-copy">' +
+                    '<div><span class="notification-dot"></span><strong>Connection request</strong></div>' +
+                    '<p data-connection-message></p>' +
+                '</div>' +
+                '<div class="rc-notification-actions">' +
+                    '<span class="rc-notification-time">JUST NOW</span>' +
+                    '<span class="rc-connection-actions">' +
+                        '<button type="button" data-connection-action="accept">Accept</button>' +
+                        '<button type="button" data-connection-action="decline">Decline</button>' +
+                    '</span>' +
+                '</div>';
 
             row.querySelector("[data-connection-message]").textContent = (event.requester_name || "An attendee") + " wants to connect with you.";
-            row.querySelector("[data-connection-email]").textContent = event.requester_email || "";
             group.insertBefore(row, label ? label.nextSibling : group.firstChild);
         }
 
@@ -96,6 +115,13 @@
             }
 
             if (event.type === "connection_request") {
+                const connectionId = Number(event.connection_id || 0);
+                if (connectionId && receivedConnectionIds.has(connectionId)) {
+                    return;
+                }
+                if (connectionId) {
+                    receivedConnectionIds.add(connectionId);
+                }
                 updateBellCount(1);
                 appendConnectionRequest(event);
                 showToast((event.requester_name || "An attendee") + " sent you a connection request.");
@@ -109,14 +135,61 @@
             }
         }
 
+        function pollPendingConnections() {
+            if (!userId || !pendingConnectionsUrl) {
+                return;
+            }
+
+            fetch(pendingConnectionsUrl, { credentials: "same-origin" })
+                .then(function(response) {
+                    if (!response.ok) {
+                        throw new Error("pending-connections-failed");
+                    }
+                    return response.json();
+                })
+                .then(function(payload) {
+                    const connections = payload && payload.data && Array.isArray(payload.data.connections)
+                        ? payload.data.connections
+                        : [];
+                    connections.forEach(function(event) {
+                        handleRealtimeEvent(event);
+                    });
+                    if (payload && payload.data && typeof payload.data.pending_count !== "undefined") {
+                        setBellCount(payload.data.pending_count);
+                    }
+                })
+                .catch(function() {
+                    // The next interval retries; notifications remain non-blocking.
+                });
+        }
+
+        function startPolling() {
+            if (pollingTimer || !pendingConnectionsUrl) {
+                return;
+            }
+
+            pollPendingConnections();
+            pollingTimer = window.setInterval(pollPendingConnections, 5000);
+        }
+
         function connectRealtime() {
-            if (!userId || !wsUrl || !("WebSocket" in window)) {
+            if (!userId) {
+                return;
+            }
+
+            // Keep this lightweight reconciliation active even while a socket
+            // is open: it covers a dropped or missed socket event without a
+            // browser refresh. Duplicate connection IDs are ignored above.
+            startPolling();
+
+            if (!wsUrl || !("WebSocket" in window)) {
                 return;
             }
 
             try {
                 socket = new WebSocket(wsUrl);
             } catch (error) {
+                startPolling();
                 return;
             }
 
@@ -133,6 +206,7 @@
             });
 
             socket.addEventListener("close", function() {
+                startPolling();
                 window.clearTimeout(reconnectTimer);
                 reconnectTimer = window.setTimeout(connectRealtime, reconnectDelay);
                 reconnectDelay = Math.min(reconnectDelay * 1.6, 10000);
@@ -147,7 +221,21 @@
     })();
 
     (function() {
-        function forceCloseModalElement(modal) {
+        let activeModal = null;
+
+        function removeBootstrapBackdrops() {
+            document.querySelectorAll(".modal-backdrop").forEach(function(backdrop) {
+                backdrop.remove();
+            });
+        }
+
+        function notify(modal, eventName) {
+            if (window.jQuery) {
+                window.jQuery(modal).trigger(eventName);
+            }
+        }
+
+        function closeModal(modal, restoreFocus) {
             if (!modal) {
                 return;
             }
@@ -156,34 +244,119 @@
             modal.setAttribute("aria-hidden", "true");
             modal.removeAttribute("aria-modal");
             modal.style.display = "none";
-            document.querySelectorAll(".modal-backdrop").forEach(function(backdrop) {
-                backdrop.remove();
-            });
+            removeBootstrapBackdrops();
             document.body.classList.remove("modal-open");
             document.body.style.paddingRight = "";
+            notify(modal, "hidden.bs.modal");
+
+            const opener = modal._rcModalOpener;
+            modal._rcModalOpener = null;
+            if (restoreFocus && opener && document.contains(opener)) {
+                opener.focus();
+            }
+
+            if (activeModal === modal) {
+                activeModal = null;
+            }
+        }
+
+        function openModal(modal, opener) {
+            if (!modal) {
+                return;
+            }
+
+            if (activeModal && activeModal !== modal) {
+                closeModal(activeModal, false);
+            }
+
+            removeBootstrapBackdrops();
+            modal._rcModalOpener = opener || document.activeElement;
+            modal.style.display = "block";
+            modal.classList.add("show");
+            modal.setAttribute("aria-hidden", "false");
+            modal.setAttribute("aria-modal", "true");
+            activeModal = modal;
+            document.body.classList.add("modal-open");
+            notify(modal, "shown.bs.modal");
+
+            window.setTimeout(function() {
+                const autofocus = modal.querySelector("[autofocus], [data-rc-modal-autofocus], button, input, textarea, select, [tabindex]:not([tabindex='-1'])");
+                (autofocus || modal).focus();
+            }, 0);
+        }
+
+        function closeOverlay(overlay) {
+            if (!overlay) {
+                return;
+            }
+
+            overlay.classList.remove("is-open");
+            overlay.setAttribute("aria-hidden", "true");
+        }
+
+        function modalFromTrigger(trigger) {
+            const selector = trigger.getAttribute("data-target");
+            if (!selector) {
+                return null;
+            }
+
+            try {
+                return document.querySelector(selector);
+            } catch (error) {
+                return null;
+            }
         }
 
         document.addEventListener("click", function(event) {
+            const overlayClose = event.target.closest("[data-rc-close-overlay]");
+            if (overlayClose) {
+                const overlay = overlayClose.closest(".rc-modal-overlay");
+                if (overlay) {
+                    event.preventDefault();
+                    closeOverlay(overlay);
+                }
+                return;
+            }
+
+            const trigger = event.target.closest('[data-toggle="modal"][data-target]');
+            if (trigger) {
+                event.preventDefault();
+                event.stopImmediatePropagation();
+                openModal(modalFromTrigger(trigger), trigger);
+                return;
+            }
+
             const close = event.target.closest('[data-dismiss="modal"], [data-rc-close-modal], .modal .close');
             if (close) {
                 const modal = close.closest(".modal");
                 if (modal) {
                     event.preventDefault();
-                    event.stopPropagation();
-                    forceCloseModalElement(modal);
+                    event.stopImmediatePropagation();
+                    closeModal(modal, true);
                 }
                 return;
             }
 
             const modal = event.target.classList && event.target.classList.contains("modal") ? event.target : null;
             if (modal) {
-                forceCloseModalElement(modal);
+                closeModal(modal, true);
+                return;
+            }
+
+            const overlay = event.target.classList && event.target.classList.contains("rc-modal-overlay") ? event.target : null;
+            if (overlay) {
+                closeOverlay(overlay);
             }
         }, true);
 
         document.addEventListener("keydown", function(event) {
             if (event.key === "Escape") {
-                forceCloseModalElement(document.querySelector(".modal.show"));
+                const overlay = document.querySelector(".rc-modal-overlay.is-open");
+                if (overlay) {
+                    closeOverlay(overlay);
+                } else {
+                    closeModal(activeModal || document.querySelector(".modal.show"), true);
+                }
             }
         });
     })();
@@ -216,51 +389,6 @@
             $('.slide-in').hide();
             $('.slide-out').show();
         });
-
-        function forceCloseModal($modal) {
-            if (!$modal || !$modal.length) {
-                return;
-            }
-
-            try {
-                if (typeof $modal.modal === "function") {
-                    $modal.modal("hide");
-                }
-            } catch (error) {
-                // Bootstrap may not own every modal on the redesigned screens.
-            }
-
-            window.setTimeout(function() {
-                $modal.removeClass("show")
-                    .attr("aria-hidden", "true")
-                    .removeAttr("aria-modal")
-                    .hide();
-                $(".modal-backdrop").remove();
-                $("body").removeClass("modal-open").css("padding-right", "");
-            }, 80);
-        }
-
-        $(document).on("click", '[data-dismiss="modal"], [data-rc-close-modal], .modal .close', function(event) {
-            var $modal = $(this).closest(".modal");
-            if ($modal.length) {
-                event.preventDefault();
-                event.stopPropagation();
-                forceCloseModal($modal);
-            }
-        });
-
-        $(document).on("click", ".modal", function(event) {
-            if (event.target === this) {
-                forceCloseModal($(this));
-            }
-        });
-
-        $(document).on("keydown", function(event) {
-            if (event.key === "Escape") {
-                forceCloseModal($(".modal.show").last());
-            }
-        });
-
 
     });
     }

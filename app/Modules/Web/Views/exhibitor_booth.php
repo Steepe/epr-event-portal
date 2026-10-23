@@ -14,8 +14,8 @@ $website = $exhibitor['website'] ?? '';
                 <span class="rc-page-title"><?php echo esc($exhibitor['company_name'] ?? 'Exhibitor'); ?></span>
                 <span class="rc-page-sub"><?php echo esc($exhibitor['tagline'] ?? 'Meet the exhibitor and start a conversation.'); ?></span>
             </div>
-            <a href="<?php echo base_url('attendees/exhibitors'); ?>" class="rc-outline-pill" style="text-decoration:none">
-                <i class="fa fa-long-arrow-left" aria-hidden="true"></i>Exhibitors
+            <a href="<?php echo base_url('attendees/exhibitors'); ?>" class="rc-back-link">
+                <i class="fa fa-long-arrow-left" aria-hidden="true"></i>BACK TO EXHIBITORS
             </a>
         </div>
 

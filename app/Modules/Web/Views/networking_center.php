@@ -30,6 +30,11 @@ echo module_view('Web', 'includes/topbar');
     <span style="position:absolute;left:24%;top:calc(56% + 100px);transform:translateX(-50%);font-weight:600;font-size:16px;letter-spacing:.08em">ATTENDEES</span>
     <span style="position:absolute;left:50%;top:calc(56% + 100px);transform:translateX(-50%);font-weight:600;font-size:16px;letter-spacing:.08em">SPEAKERS</span>
     <span style="position:absolute;left:76%;top:calc(56% + 100px);transform:translateX(-50%);font-weight:600;font-size:16px;letter-spacing:.08em">COMMUNITIES</span>
+
+    <div class="rc-corner-logo" aria-hidden="true">
+        <span class="rc-kicker" style="font-size:11px">Networking &middot; Emergence 2026</span>
+        <img src="<?php echo asset_url('images/accelerate-logo-white.png'); ?>" alt="">
+    </div>
 </main>
 
 </div>

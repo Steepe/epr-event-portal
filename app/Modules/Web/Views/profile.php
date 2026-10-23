@@ -12,10 +12,9 @@ $photo = !empty($profile['profile_picture'])
     : asset_url('images/user.png');
 
 $fields = [
-    ['Email', $email],
     ['First name', $profile['firstname'] ?? ''],
     ['Last name', $profile['lastname'] ?? ''],
-    ['Phone', $profile['telephone'] ?? ''],
+    ['Telephone', $profile['telephone'] ?? ''],
     ['Country', $profile['country'] ?? ''],
     ['City', $profile['city'] ?? ''],
     ['State', $profile['state'] ?? ''],
@@ -46,17 +45,12 @@ $socials = [
             </div>
 
             <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
-                <span class="rc-kicker" style="font-size:11px">Attendee &middot; Accelerate 2026</span>
+                <span class="rc-kicker" style="font-size:11px;letter-spacing:.2em">Attendee &middot; Accelerate 2026</span>
                 <span style="font-size:36px;font-weight:700;letter-spacing:-.03em;line-height:1.05"><?php echo esc($fullName); ?></span>
                 <span style="font-size:15px;color:rgba(255,255,255,.86)"><?php echo esc($role ?: 'Conference attendee'); ?></span>
                 <span style="font-size:13px;color:rgba(255,255,255,.65);display:flex;gap:8px;align-items:center">
                     <i class="fa fa-map-marker" aria-hidden="true"></i><?php echo esc($location ?: 'Conference portal'); ?>
                 </span>
-                <?php if ($email !== ''): ?>
-                    <span style="font-size:13px;color:rgba(255,255,255,.65);display:flex;gap:8px;align-items:center">
-                        <i class="fa fa-envelope" aria-hidden="true"></i><?php echo esc($email); ?>
-                    </span>
-                <?php endif; ?>
             </div>
 
             <div style="display:flex;flex-direction:column;align-items:flex-end;gap:18px">
@@ -88,9 +82,9 @@ $socials = [
     </div>
 </main>
 
-<div id="editProfileModal" class="rc-modal-overlay" aria-hidden="true">
-    <div style="position:relative;width:100%;max-width:650px;max-height:calc(100vh - 48px);overflow:auto;box-sizing:border-box;background:#260029;border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:30px;box-shadow:0 20px 60px rgba(0,0,0,.5)">
-        <button type="button" id="closeEditProfile" class="rc-modal-close" style="position:absolute;top:14px;right:18px" aria-label="Close">&times;</button>
+<div id="editProfileModal" class="rc-modal-overlay" aria-hidden="true" style="padding:24px;box-sizing:border-box">
+    <div style="position:relative;width:100%;max-width:650px;max-height:100%;overflow:auto;box-sizing:border-box;background:#260029;border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:30px;box-shadow:0 20px 60px rgba(0,0,0,.5)">
+        <button type="button" id="closeEditProfile" class="rc-modal-close" data-rc-close-overlay style="position:absolute;top:14px;right:18px" aria-label="Close">&times;</button>
         <div style="font-size:22px;font-weight:700;color:#efb11e;text-align:center;margin-bottom:20px">Edit Profile</div>
 
         <form id="ProfileUpdateForm" action="<?php echo base_url('attendees/profile/update'); ?>" method="post" enctype="multipart/form-data" style="display:grid;grid-template-columns:1fr 1fr;gap:16px 22px">
@@ -101,7 +95,7 @@ $socials = [
                     <input class="rc-input" name="<?php echo $field; ?>" value="<?php echo esc($profile[$field] ?? ''); ?>">
                 </label>
             <?php endforeach; ?>
-            <button class="rc-btn" style="grid-column:1/-1;text-transform:none;letter-spacing:0">Save Changes</button>
+            <button class="rc-profile-save">Save Changes</button>
         </form>
     </div>
 </div>

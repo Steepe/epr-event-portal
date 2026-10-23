@@ -17,8 +17,8 @@ $dayIndex = 0;
                 <span class="rc-page-sub">Recorded sessions and archive access. Times shown in <?php echo esc($timezone); ?></span>
             </div>
 
-            <a href="<?php echo base_url('attendees/past_conferences'); ?>" class="rc-outline-pill" style="text-decoration:none">
-                <i class="fa fa-long-arrow-left" aria-hidden="true"></i>Archive
+            <a href="<?php echo base_url('attendees/past_conferences'); ?>" class="rc-back-link">
+                <i class="fa fa-long-arrow-left" aria-hidden="true"></i>BACK TO ARCHIVE
             </a>
         </div>
 

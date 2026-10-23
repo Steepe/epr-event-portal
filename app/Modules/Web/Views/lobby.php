@@ -15,15 +15,11 @@ $showPaymentNotice = $paymentNotice && !$paidUser;
     <div class="rc-payment-notice" data-payment-notice>
         <i class="fa fa-lock" style="color:#efb11e;font-size:16px" aria-hidden="true"></i>
         <div class="rc-payment-copy">
-            <strong style="font-weight:600"><?php echo $accessRequiresPayment ? 'Access restricted.' : 'Payment pending.'; ?></strong>
+            <strong style="font-weight:600">Access restricted.</strong>
             This is a paid event. Please complete your registration payment to unlock all sessions.
             <span class="rc-payment-ticket">Ticket: NGN 25,000</span>
         </div>
-        <?php if ($checkoutEnabled): ?>
-            <a href="<?php echo site_url('attendees/checkout'); ?>" class="rc-btn" style="height:36px;padding:0 20px;text-transform:none;letter-spacing:.04em;white-space:nowrap">Pay now</a>
-        <?php else: ?>
-            <span class="rc-outline-pill rc-payment-disabled" style="height:36px">Payment opening soon</span>
-        <?php endif; ?>
+        <a href="<?php echo site_url('attendees/checkout'); ?>" class="rc-payment-action">Pay now</a>
         <button type="button" class="rc-payment-close" aria-label="Close payment notice" data-close-payment-notice>&times;</button>
     </div>
 <?php endif; ?>
@@ -70,7 +66,7 @@ $showPaymentNotice = $paymentNotice && !$paidUser;
         <img src="<?php echo asset_url('images/accelerate-logo-white.png'); ?>" alt="Accelerate: Building sustainable systems for execution">
     </div>
 
-    <div class="rc-footer-note">Crafted with <i class="fa fa-heart" aria-hidden="true"></i> by <a href="https://about.me/steepe" target="_blank" rel="noopener">Creyatif</a> &bull; &copy; 2026 Powered By EPR Global.</div>
+    <div class="rc-footer-note">Crafted with <i class="fa fa-heart" aria-hidden="true"></i> by <a href="https://about.me/steepe" target="_blank" rel="noopener">Crèyatif</a> &bull; &copy; 2026 Powered By EPR Global.</div>
 </main>
 
 </div>

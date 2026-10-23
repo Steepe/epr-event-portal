@@ -73,7 +73,7 @@ class CheckoutController extends BaseController
 
         return $this->showCheckout([
             'mode' => 'attendee',
-            'productName' => 'Conference Ticket',
+            'productName' => 'Full Access Pass',
             'productDescription' => 'Complete your event payment to unlock the attendee portal.',
             'amount' => $price['amount'],
             'currency' => $price['currency'],
