@@ -19,12 +19,18 @@
 <body class="min-h-screen flex items-center justify-center bg-gray-100">
 <div class="w-full max-w-sm bg-white p-6 rounded shadow">
     <h2 class="text-xl font-bold mb-4">Admin Login</h2>
+    <?php if (session()->getFlashdata('success')): ?>
+        <div class="mb-3 text-green-700 bg-green-50 border border-green-200 rounded p-2 text-sm">
+            <?php echo esc(session()->getFlashdata('success')); ?>
+        </div>
+    <?php endif; ?>
     <?php if (session()->getFlashdata('login_error')): ?>
         <div class="mb-3 text-red-600 text-sm">
-            <?php echo session()->getFlashdata('login_error'); ?>
+            <?php echo esc(session()->getFlashdata('login_error')); ?>
         </div>
     <?php endif; ?>
     <form method="post" action="<?php echo site_url('admin/login'); ?>">
+        <?php echo csrf_field(); ?>
         <div class="mb-4">
             <label class="block text-sm font-medium">Email</label>
             <input type="email" name="email" required class="w-full border p-2 rounded" />
@@ -37,6 +43,11 @@
             Sign In
         </button>
     </form>
+    <p class="mt-4 text-center text-sm">
+        <a href="<?php echo site_url('admin/forgot-password'); ?>" class="text-blue-600 hover:underline">
+            Forgot password?
+        </a>
+    </p>
 </div>
 </body>
 </html>

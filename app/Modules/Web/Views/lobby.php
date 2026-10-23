@@ -1,314 +1,89 @@
 <?php
-/**
- * Lobby Page (Brain Hub Design)
- * Author: Oluwamayowa Steepe
- * Project: epr-event-portal
- */
-
 echo module_view('Web', 'includes/header');
 echo module_view('Web', 'includes/lobby_topbar');
 
-$attendee_id = session('attendee_id') ?? null;
-$country = session('reg_country') ?? 'Nigeria';
+$conferenceId = session()->get('live-conference-id');
+$agendaUrl = $conferenceId ? base_url('attendees/agenda/' . $conferenceId) : base_url('attendees/start');
+$accessRequiresPayment = (bool) ($access_requires_payment ?? false);
+$checkoutEnabled = (bool) ($checkout_enabled ?? false);
+$paymentNotice = isset($payment_notice) ? (bool) $payment_notice : true;
+$paidUser = (bool) (session()->get('portal_paid') ?? session()->get('paid') ?? false);
+$showPaymentNotice = $paymentNotice && !$paidUser;
 ?>
 
-<style>
-    body {
-        font-family: 'Poppins', sans-serif;
-        background-size: cover;
-        overflow: hidden;
-    }
-
-    /* 🎥 Fullscreen Video Background */
-    #bgVideo {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        object-position: 50% 45%; /* 👈 adjust this */
-        z-index: -1;
-    }
-
-    #videoOverlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: 0; /* sits above the video but below content */
-    }
-
-    /* --- Payment Notice --- */
-    #paymentNotice {
-        display: none;
-        margin: 20px auto;
-        width: 90%;
-        background: #fff3cd;
-        color: #856404;
-        border: 1px solid #ffeeba;
-        border-radius: 8px;
-        padding: 10px 15px;
-        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
-        transition: all 0.3s ease;
-        font-size: 14px;
-        position: relative;
-        z-index: 1000;
-    }
-
-    #paymentNotice .content {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-
-    #priceInfo {
-        font-weight: 600;
-        color: #7a5200;
-        margin-left: 10px;
-    }
-
-    #closeNotice {
-        background: none;
-        border: none;
-        color: #856404;
-        font-size: 20px;
-        cursor: pointer;
-        font-weight: bold;
-        margin-left: 10px;
-    }
-
-    #closeNotice:hover {
-        color: #5c4300;
-    }
-
-    /* --- Floating Brain Bubbles --- */
-    .bubble {
-        position: absolute;
-        width: 140px;
-        height: 140px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #fff;
-        font-weight: 600;
-        font-size: 14px;
-        text-align: center;
-        cursor: pointer;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
-    }
-
-    .bubble:hover {
-        transform: scale(1.08);
-        box-shadow: 0 0 25px rgba(255, 255, 255, 0.6);
-    }
-
-    .past {
-        background: radial-gradient(circle at top left, #f3722c, #d8198e);
-        bottom: 38%;
-        right: 10%;
-    }
-
-
-    .agenda     { background: radial-gradient(circle at top left, #f1a91e, #d68500); top: 15%; left: 25%; }
-    .networking { background: radial-gradient(circle at top left, #8b4ac0, #693b9c); top: 40%; left: 45%; }
-    .envision   { background: radial-gradient(circle at top left, #a04fc0, #6a239a); top: 18%; right: 24%; }
-    .exhibitors { background: radial-gradient(circle at top left, #d61be3, #9b0eaa); bottom: 22%; left: 25%; }
-    .sponsors   { background: radial-gradient(circle at top left, #a82ad2, #7200a4); bottom: 64%; left: 65%; }
-    .emergence  { background: radial-gradient(circle at top left, #e988a2, #c95c7c); bottom: 20%; right: 25%; }
-
-    .bubble a {
-        color: #fff;
-        text-decoration: none;
-        font-weight: 600;
-    }
-
-    footer {
-        position: fixed;
-        bottom: 10px;
-        left: 0;
-        width: 100%;
-        text-align: center;
-        color: #ddd;
-        font-size: 13px;
-    }
-
-    footer a {
-        color: #d8198e;
-        text-decoration: none;
-    }
-
-    /* Floating animation */
-    @keyframes float1 { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-12px); } }
-    @keyframes float2 { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(10px); } }
-    @keyframes float3 { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-8px); } }
-</style>
-
-<!-- 🎥 Background Video -->
-<video autoplay muted loop playsinline id="bgVideo">
-    <source src="<?php echo  asset_url('videos/brain-lobby-bg.mp4'); ?>" type="video/mp4">
-    Your browser does not support the video tag.
-</video>
-<script>
-    document.addEventListener("DOMContentLoaded", function() {
-        const video = document.getElementById("bgVideo");
-        if (video) {
-            video.playbackRate = 0.5; // 👈 0.5 = half speed, 1 = normal speed
-        }
-    });
-</script>
-
-<div id="videoOverlay"></div>
-
-
-
-<!-- 🔔 Paid Event Notification -->
-<div id="paymentNotice" class="alert alert-warning text-center">
-    <div class="content">
-        <div>
-            <strong>Access Restricted:</strong>
+<?php if ($showPaymentNotice): ?>
+    <div class="rc-payment-notice" data-payment-notice>
+        <i class="fa fa-lock" style="color:#efb11e;font-size:16px" aria-hidden="true"></i>
+        <div class="rc-payment-copy">
+            <strong style="font-weight:600">Access restricted.</strong>
             This is a paid event. Please complete your registration payment to unlock all sessions.
-            <span id="priceInfo"></span>
+            <span class="rc-payment-ticket">Ticket: NGN 25,000</span>
         </div>
-        <button id="closeNotice">&times;</button>
+        <a href="<?php echo site_url('attendees/checkout'); ?>" class="rc-payment-action">Pay now</a>
+        <button type="button" class="rc-payment-close" aria-label="Close payment notice" data-close-payment-notice>&times;</button>
     </div>
-</div>
+<?php endif; ?>
 
-<!-- 🧠 Brain Hub Interactive Bubbles -->
-<div class="bubble agenda">
-    <?php
-        $conference_id = session()->get('live-conference-id');
-    ?>
-    <a href="<?php echo base_url('attendees/agenda/'.$conference_id); ?>">AGENDA</a>
-</div>
+<main data-screen-label="Lobby" style="position:absolute;inset:0">
+    <a data-node="agenda" data-to="networking exhibitors" class="rc-lobby-node"
+       href="<?php echo $agendaUrl; ?>"
+       style="left:15%;top:46%;transform:translate(-50%,-50%);background:radial-gradient(circle at top left,#f1a91e,#d68500)">
+        AGENDA
+    </a>
 
-<div class="bubble networking">
-    <a href="<?php echo  base_url('attendees/networking_center'); ?>">NETWORKING<br>CENTER</a>
-</div>
+    <a data-node="networking" data-to="sponsors exhibitors" class="rc-lobby-node"
+       href="<?php echo base_url('attendees/networking_center'); ?>"
+       style="left:34%;top:max(30%,250px);transform:translate(-50%,-50%);background:radial-gradient(circle at top left,#8b4ac0,#693b9c)">
+        NETWORKING<br>CENTER
+    </a>
 
-<div class="bubble exhibitors">
-    <a href="<?php echo  base_url('attendees/exhibitors'); ?>">EXHIBITORS</a>
-</div>
+    <a data-node="exhibitors" data-to="sponsors emergence" class="rc-lobby-node"
+       href="<?php echo base_url('attendees/exhibitors'); ?>"
+       style="left:50%;top:64%;transform:translate(-50%,-50%);background:radial-gradient(circle at top left,#d61be3,#9b0eaa)">
+        EXHIBITORS
+    </a>
 
-<div class="bubble sponsors">
-    <a href="<?php echo  base_url('attendees/sponsors'); ?>">SPONSORS</a>
-</div>
+    <a data-node="sponsors" data-to="emergence" class="rc-lobby-node"
+       href="<?php echo base_url('attendees/sponsors'); ?>"
+       style="left:66%;top:max(32%,262px);transform:translate(-50%,-50%);background:radial-gradient(circle at top left,#a82ad2,#7200a4)">
+        SPONSORS
+    </a>
 
-<div class="bubble emergence">
-    <a href="<?php echo  base_url('attendees/emergence_booth'); ?>">EMERGENCE<br>BOOTH</a>
-</div>
+    <a data-node="emergence" class="rc-lobby-node"
+       href="<?php echo base_url('attendees/emergence_booth'); ?>"
+       style="left:84%;top:56%;transform:translate(-50%,-50%);background:radial-gradient(circle at top left,#e988a2,#c95c7c)">
+        EMERGENCE<br>BOOTH
+    </a>
 
-<!-- 🔔 Announcement Sidebar -->
-<!--<div class="notification-slide" id="notification_slide">
-    <div class="slider-arrow text-white">
-        <i id="ringing" class="fa fa-bell faa-ring animated fa-5x ringing-bell" style="display: none;"></i>
-        <img class="slide-out" src="<?php /*echo asset_url('images/slider-arrow-reverse.png') */?>">
-        <img class="slide-in" src="<?php /*echo asset_url('images/slider-arrow.png') */?>" style="display: none;">
+    <span class="rc-lobby-index" style="left:15%;top:calc(46% + 92px)">01</span>
+    <span class="rc-lobby-index" style="left:34%;top:calc(max(30%,250px) + 92px)">02</span>
+    <span class="rc-lobby-index" style="left:50%;top:calc(64% + 92px)">03</span>
+    <span class="rc-lobby-index" style="left:66%;top:calc(max(32%,262px) + 92px)">04</span>
+    <span class="rc-lobby-index" style="left:84%;top:calc(56% + 92px)">05</span>
+
+    <div class="rc-lobby-brand">
+        <span class="rc-kicker">Lobby &middot; Emergence 2026</span>
+        <img src="<?php echo asset_url('images/accelerate-logo-white.png'); ?>" alt="Accelerate: Building sustainable systems for execution">
     </div>
 
-    <div class="text-center" style="position: relative; top: -34px;">
-        <h5 style="color: #EFB11E;">ANNOUNCEMENTS</h5>
-    </div>
+    <div class="rc-footer-note">Crafted with <i class="fa fa-heart" aria-hidden="true"></i> by <a href="https://about.me/steepe" target="_blank" rel="noopener">Crèyatif</a> &bull; &copy; 2026 Powered By EPR Global.</div>
+</main>
 
-    <div id="announcements_div" class="announcements mb-5" style="height: 450px; overflow-y: scroll;">
-        <?php /*if (isset($announcements)) : */?>
-            <?php /*foreach ($announcements as $announcement) : */?>
-                <div class="card announcement-card">
-                    <div class="card-header">
-                        <small class="float-right">
-                            <?php /*echo date('M d H:i', $announcement['created_at']); */?>
-                        </small>
-                    </div>
-                    <div class="card-body">
-                        <p class="card-text font-12" style="margin-top: -30px;">
-                            <?php /*echo $announcement['announcement']; */?>
-                        </p>
-                    </div>
-                </div>
-            <?php /*endforeach; */?>
-        <?php /*endif; */?>
-    </div>
 </div>
--->
-<!-- ⚙️ Footer -->
-<footer>
-    <div>
-        Crafted with <i class="fa fa-heart" aria-hidden="true"></i> by
-        <a href="https://about.me/steepe" target="_blank">Crèyatif</a> •
-        &copy; <?php echo  date("Y"); ?> Powered By EPR Global.
-    </div>
-</footer>
+</div>
 
-<?php
-echo module_view('Web', 'includes/scripts');
-?>
-
+<?php echo module_view('Web', 'includes/scripts'); ?>
 <script>
-    // Floating animation assignment
-    document.querySelectorAll('.bubble').forEach(b => {
-        b.style.animation = `float${Math.floor(Math.random() * 3) + 1} 6s ease-in-out infinite`;
-    });
-
-    $(document).ready(function () {
-        var objDiv = document.getElementById("notification_slide");
-        if (objDiv) objDiv.scrollTop = objDiv.scrollHeight;
-    });
-
-    // Paid event logic
-    document.addEventListener("DOMContentLoaded", async () => {
-        const attendeeId = "<?php echo  $attendee_id; ?>";
-        const country = "<?php echo  $country; ?>";
-        const apiBase = "<?php echo  rtrim(base_url('api'), '/'); ?>";
-        const apiKey = "<?php echo  env('api.securityKey'); ?>";
-
-        async function apiGet(endpoint) {
-            const res = await fetch(`${apiBase}/${endpoint}`, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-API-KEY": apiKey
-                }
-            });
-            if (!res.ok) throw new Error(`API ${endpoint} failed (${res.status})`);
-            return res.json();
-        }
-
-        try {
-            const confData = await apiGet("conferences/live");
-            const conf = confData?.data;
-            if (!conf) return;
-
-            const isPaidEvent = conf.is_paid === 1;
-            const conferenceId = conf.conference_id;
-
-            const priceData = await apiGet(`ticket-prices/${conferenceId}/${country}`);
-            const payData = await apiGet(`payments/check/${attendeeId}`);
-            const hasPaid = payData?.data && Object.keys(payData.data).length > 0;
-
-            if (isPaidEvent && !hasPaid) {
-                const notice = document.getElementById("paymentNotice");
-                const priceInfo = document.getElementById("priceInfo");
-                priceInfo.textContent =
-                    priceData.status === "success"
-                        ? `Ticket: ${priceData.currency} ${priceData.price}`
-                        : "Ticket pricing unavailable.";
-                notice.style.display = "block";
-            }
-
-            document.getElementById("closeNotice")?.addEventListener("click", () => {
-                document.getElementById("paymentNotice").style.display = "none";
-            });
-        } catch (err) {
-            console.error("Error loading conference/payment info:", err);
-        }
-    });
+document.addEventListener("click", function(event) {
+    const close = event.target.closest("[data-close-payment-notice]");
+    if (!close) {
+        return;
+    }
+    const notice = close.closest("[data-payment-notice]");
+    if (notice) {
+        notice.classList.add("is-hidden");
+    }
+});
 </script>
-
-
 </body>
 </html>

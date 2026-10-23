@@ -1,194 +1,89 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: oluwamayowasteepe
- * Project: epr-event-portal
- * Date: 09/11/2025
- * Time: 23:34
- */
+$live = null;
+$past = [];
 
-
-echo module_view('Web', 'includes/header');
-echo module_view('Web', 'includes/lobby_topbar');
-?>
-
-<style>
-body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Poppins', sans-serif;
-    overflow-x: hidden;
-    color: #fff;
-}
-
-/* 🎥 Video Background */
-#bgVideo {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    object-fit: cover;
-    filter: blur(6px) brightness(0.6);
-    z-index: -2;
-}
-
-/* 🌈 Overlay Gradient */
-#videoOverlay {
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    z-index: -1;
-}
-
-/* 🌀 Main Lobby Container */
-.lobby-container {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    padding: 100px 0 60px;
-}
-
-/* 🟣 Bubble Defaults */
-.lobby-bubble {
-    border-radius: 50%;
-    cursor: pointer;
-    overflow: hidden;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    transition: transform .3s ease, box-shadow .3s ease;
-    filter: drop-shadow(0 0 10px rgba(255,255,255,0.2));
-}
-.lobby-bubble:hover {
-    transform: scale(1.08);
-    box-shadow: 0 0 25px rgba(255,255,255,0.3);
-}
-.lobby-bubble img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-}
-
-/* 💫 Center Live Bubble */
-.lobby-center {
-    position: relative;
-    bottom: 180px;
-    z-index: 2;
-    animation: pulseGlow 3s infinite ease-in-out;
-}
-.lobby-center img {
-    width: 380px;
-    height: auto;
-}
-@keyframes pulseGlow {
-    0%, 100% { transform: scale(1); filter: drop-shadow(0 0 20px rgba(255,200,50,0.8)); }
-    50% { transform: scale(1.07); filter: drop-shadow(0 0 35px rgba(255,210,90,1)); }
-}
-
-/* 🎯 Static Top Bubbles */
-.bubble-webinars {
-    position: absolute;
-    top: 13.5%; left: 15%;
-    width: 150px;
-    height: 150px;
-}
-.bubble-envision {
-    position: absolute;
-    top: 13.5%;
-    right: 15%;
-    width: 150px;
-    height: 150px;
-}
-
-/* 🔵 Past Conference Bubbles */
-.lobby-events {
-    display: flex;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 40px;
-    margin-top: 70px;
-    z-index: 1;
-}
-
-/* 📱 Responsive */
-@media (max-width: 992px) {
-    .bubble-webinars, .bubble-envision {
-        position: static;
-        width: 120px; height: 120px;
-        margin-bottom: 30px;
-    }
-    .lobby-center img { width: 240px; }
-    .lobby-events { gap: 25px; }
-}
-</style>
-
-<!-- 🎥 Background Video -->
-<video autoplay muted loop playsinline id="bgVideo">
-    <source src="<?= asset_url('videos/start-bg.mp4'); ?>" type="video/mp4">
-</video>
-<div id="videoOverlay"></div>
-
-<div class="lobby-container">
-
-    <!-- 🟣 Static Bubbles -->
-    <div class="lobby-bubble bubble-webinars"
-         onclick="window.location='<?php echo base_url('attendees/webinars'); ?>'">
-        <img src="<?php echo asset_url('images/webinars.png'); ?>" alt="EPR Global Webinars">
-    </div>
-
-    <div class="lobby-bubble bubble-envision"
-         onclick="window.location='<?php echo base_url('attendees/envision'); ?>'">
-        <img src="<?php echo asset_url('images/envision.png'); ?>" alt="Envision">
-    </div>
-
-    <?php
-    $live = null;
-    $past = [];
-
-    if (!empty($conferences)) {
-        foreach ($conferences as $conf) {
-            if ($conf['status'] === 'live') $live = $conf;
-            else $past[] = $conf;
+if (!empty($conferences)) {
+    foreach ($conferences as $conf) {
+        if (($conf['status'] ?? '') === 'live') {
+            $live = $conf;
+            session()->set('live-conference-id', $conf['conference_id']);
+        } else {
+            $past[] = $conf;
         }
     }
-    ?>
+}
 
-    <!-- 🌟 Live Conference -->
-    <?php if (!empty($live)): ?>
-        <?php session()->set('live-conference-id', $live['conference_id']); ?>
-        <div class="lobby-center" style="cursor: pointer;">
-            <img src="<?php echo base_url('uploads/conferences/' . $live['icon']); ?>"
-                 alt="<?php echo esc($live['title']); ?>"
-                 onclick="window.location='<?php echo base_url('attendees/home'); ?>'">
-        </div>
-    <?php endif; ?>
+echo module_view('Web', 'includes/header');
+echo module_view('Web', 'includes/topbar');
+?>
 
-    <!-- 🏆 Past Conferences -->
-    <div class="lobby-events">
-        <?php if (!empty($past)): ?>
-            <?php
-            // Sort by year ascending
-            usort($past, fn($a, $b) => (int)$a['year'] <=> (int)$b['year']);
-
-            // Fixed bubble size
-            $bubbleSize = 140; // adjust as desired
-
-            foreach ($past as $conf):
-                $image = !empty($conf['icon'])
-                    ? base_url('uploads/conferences/' . $conf['icon'])
-                    : asset_url('images/lobby/default.png');
-                ?>
-                <div class="lobby-bubble"
-                     style="width:<?php echo $bubbleSize; ?>px; height:<?php echo $bubbleSize; ?>px;"
-                     onclick="window.location='<?php echo base_url('attendees/pastConference/' . $conf['conference_id']); ?>'">
-                    <img src="<?php echo $image; ?>" alt="<?php echo esc($conf['title']); ?>">
-                </div>
-            <?php endforeach; ?>
-        <?php endif; ?>
+<main data-screen-label="Landing" style="position:absolute;inset:0">
+    <div style="position:absolute;left:7vw;top:112px;display:flex;flex-direction:column;gap:8px">
+        <span class="rc-kicker">Welcome back, <?php echo esc(session('firstname') ?: 'Ada'); ?></span>
+        <span style="font-size:34px;font-weight:600;letter-spacing:-.02em;color:#fff">Where would you like to go?</span>
     </div>
 
+    <a data-node="past"
+       data-to="core"
+       data-shape="rect"
+       href="<?php echo base_url('attendees/past_conferences'); ?>"
+       class="rc-start-module rc-start-module-side"
+       style="left:17%;top:60%">
+        <span class="rc-start-module-num">MODULE 01</span>
+        <div style="display:flex">
+            <img src="<?php echo asset_url('images/innovate-icon.png'); ?>" alt="" style="width:54px;height:54px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 3px #2c1830">
+            <img src="<?php echo asset_url('images/dominate-icon.png'); ?>" alt="" style="width:54px;height:54px;border-radius:50%;object-fit:cover;margin-left:-14px;box-shadow:0 0 0 3px #2c1830">
+            <img src="<?php echo asset_url('images/unleash-icon.png'); ?>" alt="" style="width:54px;height:54px;border-radius:50%;object-fit:cover;margin-left:-14px;box-shadow:0 0 0 3px #2c1830;background:#fff">
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:14px">
+            <span style="font-size:18px;font-weight:600;color:#fff">Past Conferences</span>
+            <i class="fa fa-long-arrow-right" style="color:#efb11e" aria-hidden="true"></i>
+        </div>
+        <span class="rc-start-port is-right"></span>
+    </a>
+
+    <a data-node="core"
+       data-to="webinars"
+       data-shape="rect"
+       href="<?php echo base_url('attendees/home'); ?>"
+       class="rc-start-module rc-start-module-core"
+       style="left:50%;top:56%">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
+            <span class="rc-start-module-num" style="color:rgba(255,255,255,.7)">MODULE 02</span>
+            <span class="rc-start-live-badge">
+                <span></span>LIVE NOW
+            </span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+            <img src="<?php echo asset_url('images/accelerate-logo-white.png'); ?>"
+                 alt="Accelerate: Building sustainable systems for execution"
+                 style="display:block;width:100%;max-width:300px;height:auto">
+            <span class="rc-mono" style="font-size:15px;letter-spacing:.24em;color:#efb11e">2026</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;font-size:14px;font-weight:600;letter-spacing:.08em;color:#fff">
+            <span>ENTER CONFERENCE</span>
+            <i class="fa fa-long-arrow-right" style="color:#efb11e" aria-hidden="true"></i>
+        </div>
+        <span class="rc-start-port is-left"></span>
+        <span class="rc-start-port is-right"></span>
+    </a>
+
+    <a data-node="webinars"
+       data-shape="rect"
+       href="<?php echo base_url('attendees/webinars'); ?>"
+       class="rc-start-module rc-start-module-side"
+       style="left:83%;top:60%">
+        <span class="rc-start-module-num">MODULE 03</span>
+        <img src="<?php echo asset_url('images/webinars.png'); ?>" alt="EPR Global Webinars" style="width:64px;height:64px;object-fit:contain">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:14px">
+            <span style="font-size:18px;font-weight:600;color:#fff">Webinars</span>
+            <i class="fa fa-long-arrow-right" style="color:#efb11e" aria-hidden="true"></i>
+        </div>
+        <span class="rc-start-port is-left"></span>
+    </a>
+</main>
+
+</div>
 </div>
 
 <?php echo module_view('Web', 'includes/scripts'); ?>

@@ -1,394 +1,146 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: oluwamayowasteepe
- * Project: epr-event-portal
- * Date: 14/11/2025
- * Time: 01:55
- */
-
 echo module_view('Web', 'includes/header');
 echo module_view('Web', 'includes/topbar');
+
+$fullName = trim(($profile['firstname'] ?? '') . ' ' . ($profile['lastname'] ?? ''));
+$fullName = $fullName !== '' ? $fullName : 'Attendee';
+$role = trim(($profile['position'] ?? '') . (!empty($profile['company']) ? ', ' . $profile['company'] : ''));
+$location = trim(($profile['city'] ?? '') . (!empty($profile['country']) ? ', ' . $profile['country'] : ''));
+$email = trim((string) ($profile['email'] ?? ''));
+$photo = !empty($profile['profile_picture'])
+    ? base_url('uploads/attendee_pictures/' . $profile['profile_picture'])
+    : asset_url('images/user.png');
+
+$fields = [
+    ['First name', $profile['firstname'] ?? ''],
+    ['Last name', $profile['lastname'] ?? ''],
+    ['Telephone', $profile['telephone'] ?? ''],
+    ['Country', $profile['country'] ?? ''],
+    ['City', $profile['city'] ?? ''],
+    ['State', $profile['state'] ?? ''],
+    ['Company', $profile['company'] ?? ''],
+    ['Position', $profile['position'] ?? ''],
+];
+
+$socials = [
+    'facebook'  => ['icon' => 'facebook.svg',  'base' => 'https://facebook.com/'],
+    'twitter'   => ['icon' => 'x.svg',         'base' => 'https://twitter.com/'],
+    'linkedin'  => ['icon' => 'linkedin.svg',  'base' => 'https://linkedin.com/in/'],
+    'instagram' => ['icon' => 'instagram.svg', 'base' => 'https://instagram.com/'],
+];
 ?>
 
-<style>
-    /* RESET */
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-        font-family: "Inter", sans-serif;
-    }
-
-    body {
-        background: #f2d9ef;
-        overflow-x: hidden;
-    }
-
-    /* ===================== PROFILE HERO ===================== */
-    .profile-hero {
-        width: 100%;
-        height: 360px;
-        background: url("<?php echo asset_url('images/epr-profile-bg.png'); ?>") center/cover no-repeat;
-        display: flex;
-        justify-content: center;
-        align-items: flex-end;
-        padding-bottom: 35px;
-    }
-
-    .profile-photo-wrapper {
-        position: relative;
-        width: 200px;
-        height: 200px;
-        top: 135px;
-    }
-
-    .profile-photo {
-        width: 100%;
-        height: 100%;
-        border-radius: 14px;
-        object-fit: cover;
-        border: 4px solid #fff;
-    }
-
-    /* Floating Camera Button */
-    .camera-btn {
-        position: absolute;
-        bottom: 10px;
-        right: -14px;
-        width: 46px;
-        height: 46px;
-        background: #b31bb7;
-        border-radius: 50%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        cursor: pointer;
-    }
-
-    .camera-btn svg path {
-        stroke: white;
-    }
-
-    .camera-btn input {
-        position: absolute;
-        opacity: 0;
-        width: 100%;
-        height: 100%;
-    }
-
-    /* ===================== PROFILE BODY ===================== */
-    .profile-body {
-        width: 100%;
-        min-height: 420px;
-        padding-top: 70px;
-        text-align: center;
-        margin-top: 100px;
-    }
-
-    .edit-btn {
-        padding: 12px 40px;
-        background: #a1289b;
-        color: white;
-        border: none;
-        cursor: pointer;
-        border-radius: 8px;
-        font-size: 16px;
-        font-weight: 600;
-    }
-
-    .social-links {
-        margin-top: 30px;
-        display: flex;
-        justify-content: center;
-        gap: 35px;
-        font-size: 24px;
-    }
-
-    .social-links svg path,
-    .social-links svg rect,
-    .social-links svg circle {
-        stroke: #701b75;
-        transition: .2s;
-    }
-
-    .social-links a:hover svg path,
-    .social-links a:hover svg rect,
-    .social-links a:hover svg circle {
-        stroke: #000 !important;
-        fill: #000 !important;
-    }
-
-    @media (max-width: 768px) {
-        .profile-photo-wrapper {
-            width: 160px;
-            height: 160px;
-            top: 110px;
-        }
-    }
-
-    /* ================== MODAL ================== */
-    .modal-overlay {
-        position: fixed;
-        top: 0; left: 0;
-        width: 100vw;
-        height: 100vh;
-        background: rgba(0,0,0,0.55);
-        display: none;
-        justify-content: center;
-        align-items: center;
-        z-index: 99999;
-    }
-
-    .modal-box {
-        width: 95%;
-        max-width: 650px;
-        background: #fff;
-        border-radius: 18px;
-        padding: 30px;
-        position: relative;
-        animation: fadeIn .25s ease;
-    }
-
-    .modal-close {
-        position: absolute;
-        top: 15px;
-        right: 18px;
-        font-size: 22px;
-        color: #444;
-        cursor: pointer;
-    }
-
-    .modal-title {
-        font-size: 22px;
-        font-weight: 700;
-        color: #9D0F82;
-        margin-bottom: 15px;
-        text-align: center;
-    }
-
-    .form-group {
-        margin-bottom: 14px;
-        text-align: left;
-    }
-
-    .form-group label {
-        font-size: 14px;
-        font-weight: 600;
-        color: #444;
-        margin-bottom: 5px;
-        display: block;
-    }
-
-    .form-group input {
-        width: 100%;
-        padding: 11px 14px;
-        border: 1px solid #bbb;
-        border-radius: 8px;
-        font-size: 14px;
-    }
-
-    .form-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr) !important;
-        gap: 18px 25px;
-        width: 100%;
-    }
-
-    .save-btn {
-        background: #9D0F82;
-        color: white;
-        width: 100%;
-        padding: 13px;
-        border: none;
-        border-radius: 10px;
-        font-size: 15px;
-        font-weight: 600;
-        cursor: pointer;
-        grid-column: span 2;
-    }
-
-    @media (max-width: 600px) {
-        .form-grid {
-            grid-template-columns: 1fr !important;
-        }
-        .save-btn {
-            grid-column: span 1;
-        }
-    }
-
-</style>
-
-<!-- =================== HERO SECTION =================== -->
-<section class="profile-hero">
-    <div class="profile-photo-wrapper">
-        <img src="<?php echo base_url('uploads/attendee_pictures/' . $profile['profile_picture']); ?>"
-             class="profile-photo"
-             onerror="this.src='<?php echo asset_url("images/user.png"); ?>';">
-
-        <div class="camera-btn">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                <path d="M12 17.25C14.347 17.25 16.25 15.347 16.25 13C16.25 10.653 14.347 8.75 12 8.75C9.653 8.75 7.75 10.653 7.75 13C7.75 15.347 9.653 17.25 12 17.25Z"
-                      stroke-width="2"/>
-                <path d="M4 7H7L9 4H15L17 7H20C21.105 7 22 7.895 22 9V19C22 20.105 21.105 21 20 21H4C2.895 21 2 20.105 2 19V9C2 7.895 2.895 7 4 7Z"
-                      stroke-width="2"/>
-            </svg>
-
-            <input type="file" id="uploadPhoto" accept="image/*">
-        </div>
-    </div>
-</section>
-
-<!-- =================== PROFILE BODY =================== -->
-<section class="profile-body">
-    <button class="edit-btn">Edit Profile</button>
-
-    <div class="social-links">
-
-        <?php
-        $socials = [
-            'facebook'  => ['icon' => 'facebook.svg',  'base' => 'https://facebook.com/'],
-            'twitter'   => ['icon' => 'x.svg',         'base' => 'https://twitter.com/'], // for X
-            'linkedin'  => ['icon' => 'linkedin.svg',  'base' => 'https://linkedin.com/in/'],
-            'instagram' => ['icon' => 'instagram.svg', 'base' => 'https://instagram.com/']
-        ];
-
-        foreach ($socials as $field => $meta) {
-
-            $value = trim($profile[$field] ?? '');
-
-            if (empty($value)) continue;
-
-            // If the user entered @username → remove '@'
-            if (str_starts_with($value, '@')) {
-                $value = ltrim($value, '@');
-            }
-
-            // Detect if they provided a full URL already
-            $isFullUrl = str_starts_with($value, 'http://') || str_starts_with($value, 'https://');
-
-            // Build final profile link
-            $url = $isFullUrl ? $value : $meta['base'] . $value;
-            ?>
-
-            <a href="<?php echo esc($url); ?>" target="_blank">
-                <img src="<?php echo asset_url('images/social/' . $meta['icon']); ?>"
-                     alt="<?php echo $field; ?>" width="25px">
-            </a>
-
-        <?php } ?>
-
-    </div>
-</section>
-
-<!-- =================== EDIT MODAL =================== -->
-<div class="modal-overlay" id="editProfileModal">
-    <div class="modal-box">
-        <div class="modal-close" onclick="closeEditModal()">×</div>
-        <div class="modal-title">Edit Profile</div>
-
-        <form action="<?php echo base_url('attendees/profile/update'); ?>" method="post">
-            <input type="hidden" name="id" value="<?php echo $profile['id']; ?>">
-
-            <div class="form-grid">
-
-                <div class="form-group">
-                    <label>First Name</label>
-                    <input name="firstname" value="<?php echo esc($profile['firstname']); ?>" required>
-                </div>
-
-                <div class="form-group">
-                    <label>Last Name</label>
-                    <input name="lastname" value="<?php echo esc($profile['lastname']); ?>" required>
-                </div>
-
-                <div class="form-group">
-                    <label>Telephone</label>
-                    <input name="telephone" value="<?php echo esc($profile['telephone']); ?>">
-                </div>
-
-                <div class="form-group">
-                    <label>Country</label>
-                    <input name="country" value="<?php echo esc($profile['country']); ?>">
-                </div>
-
-                <div class="form-group">
-                    <label>City</label>
-                    <input name="city" value="<?php echo esc($profile['city']); ?>">
-                </div>
-
-                <div class="form-group">
-                    <label>State</label>
-                    <input name="state" value="<?php echo esc($profile['state']); ?>">
-                </div>
-
-                <div class="form-group">
-                    <label>Company</label>
-                    <input name="company" value="<?php echo esc($profile['company']); ?>">
-                </div>
-
-                <div class="form-group">
-                    <label>Position</label>
-                    <input name="position" value="<?php echo esc($profile['position']); ?>">
-                </div>
-
-                <!-- NEW SOCIAL MEDIA FIELDS -->
-                <div class="form-group">
-                    <label>Facebook</label>
-                    <input name="facebook" value="<?php echo esc($profile['facebook']); ?>">
-                </div>
-
-                <div class="form-group">
-                    <label>Twitter/X</label>
-                    <input name="twitter" value="<?php echo esc($profile['twitter']); ?>">
-                </div>
-
-                <div class="form-group">
-                    <label>Instagram</label>
-                    <input name="instagram" value="<?php echo esc($profile['instagram']); ?>">
-                </div>
-
-                <div class="form-group">
-                    <label>LinkedIn</label>
-                    <input name="linkedin" value="<?php echo esc($profile['linkedin']); ?>">
-                </div>
-
+<main class="rc-page rc-page-center" data-screen-label="Profile">
+    <div class="rc-container" style="max-width:1080px">
+        <section class="rc-panel" style="border-radius:20px;padding:32px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:32px">
+            <div style="position:relative;width:160px;height:160px">
+                <img src="<?php echo $photo; ?>"
+                     alt="Profile photo"
+                     onerror="this.src='<?php echo asset_url('images/user.png'); ?>';"
+                     style="width:100%;height:100%;border-radius:14px;object-fit:cover;border:4px solid #fff;box-sizing:border-box">
+                <label style="position:absolute;bottom:10px;right:-14px;width:46px;height:46px;border-radius:50%;background:#b31bb7;display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;box-shadow:0 6px 16px rgba(0,0,0,.35)">
+                    <i class="fa fa-camera" aria-hidden="true"></i>
+                    <input type="file" id="uploadPhoto" accept="image/*" style="position:absolute;opacity:0;inset:0;cursor:pointer">
+                </label>
             </div>
 
-            <button class="save-btn">Save Changes</button>
+            <div style="display:flex;flex-direction:column;gap:8px;min-width:0">
+                <span class="rc-kicker" style="font-size:11px;letter-spacing:.2em">Attendee &middot; Accelerate 2026</span>
+                <span style="font-size:36px;font-weight:700;letter-spacing:-.03em;line-height:1.05"><?php echo esc($fullName); ?></span>
+                <span style="font-size:15px;color:rgba(255,255,255,.86)"><?php echo esc($role ?: 'Conference attendee'); ?></span>
+                <span style="font-size:13px;color:rgba(255,255,255,.65);display:flex;gap:8px;align-items:center">
+                    <i class="fa fa-map-marker" aria-hidden="true"></i><?php echo esc($location ?: 'Conference portal'); ?>
+                </span>
+            </div>
+
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:18px">
+                <div style="display:flex;gap:12px">
+                    <?php foreach ($socials as $field => $meta): ?>
+                        <?php $value = trim($profile[$field] ?? ''); ?>
+                        <?php if (empty($value)) continue; ?>
+                        <?php $href = preg_match('/^https?:\/\//', $value) ? $value : $meta['base'] . ltrim($value, '@'); ?>
+                        <a href="<?php echo esc($href); ?>" target="_blank" rel="noopener" style="width:42px;height:42px;border-radius:50%;background:#9d0f82;display:flex;align-items:center;justify-content:center">
+                            <img src="<?php echo asset_url('images/social/' . $meta['icon']); ?>" alt="<?php echo esc($field); ?>" width="20">
+                        </a>
+                    <?php endforeach; ?>
+                </div>
+                <button type="button" id="openEditProfile" style="padding:12px 36px;border:0;border-radius:8px;background:#a1289b;color:#fff;font-size:15px;font-weight:600;cursor:pointer;white-space:nowrap">Edit Profile</button>
+            </div>
+        </section>
+
+        <section class="rc-panel" style="border-radius:20px;padding:28px 32px;display:flex;flex-direction:column;gap:22px">
+            <span style="font-size:18px;font-weight:600">Personal details</span>
+            <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px 28px">
+                <?php foreach ($fields as [$label, $value]): ?>
+                    <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
+                        <span class="rc-mono" style="font-size:10px;letter-spacing:.18em;color:rgba(255,255,255,.55);text-transform:uppercase"><?php echo esc($label); ?></span>
+                        <span style="font-size:15px;font-weight:500;overflow:hidden;text-overflow:ellipsis"><?php echo esc($value ?: '-'); ?></span>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </section>
+    </div>
+</main>
+
+<div id="editProfileModal" class="rc-modal-overlay" aria-hidden="true" style="padding:24px;box-sizing:border-box">
+    <div style="position:relative;width:100%;max-width:650px;max-height:100%;overflow:auto;box-sizing:border-box;background:#260029;border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:30px;box-shadow:0 20px 60px rgba(0,0,0,.5)">
+        <button type="button" id="closeEditProfile" class="rc-modal-close" data-rc-close-overlay style="position:absolute;top:14px;right:18px" aria-label="Close">&times;</button>
+        <div style="font-size:22px;font-weight:700;color:#efb11e;text-align:center;margin-bottom:20px">Edit Profile</div>
+
+        <form id="ProfileUpdateForm" action="<?php echo base_url('attendees/profile/update'); ?>" method="post" enctype="multipart/form-data" style="display:grid;grid-template-columns:1fr 1fr;gap:16px 22px">
+            <input type="hidden" name="id" value="<?php echo esc($profile['id'] ?? ''); ?>">
+            <?php foreach (['firstname', 'lastname', 'telephone', 'country', 'city', 'state', 'company', 'position', 'facebook', 'twitter', 'instagram', 'linkedin'] as $field): ?>
+                <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:600;color:rgba(255,255,255,.8);text-transform:capitalize">
+                    <?php echo esc(str_replace('_', ' ', $field)); ?>
+                    <input class="rc-input" name="<?php echo $field; ?>" value="<?php echo esc($profile[$field] ?? ''); ?>">
+                </label>
+            <?php endforeach; ?>
+            <button class="rc-profile-save">Save Changes</button>
         </form>
     </div>
 </div>
 
-<script>
-    function openEditModal() {
-        document.getElementById("editProfileModal").style.display = "flex";
-    }
-    function closeEditModal() {
-        document.getElementById("editProfileModal").style.display = "none";
-    }
-    document.querySelector(".edit-btn").addEventListener("click", openEditModal);
-
-    document.getElementById("uploadPhoto").addEventListener("change", function () {
-        let file = this.files[0];
-        if (!file) return;
-
-        let formData = new FormData();
-        formData.append("profile_picture", file);
-
-        fetch("<?php echo base_url('attendees/profile/upload-photo'); ?>", {
-            method: "POST",
-            body: formData
-        })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === "success") {
-                    document.querySelector(".profile-photo").src = data.url;
-                } else {
-                    alert(data.message);
-                }
-            });
-    });
-</script>
+</div>
+</div>
 
 <?php echo module_view('Web', 'includes/scripts'); ?>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const modal = document.getElementById("editProfileModal");
+    document.getElementById("openEditProfile")?.addEventListener("click", () => {
+        modal.classList.add("is-open");
+        modal.setAttribute("aria-hidden", "false");
+    });
+    document.getElementById("closeEditProfile")?.addEventListener("click", () => {
+        modal.classList.remove("is-open");
+        modal.setAttribute("aria-hidden", "true");
+    });
+    modal?.addEventListener("click", event => {
+        if (event.target === modal) {
+            modal.classList.remove("is-open");
+            modal.setAttribute("aria-hidden", "true");
+        }
+    });
+
+    document.getElementById("uploadPhoto")?.addEventListener("change", async event => {
+        const file = event.target.files?.[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append("profile_picture", file);
+
+        const response = await fetch("<?php echo base_url('attendees/profile/upload-photo'); ?>", {
+            method: "POST",
+            body: formData
+        });
+        const result = await response.json();
+        if (result.status === "success" && result.url) {
+            window.location.reload();
+        } else {
+            alert(result.message || "Unable to update photo.");
+        }
+    });
+});
+</script>
+</body>
+</html>

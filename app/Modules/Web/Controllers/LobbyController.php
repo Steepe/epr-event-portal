@@ -11,6 +11,7 @@
 namespace App\Modules\Web\Controllers;
 
 use App\Controllers\BaseController;
+use App\Services\PortalAccessService;
 use App\Traits\AttendeeTrait;
 
 class LobbyController extends BaseController
@@ -28,12 +29,15 @@ class LobbyController extends BaseController
         $attendee = $this->getAttendeeData();
         $sessions = $this->getAttendeeSessions();
         $unread   = $this->getUnreadMessagesCount();
+        $access = new PortalAccessService();
 
         return module_view('Web', 'lobby', [
             'global_attendee_details' => $attendee,
             'attendee_sessions' => $sessions,
             'unread_messages' => $unread,
             'page_title' => 'Event Lobby',
+            'access_requires_payment' => $access->requiresPayment(),
+            'checkout_enabled' => $access->checkoutEnabled(),
         ]);
 
     }

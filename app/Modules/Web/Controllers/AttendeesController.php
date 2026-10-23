@@ -34,6 +34,7 @@ class AttendeesController extends BaseController
         $params = [];
         if ($query) $params['sort'] = $query;
         if ($search) $params['attendee_name'] = $search;
+        $params['current_user_id'] = (int) ($session->get('user_id') ?: $session->get('attendee_id'));
 
         try {
             $response = $curl->get("{$apiBase}/attendees", [

@@ -1,176 +1,154 @@
-<?php
-/**
- * Created by PhpStorm.
- * User: oluwamayowasteepe
- * Project: epr-event-portal
- * Date: 28/10/2025
- * Time: 05:07
- */
+<?php echo module_view('Web', 'includes/auth_header'); ?>
 
+<body class="rc-body">
+<div class="rc-stage">
+    <div class="rc-stage-inner">
+        <form id="LoginForm" class="rc-auth-screen" data-screen-label="Login">
+            <img class="rc-event-logo" src="<?php echo asset_url('images/eventslogo.png'); ?>" alt="EPR Events">
 
-echo module_view('Web', 'includes/auth_header');
-?>
-
-<style>
-.form-control {
-    background: transparent !important;
-    border-radius: 10px;
-    font-size: 13px;
-    padding-left: 35px;
-    color: #fff;
-}
-::placeholder {
-    color: #ffffff !important;
-    opacity: 1;
-}
-::-webkit-input-placeholder { color: #ffffff !important; }
-::-moz-placeholder { color: #ffffff !important; }
-:-ms-input-placeholder { color: #ffffff !important; }
-:-moz-placeholder { color: #ffffff !important; }
-
-a.text-link {
-    color: #EFB11E;
-    cursor: pointer;
-}
-a.text-link:hover {
-    text-decoration: underline;
-}
-.modal-content {
-    border-radius: 12px;
-    background: #260029;
-    color: #fff;
-}
-.modal-header {
-    border-bottom: 1px solid rgba(255,255,255,0.15);
-}
-.modal-title {
-    color: #EFB11E;
-    font-weight: 600;
-}
-</style>
-
-<body class="login-bg">
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-md-5 mx-auto mt-5">
-            <div class="text-center mb-5">
-                <img src="<?php echo asset_url('images/eventslogo.png'); ?>" alt="logo" width="250">
+            <div class="rc-brand-stack">
+                <span class="rc-kicker">Emergence Conference &middot; 2026</span>
+                <h1 style="margin:0;line-height:0">
+                    <img class="rc-accelerate-logo"
+                         src="<?php echo asset_url('images/accelerate-logo-white.png'); ?>"
+                         alt="Accelerate: Building sustainable systems for execution">
+                </h1>
             </div>
 
-            <form id="LoginForm" style="width:80%;margin:auto; margin-top: 200px;">
-                <div class="form-group mb-2">
-                    <span style="color: #ffffff; margin-left: 15px; font-size: 13px;">Login to Continue</span>
-                </div>
-                <div class="form-group mb-3">
-                    <input type="email" class="form-control" name="email" placeholder="Enter Email" required>
-                </div>
-                <div class="form-group mb-4">
-                    <input type="password" class="form-control" name="password" placeholder="Enter Password" required>
+            <div class="rc-auth-card">
+                <div class="rc-card-title">Login to continue</div>
+
+                <div class="rc-field">
+                    <i class="fa fa-envelope" aria-hidden="true"></i>
+                    <input class="rc-input" type="email" id="email" name="email" placeholder="Enter Email" required>
                 </div>
 
-                <div class="text-center">
-                    <button type="submit" class="btn epr-btn-one">LOGIN</button>
+                <div class="rc-field">
+                    <i class="fa fa-lock" aria-hidden="true"></i>
+                    <input class="rc-input" type="password" id="password" name="password" placeholder="Enter Password" required>
                 </div>
 
-                <p class="text-center text-white mt-3 mb-1">
-                    <a class="text-link" data-toggle="modal" data-target="#resetPasswordModal">Forgot Password?</a>
-                </p>
-                <p class="text-center text-white mt-2">
-                    Don’t have an account?
-                    <a href="<?php echo base_url('attendees/register'); ?>" style="color:#EFB11E;">Register</a>
-                </p>
-            </form>
-        </div>
-    </div>
-</div>
+                <button type="submit" class="rc-btn">Login</button>
 
-<!-- 🔹 Reset Password Modal -->
-<div class="modal fade" id="resetPasswordModal" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Reset Password</h5>
-                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
+                <div class="rc-link-row">
+                    <a id="openReset" role="button">Forgot Password?</a>
+                    <span>No account? <a href="<?php echo base_url('attendees/register'); ?>">Register</a></span>
+                </div>
             </div>
-            <div class="modal-body">
-                <p class="text-muted mb-3" style="color:#ddd!important;">Enter your registered email. A reset link will be sent to you.</p>
-                <form id="ResetForm">
-                    <div class="form-group mb-3">
-                        <input type="email" class="form-control" name="email" placeholder="Enter Email" required>
-                    </div>
-                    <div class="text-center">
-                        <button type="submit" class="btn epr-btn-one">Send Reset Link</button>
-                    </div>
+        </form>
+
+        <div id="resetPasswordModal" class="rc-modal-overlay" aria-hidden="true">
+            <div class="rc-reset-card">
+                <div class="rc-reset-head">
+                    <span class="rc-reset-title">Reset Password</span>
+                    <button type="button" class="rc-modal-close" id="closeReset" data-rc-close-overlay aria-label="Close">&times;</button>
+                </div>
+                <form id="ResetForm" class="rc-reset-body">
+                    <p>Enter your registered email. A reset link will be sent to you.</p>
+                    <input class="rc-input" type="email" name="email" placeholder="Enter Email" required>
+                    <button type="submit" class="rc-btn" style="align-self:center;width:220px;height:44px;font-size:14px;letter-spacing:0;text-transform:none;">Send Reset Link</button>
                 </form>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Toast -->
-<div id="toast" class="alert text-center d-none"
-     style="position:fixed;top:20px;left:50%;transform:translateX(-50%);
-     z-index:2000;width:300px;"></div>
+<div id="toast" class="rc-toast"></div>
 
 <?php echo module_view('Web', 'includes/scripts'); ?>
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
     const toast = document.getElementById("toast");
+    const resetModal = document.getElementById("resetPasswordModal");
+    const resetForm = document.getElementById("ResetForm");
 
-    const showToast = (msg, type="success") => {
-        toast.className = `alert alert-${type} text-center`;
+    const showToast = (msg, type = "success") => {
+        toast.className = "rc-toast is-open" + (type === "danger" || type === "error" ? " is-error" : "");
         toast.textContent = msg;
-        toast.classList.remove("d-none");
-        setTimeout(() => toast.classList.add("d-none"), 3500);
+        setTimeout(() => toast.classList.remove("is-open"), 3500);
     };
 
-    // 🔹 Login
-    document.getElementById("LoginForm").addEventListener("submit", async e => {
-        e.preventDefault();
-        const data = Object.fromEntries(new FormData(e.target));
+    document.getElementById("openReset").addEventListener("click", () => {
+        resetModal.classList.add("is-open");
+        resetModal.setAttribute("aria-hidden", "false");
+    });
 
-        const res = await fetch("<?php echo base_url('api/login'); ?>", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-API-KEY": "<?php echo env('api.securityKey'); ?>"
-            },
-            body: JSON.stringify(data)
-        });
+    document.getElementById("closeReset").addEventListener("click", () => {
+        resetModal.classList.remove("is-open");
+        resetModal.setAttribute("aria-hidden", "true");
+    });
 
-        const result = await res.json();
-        if (result.status === "success") {
-            showToast("Login successful!");
-            setTimeout(() => window.location.href = "<?php echo base_url('attendees/start'); ?>", 1500);
-        } else {
-            showToast(result.message || "Invalid credentials.", "danger");
+    resetModal.addEventListener("click", (event) => {
+        if (event.target === resetModal) {
+            resetModal.classList.remove("is-open");
+            resetModal.setAttribute("aria-hidden", "true");
         }
     });
 
-    // 🔹 Password Reset
-    document.getElementById("ResetForm").addEventListener("submit", async e => {
+    document.getElementById("LoginForm").addEventListener("submit", async e => {
         e.preventDefault();
         const data = Object.fromEntries(new FormData(e.target));
+        const btn = e.target.querySelector("button[type='submit']");
+        btn.disabled = true;
+        btn.textContent = "Signing in...";
 
-        const res = await fetch("<?php echo base_url('api/password/forgot'); ?>", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-API-KEY": "<?php echo env('api.securityKey'); ?>"
-            },
-            body: JSON.stringify(data)
-        });
+        try {
+            const res = await fetch("<?php echo base_url('api/login'); ?>", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-API-KEY": "<?php echo env('api.securityKey'); ?>"
+                },
+                body: JSON.stringify(data)
+            });
 
-        const result = await res.json();
-        if (result.status === "success") {
-            showToast("Reset link sent to your email!");
-            $('#resetPasswordModal').modal('hide');
-            e.target.reset();
-        } else {
-            showToast(result.message || "Unable to send reset link.", "danger");
+            const result = await res.json();
+            if (result.status === "success") {
+                showToast("Login successful.");
+                setTimeout(() => window.location.href = "<?php echo base_url('attendees/start'); ?>", 900);
+            } else {
+                showToast(result.message || "Invalid credentials.", "danger");
+            }
+        } catch (error) {
+            showToast("Connection error. Please try again.", "danger");
+        } finally {
+            btn.disabled = false;
+            btn.textContent = "Login";
+        }
+    });
+
+    resetForm.addEventListener("submit", async e => {
+        e.preventDefault();
+        const data = Object.fromEntries(new FormData(e.target));
+        const btn = e.target.querySelector("button[type='submit']");
+        btn.disabled = true;
+        btn.textContent = "Sending...";
+
+        try {
+            const res = await fetch("<?php echo base_url('api/password/forgot'); ?>", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-API-KEY": "<?php echo env('api.securityKey'); ?>"
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await res.json();
+            if (result.status === "success") {
+                showToast("Reset link sent to your email.");
+                resetModal.classList.remove("is-open");
+                resetModal.setAttribute("aria-hidden", "true");
+                e.target.reset();
+            } else {
+                showToast(result.message || "Unable to send reset link.", "danger");
+            }
+        } catch (error) {
+            showToast("Connection error. Please try again.", "danger");
+        } finally {
+            btn.disabled = false;
+            btn.textContent = "Send Reset Link";
         }
     });
 });

@@ -29,6 +29,16 @@ $routes->group('attendees', ['namespace' => 'App\Modules\Web\Controllers'], func
 
 });
 
+$routes->get('emergence/funnel', '\App\Modules\Web\Controllers\EmergenceFunnelController::index');
+$routes->options('emergence/funnel/register', '\App\Modules\Api\Controllers\EmergenceFunnelController::preflight');
+$routes->post('emergence/funnel/register', '\App\Modules\Api\Controllers\EmergenceFunnelController::register');
+$routes->get('emergence/checkout', '\App\Modules\Web\Controllers\CheckoutController::emergence');
+$routes->get('checkout/verify', '\App\Modules\Web\Controllers\CheckoutController::verify');
+$routes->post('checkout/flutterwave/webhook', '\App\Modules\Web\Controllers\CheckoutController::flutterwaveWebhook');
+$routes->post('checkout/paypal/order', '\App\Modules\Web\Controllers\CheckoutController::createPaypalOrder');
+$routes->post('checkout/paypal/capture', '\App\Modules\Web\Controllers\CheckoutController::capturePaypalOrder');
+$routes->get('emergence/checkout/complete', '\App\Modules\Web\Controllers\CheckoutController::complete');
+
 
 $routes->group('attendees', ['namespace' => 'App\Modules\Web\Controllers', 'filter' => 'auth'], function ($routes) {
     $routes->get('home', 'HomeController::index');
@@ -48,6 +58,7 @@ $routes->group('attendees', ['namespace' => 'App\Modules\Web\Controllers', 'filt
 
     $routes->get('past_conferences', 'PastConferencesController::index');
     $routes->get('sponsors', 'SponsorsController::index');
+    $routes->get('notifications', 'NotificationsController::index');
 
     $routes->get('exhibitors', 'ExhibitorsController::index');
     $routes->get('exhibitors/(:num)', 'ExhibitorsController::booth/$1'); // "Enter Booth" page
@@ -68,6 +79,7 @@ $routes->group('attendees', ['namespace' => 'App\Modules\Web\Controllers', 'filt
     $routes->post('profile/update', 'ProfileController::update');
     $routes->post('profile/upload-photo', 'ProfileController::uploadPhoto');
     $routes->post('speakers/sendMessage', 'SpeakersController::sendMessage');
+    $routes->get('checkout', 'CheckoutController::attendee');
 
     $routes->get('upgrade/(:num)', 'UpgradeController::index/$1');
 

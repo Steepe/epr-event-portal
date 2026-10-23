@@ -1,87 +1,67 @@
-<?php
-/**
- * Created by PhpStorm.
- * User: oluwamayowasteepe
- * Project: epr-event-portal
- * Date: 11/11/2025
- * Time: 00:27
- */
+<?php echo module_view('Web', 'includes/auth_header'); ?>
 
-echo module_view('Web', 'includes/auth_header_two');
-?>
+<body class="rc-body">
+<div class="rc-stage">
+    <div class="rc-stage-inner">
+        <img class="rc-event-logo" src="<?php echo asset_url('images/eventslogo.png'); ?>" alt="EPR Events">
 
-<style>
-.form-control {
-    background: transparent !important;
-    border-radius: 10px;
-    font-size: 13px;
-    padding-left: 35px;
-    color: #fff;
-}
-::placeholder { color: #fff !important; opacity: 1; }
-.btn-epr-purple {
-    background-color: #9D0F82;
-    color: white;
-    border-radius: 6px;
-    padding: 8px 20px;
-    font-size: 14px;
-    border: none;
-}
-.btn-epr-purple:hover { background-color: #7a0e69; }
-</style>
+        <main class="rc-auth-screen" data-screen-label="Reset Password">
+            <section class="rc-brand-stack">
+                <span class="rc-kicker">Emergence Conference · 2026</span>
+                <img class="rc-accelerate-logo"
+                     src="<?php echo asset_url('images/accelerate-logo-white.png'); ?>"
+                     alt="Accelerate: Building sustainable systems for execution">
+            </section>
 
-<body class="login-bg">
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-md-5 mx-auto mt-5">
-            <div class="text-center mb-5">
-                <img src="<?php echo asset_url('images/eventslogo.png'); ?>" width="250">
-            </div>
-
-            <form id="ResetPasswordForm" style="width:80%;margin:auto; margin-top:200px;">
+            <form id="ResetPasswordForm" class="rc-auth-card">
                 <input type="hidden" name="token" value="<?php echo esc($_GET['token'] ?? ''); ?>">
-                <div class="form-group mb-3">
-                    <input type="password" class="form-control" name="password" placeholder="Enter New Password" required>
-                </div>
-                <div class="form-group mb-4">
-                    <input type="password" class="form-control" name="confirm_password" placeholder="Confirm Password" required>
-                </div>
+                <div class="rc-card-title">Reset password</div>
+                <p style="margin:0 0 4px;color:rgba(255,255,255,.72);font-size:13px;line-height:1.5">Choose a new password for your portal access.</p>
 
-                <div class="text-center">
-                    <button type="submit" class="btn epr-btn-one">RESET PASSWORD</button>
+                <label class="rc-field">
+                    <i class="fa fa-lock" aria-hidden="true"></i>
+                    <input class="rc-input" type="password" name="password" placeholder="Enter New Password" required>
+                </label>
+
+                <label class="rc-field">
+                    <i class="fa fa-lock" aria-hidden="true"></i>
+                    <input class="rc-input" type="password" name="confirm_password" placeholder="Confirm Password" required>
+                </label>
+
+                <button type="submit" class="rc-btn">Reset Password</button>
+
+                <div class="rc-link-row" style="justify-content:center">
+                    <a href="<?php echo base_url('attendees/login'); ?>">Back to login</a>
                 </div>
             </form>
-        </div>
+        </main>
     </div>
 </div>
 
-<div id="toast" class="alert text-center d-none"
-     style="position:fixed;top:20px;left:50%;transform:translateX(-50%);
-     z-index:2000;width:300px;"></div>
+<div id="toast" class="rc-toast"></div>
 
 <?php echo module_view('Web', 'includes/scripts'); ?>
-
 <script>
 document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("ResetPasswordForm");
     const toast = document.getElementById("toast");
 
-    const showToast = (msg, type="success") => {
-        toast.className = `alert alert-${type} text-center`;
-        toast.textContent = msg;
-        toast.classList.remove("d-none");
-        setTimeout(() => toast.classList.add("d-none"), 3500);
+    const showToast = (message, isError = false) => {
+        toast.textContent = message;
+        toast.className = "rc-toast is-open" + (isError ? " is-error" : "");
+        setTimeout(() => toast.classList.remove("is-open"), 3500);
     };
 
-    form.addEventListener("submit", async e => {
-        e.preventDefault();
+    form.addEventListener("submit", async event => {
+        event.preventDefault();
         const data = Object.fromEntries(new FormData(form));
+
         if (data.password !== data.confirm_password) {
-            showToast("Passwords do not match.", "danger");
+            showToast("Passwords do not match.", true);
             return;
         }
 
-        const res = await fetch("<?php echo base_url('api/password/reset'); ?>", {
+        const response = await fetch("<?php echo base_url('api/password/reset'); ?>", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -90,12 +70,12 @@ document.addEventListener("DOMContentLoaded", () => {
             body: JSON.stringify(data)
         });
 
-        const result = await res.json();
+        const result = await response.json();
         if (result.status === "success") {
-            showToast("Password reset successful! Redirecting...");
+            showToast("Password reset successful. Redirecting...");
             setTimeout(() => window.location.href = "<?php echo base_url('attendees/login'); ?>", 2000);
         } else {
-            showToast(result.message || "Reset failed.", "danger");
+            showToast(result.message || "Reset failed.", true);
         }
     });
 });

@@ -12,29 +12,36 @@ namespace App\Services;
 
 use Ratchet\MessageComponentInterface;
 use Ratchet\ConnectionInterface;
-use Redis;
+use React\EventLoop\LoopInterface;
 
 /**
  * Handles real-time WebSocket messaging for the event portal.
- * Works with MessagesController + Redis pub/sub.
+ * The HTTP app pushes events into Redis, and this server delivers them to
+ * registered browser sockets.
  */
 class ChatServer implements MessageComponentInterface
 {
     protected $clients;
-    protected $connections = []; // Maps user_id → connection
+    protected array $connections = [];
+    protected array $connectionUsers = [];
+    private ?\Redis $redis = null;
+    private string $queue = 'portal_socket_events';
 
-    public function __construct()
+    public function __construct(?LoopInterface $loop = null)
     {
         $this->clients = new \SplObjectStorage;
 
-        // 🔁 Start a Redis listener thread
-        $this->startRedisListener();
+        if ($loop !== null) {
+            $loop->addPeriodicTimer(0.5, function (): void {
+                $this->drainRealtimeQueue();
+            });
+        }
     }
 
     public function onOpen(ConnectionInterface $conn)
     {
         $this->clients->attach($conn);
-        echo "🟢 Connection opened ({$conn->resourceId})\n";
+        echo "Connection opened ({$conn->resourceId})\n";
     }
 
     public function onMessage(ConnectionInterface $from, $msg)
@@ -46,30 +53,30 @@ class ChatServer implements MessageComponentInterface
 
         switch ($data['type'] ?? null) {
             case 'register':
-                // Register user and socket
-                $userId = (int) $data['user_id'];
-                $this->connections[$userId] = $from;
-                echo "✅ Registered user {$userId} ({$from->resourceId})\n";
+                $userId = (int) ($data['user_id'] ?? 0);
+                if ($userId <= 0) {
+                    return;
+                }
 
-                // Update DB or Redis to mark user online
+                $this->connections[$userId][$from->resourceId] = $from;
+                $this->connectionUsers[$from->resourceId] = $userId;
+                echo "Registered user {$userId} ({$from->resourceId})\n";
+
                 $this->markUserOnline($userId, $from->resourceId);
                 break;
 
             case 'message':
-                // Deliver message live if recipient connected
                 $targetId = (int) $data['to'];
-                if (isset($this->connections[$targetId])) {
-                    $this->connections[$targetId]->send(json_encode([
+                $this->sendToUser($targetId, [
                         'type' => 'message',
-                        'from' => $data['from'],
-                        'message' => $data['message'],
-                        'timestamp' => date('H:i')
-                    ]));
-                }
+                        'from' => $data['from'] ?? null,
+                        'message' => $data['message'] ?? '',
+                        'timestamp' => date('H:i'),
+                ]);
                 break;
 
             default:
-                echo "⚠️ Unknown message type\n";
+                echo "Unknown message type\n";
         }
     }
 
@@ -77,56 +84,119 @@ class ChatServer implements MessageComponentInterface
     {
         $this->clients->detach($conn);
 
-        // Clean up if connection belongs to a user
-        foreach ($this->connections as $userId => $socket) {
-            if ($socket === $conn) {
+        $userId = $this->connectionUsers[$conn->resourceId] ?? null;
+        if ($userId !== null) {
+            unset($this->connections[$userId][$conn->resourceId], $this->connectionUsers[$conn->resourceId]);
+
+            if (empty($this->connections[$userId])) {
                 unset($this->connections[$userId]);
-                $this->markUserOffline($userId);
-                echo "🔴 User {$userId} disconnected\n";
-                break;
+                $this->markUserOffline((int) $userId);
             }
+
+            echo "User {$userId} disconnected\n";
         }
     }
 
     public function onError(ConnectionInterface $conn, \Exception $e)
     {
-        echo "❌ Error: {$e->getMessage()}\n";
+        echo "Error: {$e->getMessage()}\n";
         $conn->close();
     }
 
     private function markUserOnline(int $userId, string $socketId)
     {
-        $redis = new Redis();
-        $redis->connect('127.0.0.1', 6379);
+        $redis = $this->redis();
+        if ($redis === null) {
+            return;
+        }
+
         $redis->set("user:{$userId}:socket", $socketId);
         $redis->set("user:{$userId}:online", 1);
     }
 
     private function markUserOffline(int $userId)
     {
-        $redis = new Redis();
-        $redis->connect('127.0.0.1', 6379);
+        $redis = $this->redis();
+        if ($redis === null) {
+            return;
+        }
+
         $redis->set("user:{$userId}:online", 0);
     }
 
-    private function startRedisListener()
+    private function drainRealtimeQueue(): void
     {
-        // 👂 This runs in the same process, listening for pushViaSocket() messages
-        $pid = pcntl_fork();
-        if ($pid == 0) {
-            $redis = new Redis();
-            $redis->connect('127.0.0.1', 6379);
-            $redis->subscribe(['chat_channel'], function ($redis, $chan, $msg) {
-                $payload = json_decode($msg, true);
-                $socketId = $payload['socket_id'] ?? null;
-                $data = $payload['data'] ?? null;
-
-                if ($data && isset($data['type']) && $data['type'] === 'message') {
-                    // This is just an example — in production, use a socket map or queue
-                    echo "📨 Received Redis message: " . json_encode($data) . "\n";
-                }
-            });
-            exit;
+        $redis = $this->redis();
+        if ($redis === null) {
+            return;
         }
+
+        for ($i = 0; $i < 25; $i++) {
+            $message = $redis->lPop($this->queue);
+            if ($message === false || $message === null) {
+                return;
+            }
+
+            $event = json_decode((string) $message, true);
+            if (! is_array($event)) {
+                continue;
+            }
+
+            $targetUserId = (int) ($event['to'] ?? $event['receiver_id'] ?? 0);
+            if ($targetUserId <= 0) {
+                continue;
+            }
+
+            $this->sendToUser($targetUserId, $event);
+        }
+    }
+
+    private function sendToUser(int $userId, array $payload): void
+    {
+        if ($userId <= 0 || empty($this->connections[$userId])) {
+            return;
+        }
+
+        $message = json_encode($payload);
+        if ($message === false) {
+            return;
+        }
+
+        foreach ($this->connections[$userId] as $connection) {
+            $connection->send($message);
+        }
+    }
+
+    private function redis(): ?\Redis
+    {
+        if ($this->redis instanceof \Redis) {
+            return $this->redis;
+        }
+
+        if (! class_exists(\Redis::class)) {
+            return null;
+        }
+
+        try {
+            $redis = new \Redis();
+            $redis->connect(getenv('REDIS_HOST') ?: '127.0.0.1', (int) (getenv('REDIS_PORT') ?: 6379), 0.2);
+
+            $password = (string) (getenv('REDIS_PASSWORD') ?: '');
+            if ($password !== '') {
+                $redis->auth($password);
+            }
+
+            $database = (int) (getenv('REDIS_DATABASE') ?: 0);
+            if ($database > 0) {
+                $redis->select($database);
+            }
+
+            $this->redis = $redis;
+        } catch (\Throwable $e) {
+            echo "Redis unavailable: {$e->getMessage()}\n";
+            $this->redis = null;
+        }
+
+        return $this->redis;
     }
 }

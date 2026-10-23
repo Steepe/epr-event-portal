@@ -6,6 +6,16 @@ use CodeIgniter\Config\BaseConfig;
 
 class App extends BaseConfig
 {
+    public function __construct()
+    {
+        parent::__construct();
+
+        $configuredBaseURL = env('app.baseURL');
+        if (!empty($configuredBaseURL)) {
+            $this->baseURL = rtrim((string) $configuredBaseURL, '/') . '/';
+        }
+    }
+
     /**
      * --------------------------------------------------------------------------
      * Base Site URL
@@ -16,7 +26,7 @@ class App extends BaseConfig
      *
      * E.g., http://example.com/
      */
-    public string $baseURL = 'https://eventportal.creyatif/';
+    public string $baseURL = 'https://portal.eprglobal.com/';
 
     /**
      * Allowed Hostnames in the Site URL other than the hostname in the baseURL.

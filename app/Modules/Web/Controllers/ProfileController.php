@@ -27,11 +27,13 @@ class ProfileController extends BaseController
     {
         $session = session();
 
-        $attendeeId = $session->get('attendee_id');
+        $userId = (int) ($session->get('user_id') ?: $session->get('attendee_id'));
 
         // Load attendee from DB
         $profile = $this->db->table('tbl_attendees')
-            ->where('attendee_id', $attendeeId)
+            ->select('tbl_attendees.*, tbl_users.email')
+            ->join('tbl_users', 'tbl_users.id = tbl_attendees.attendee_id', 'left')
+            ->where('tbl_attendees.attendee_id', $userId)
             ->get()
             ->getRowArray();
 
@@ -142,7 +144,7 @@ class ProfileController extends BaseController
 
         // Update DB
         $this->db->table('tbl_attendees')
-            ->where('attendee_id', $session->get('attendee_id'))
+            ->where('attendee_id', (int) ($session->get('user_id') ?: $session->get('attendee_id')))
             ->update(['profile_picture' => $newName]);
 
         // Update session
