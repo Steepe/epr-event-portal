@@ -31,21 +31,21 @@
                 <button type="submit" class="rc-btn">Login</button>
 
                 <div class="rc-link-row">
-                    <a id="openReset" role="button">Forgot Password?</a>
+                    <a id="openReset" href="<?php echo site_url('attendees/forgot-password'); ?>" role="button">Forgot Password?</a>
                     <span>No account? <a href="<?php echo base_url('attendees/register'); ?>">Register</a></span>
                 </div>
             </div>
         </form>
 
-        <div id="resetPasswordModal" class="rc-modal-overlay" aria-hidden="true">
+        <div id="resetPasswordModal" class="rc-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="resetPasswordTitle" aria-hidden="true">
             <div class="rc-reset-card">
                 <div class="rc-reset-head">
-                    <span class="rc-reset-title">Reset Password</span>
+                    <span id="resetPasswordTitle" class="rc-reset-title">Reset Password</span>
                     <button type="button" class="rc-modal-close" id="closeReset" data-rc-close-overlay aria-label="Close">&times;</button>
                 </div>
                 <form id="ResetForm" class="rc-reset-body">
                     <p>Enter your registered email. A reset link will be sent to you.</p>
-                    <input class="rc-input" type="email" name="email" placeholder="Enter Email" required>
+                    <input class="rc-input" type="email" name="email" placeholder="Enter Email" aria-label="Email for password reset" autocomplete="email" required>
                     <button type="submit" class="rc-btn" style="align-self:center;width:220px;height:44px;font-size:14px;letter-spacing:0;text-transform:none;">Send Reset Link</button>
                 </form>
             </div>
@@ -62,6 +62,29 @@ document.addEventListener("DOMContentLoaded", () => {
     const toast = document.getElementById("toast");
     const resetModal = document.getElementById("resetPasswordModal");
     const resetForm = document.getElementById("ResetForm");
+    const closeReset = () => {
+        resetModal.classList.remove("is-open");
+        resetModal.setAttribute("aria-hidden", "true");
+        document.getElementById('openReset').focus();
+    };
+
+    resetModal.addEventListener('keydown', event => {
+        if (event.key === 'Escape') {
+            event.preventDefault();
+            event.stopPropagation();
+            closeReset();
+        } else if (event.key === 'Tab') {
+            const controls = [...resetModal.querySelectorAll('button:not(:disabled), input:not(:disabled)')];
+            const first = controls[0], last = controls[controls.length - 1];
+            if (event.shiftKey && document.activeElement === first) {
+                event.preventDefault();
+                last.focus();
+            } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault();
+                first.focus();
+            }
+        }
+    });
 
     const showToast = (msg, type = "success") => {
         toast.className = "rc-toast is-open" + (type === "danger" || type === "error" ? " is-error" : "");
@@ -69,20 +92,22 @@ document.addEventListener("DOMContentLoaded", () => {
         setTimeout(() => toast.classList.remove("is-open"), 3500);
     };
 
-    document.getElementById("openReset").addEventListener("click", () => {
+    document.getElementById("openReset").addEventListener("click", (event) => {
+        event.preventDefault();
         resetModal.classList.add("is-open");
         resetModal.setAttribute("aria-hidden", "false");
+        resetForm.querySelector('input').focus();
     });
 
-    document.getElementById("closeReset").addEventListener("click", () => {
-        resetModal.classList.remove("is-open");
-        resetModal.setAttribute("aria-hidden", "true");
-    });
+    if (new URLSearchParams(window.location.search).get('reset') === '1') {
+        document.getElementById('openReset').click();
+    }
+
+    document.getElementById("closeReset").addEventListener("click", closeReset);
 
     resetModal.addEventListener("click", (event) => {
         if (event.target === resetModal) {
-            resetModal.classList.remove("is-open");
-            resetModal.setAttribute("aria-hidden", "true");
+            closeReset();
         }
     });
 
@@ -137,9 +162,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const result = await res.json();
             if (result.status === "success") {
-                showToast("Reset link sent to your email.");
-                resetModal.classList.remove("is-open");
-                resetModal.setAttribute("aria-hidden", "true");
+                showToast(result.message || "Please check your inbox and spam folder for the reset link.");
+                closeReset();
                 e.target.reset();
             } else {
                 showToast(result.message || "Unable to send reset link.", "danger");

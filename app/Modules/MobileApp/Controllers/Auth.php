@@ -91,7 +91,9 @@ class Auth extends BaseController
 
     public function resetPassword($token = null): string
     {
+        $this->response->setHeader('Cache-Control', 'no-store')->setHeader('Referrer-Policy', 'no-referrer');
         // This loads your reset password form
-        return module_view('MobileApp', 'reset_password', ['token' => $token]);
+        $token = $token ?? $this->request->getGet('token');
+        return module_view('MobileApp', 'reset_password', ['token' => is_string($token) ? $token : '']);
     }
 }

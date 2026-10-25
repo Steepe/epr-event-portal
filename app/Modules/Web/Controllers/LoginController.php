@@ -29,10 +29,4 @@ class LoginController extends BaseController
         return redirect()->to('attendees/login');
     }
 
-    public function resetPassword(): string
-    {
-        return module_view('Web', 'reset_password');
-    }
-
-
 }

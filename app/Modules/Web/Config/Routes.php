@@ -19,7 +19,9 @@ $routes->group('attendees', ['namespace' => 'App\Modules\Web\Controllers'], func
     $routes->get('register', 'RegistrationController::index');
     $routes->get('login', 'LoginController::index');
     $routes->get('logout', 'LoginController::logout');
-    $routes->get('reset-password', 'LoginController::resetPassword');
+    $routes->get('forgot-password', 'ForgotPasswordController::index');
+    $routes->get('reset-password', 'ForgotPasswordController::resetForm');
+    $routes->get('reset-password/(:segment)', 'ForgotPasswordController::resetForm/$1');
     $routes->post('webhooks/flutterwave', 'PaymentWebhookController::flutterwave');
     $routes->post('webhooks/paypal',    'PaymentWebhookController::paypal');
 
@@ -66,10 +68,6 @@ $routes->group('attendees', ['namespace' => 'App\Modules\Web\Controllers', 'filt
     $routes->get('emergence_booth', 'EmergenceBoothController::index');
     $routes->get('envision', 'EnvisionController::index');
 
-    $routes->get('forgot-password', 'ForgotPasswordController::index');
-    $routes->post('forgot-password', 'ForgotPasswordController::sendLink');
-    $routes->get('reset-password/(:segment)', 'ForgotPasswordController::resetForm/$1');
-    $routes->post('reset-password/(:segment)', 'ForgotPasswordController::updatePassword/$1');
 
     $routes->get('webinars', 'WebinarsController::index');
     $routes->get('points', 'PointsController::index');

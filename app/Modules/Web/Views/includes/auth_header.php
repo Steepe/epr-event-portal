@@ -45,7 +45,11 @@
         let isMobileDevice = regexp.test(details);
 
         if (isMobileDevice) {
-            location.href = "<?php echo base_url('mobile/login')?>";
+            <?php if (isset($token)): ?>
+            location.replace(<?= json_encode(site_url('mobile/reset-password') . '?token=' . rawurlencode($token), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>);
+            <?php else: ?>
+            location.replace("<?php echo base_url('mobile/login')?>");
+            <?php endif; ?>
             //document.write("You are using a Mobile Device");
         }
     </script>

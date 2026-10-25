@@ -813,6 +813,10 @@ body.rc-body a:hover {
   min-width: auto;
 }
 
+.rc-auth-screen .rc-brand-stack .rc-kicker {
+  font-size: 11px;
+}
+
 .rc-auth-screen .rc-brand-stack h1 {
   margin: 0 !important;
 }
@@ -958,6 +962,10 @@ body.rc-body a:hover {
   cursor: pointer;
 }
 
+body.rc-body .rc-auth-screen .rc-link-row a {
+  color: inherit;
+}
+
 .rc-register-note {
   grid-column: 1 / -1;
   margin: 4px 0 0;
@@ -1025,6 +1033,7 @@ body.rc-body a:hover {
 }
 
 .rc-reset-body .rc-input {
+  flex: 0 0 46px;
   height: 46px;
   background: transparent !important;
 }

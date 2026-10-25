@@ -70,140 +70,44 @@ class AuthController extends BaseController
         return $this->respond(['status' => 'success', 'message' => 'Logged out successfully.']);
     }
 
-    // POST /api/password/forgot
+    // Both desktop and mobile use this one reset flow.
     public function forgotPassword(): \CodeIgniter\HTTP\ResponseInterface
     {
-        $data = $this->request->getJSON(true);
-        $email = $data['email'] ?? null;
-
-        if (!$email) {
-            return $this->respond([
-                'status'  => 'error',
-                'message' => 'Email is required.'
-            ], 400);
+        try {
+            $data = $this->request->getJSON(true) ?? [];
+            if (!is_string($data['email'] ?? null)) {
+                throw new \InvalidArgumentException('Please enter a valid email address.');
+            }
+            if (!service('throttler')->check('attendee-reset-' . hash('sha256', $this->request->getIPAddress()), 5, 900)) {
+                return $this->respond(['status' => 'error', 'message' => 'Too many requests. Please try again in 15 minutes.'], 429);
+            }
+            (new \App\Libraries\AttendeePasswordReset($this->db))->sendLink($data['email']);
+            return $this->respond(['status' => 'success', 'message' => \App\Libraries\AttendeePasswordReset::SENT_MESSAGE]);
+        } catch (\InvalidArgumentException $error) {
+            return $this->respond(['status' => 'error', 'message' => $error->getMessage()], 400);
+        } catch (\Throwable $error) {
+            // Never log the token, submitted passwords, or SMTP credentials.
+            log_message('error', 'Attendee password reset email failed ({type}). Check reset-table migration and mail configuration.', ['type' => get_class($error)]);
+            return $this->respond(['status' => 'error', 'message' => 'Unable to send the reset email. Please try again later or contact support.'], 503);
         }
-
-        // ✅ Check if the user exists
-        $user = $this->db->table('tbl_users')
-            ->where('email', $email)
-            ->get()
-            ->getRowArray();
-
-        if (!$user) {
-            return $this->respond([
-                'status'  => 'error',
-                'message' => 'Email not found.'
-            ], 404);
-        }
-
-        // ✅ Generate reset token
-        $token = bin2hex(random_bytes(32));
-
-        // Store token in password_resets
-        $this->db->table('password_resets')->insert([
-            'email'      => $email,
-            'token'      => $token,
-            'created_at' => date('Y-m-d H:i:s'),
-        ]);
-
-        // ✅ Build password reset link
-        $resetLink = base_url('attendees/reset-password?token=' . $token);
-
-        // ✅ Compose the email
-        $emailService = \Config\Services::email();
-
-        $emailService->setTo($email);
-        $emailService->setFrom(
-            env('email.fromEmail'),
-            env('email.fromName')
-        );
-        $emailService->setSubject('Password Reset Request - EPRGlobal Events');
-        $emailService->setMessage("
-        <html>
-        <body style='font-family:Poppins,Arial,sans-serif;color:#333;'>
-            <p>Dear Participant,</p>
-            <p>We received a request to reset your EPRGlobal Events Portal password. Click the button below to proceed:</p>
-            <p style='margin:25px 0;text-align:center;'>
-                <a href='{$resetLink}' 
-                   style='background-color:#9D0F82;color:#fff;
-                          text-decoration:none;padding:12px 25px;
-                          border-radius:6px;font-weight:bold;'>
-                    Reset My Password
-                </a>
-            </p>
-            <p>This link will expire in <strong>1 hour</strong>. If you did not request this, please ignore this email.</p>
-            <br>
-            <p>Warm regards,<br><strong>EPRGlobal Events Team</strong></p>
-        </body>
-        </html>
-    ");
-
-        // ✅ Send email
-        if (!$emailService->send()) {
-            log_message('error', 'Password reset email failed: ' . print_r($emailService->printDebugger(['headers']), true));
-            return $this->respond([
-                'status'  => 'error',
-                'message' => 'Unable to send password reset email. Please try again later.'
-            ], 500);
-        }
-
-        return $this->respond([
-            'status'  => 'success',
-            'message' => 'Password reset link has been sent successfully to your email address.'
-        ]);
     }
 
     public function resetPassword(): \CodeIgniter\HTTP\ResponseInterface
     {
-        $data = $this->request->getJSON(true);
-        $token = $data['token'] ?? null;
-        $newPassword = $data['password'] ?? null;
-
-        if (!$token || !$newPassword) {
-            return $this->respond([
-                'status' => 'error',
-                'message' => 'Token and new password are required.'
-            ], 400);
+        try {
+            $data = $this->request->getJSON(true) ?? [];
+            foreach (['token', 'password', 'confirm_password'] as $field) {
+                if (!is_string($data[$field] ?? null)) {
+                    throw new \InvalidArgumentException('The reset link, password and confirmation are required.');
+                }
+            }
+            (new \App\Libraries\AttendeePasswordReset($this->db))->reset($data['token'], $data['password'], $data['confirm_password']);
+            return $this->respond(['status' => 'success', 'message' => 'Password has been successfully reset. You may now log in.']);
+        } catch (\InvalidArgumentException $error) {
+            return $this->respond(['status' => 'error', 'message' => $error->getMessage()], 400);
+        } catch (\Throwable $error) {
+            log_message('error', 'Attendee password reset failed ({type}).', ['type' => get_class($error)]);
+            return $this->respond(['status' => 'error', 'message' => 'Unable to save your password. Please try again later.'], 503);
         }
-
-        // ✅ Look up token
-        $reset = $this->db->table('password_resets')
-            ->where('token', $token)
-            ->get()
-            ->getRowArray();
-
-        if (!$reset) {
-            return $this->respond([
-                'status' => 'error',
-                'message' => 'Invalid or expired token.'
-            ], 400);
-        }
-
-        // ✅ Check expiration (1 hour)
-        $created = strtotime($reset['created_at']);
-        if (time() - $created > 3600) { // 1 hour = 3600 seconds
-            $this->db->table('password_resets')->where('token', $token)->delete();
-            return $this->respond([
-                'status' => 'error',
-                'message' => 'Token expired. Please request a new password reset link.'
-            ], 400);
-        }
-
-        // ✅ Hash new password
-        $hashed = password_hash($newPassword, PASSWORD_DEFAULT);
-
-        // ✅ Update user’s password
-        $this->db->table('tbl_users')
-            ->where('email', $reset['email'])
-            ->update(['password' => $hashed, 'updated_at' => date('Y-m-d H:i:s')]);
-
-        // ✅ Remove the used token
-        $this->db->table('password_resets')->where('token', $token)->delete();
-
-        return $this->respond([
-            'status' => 'success',
-            'message' => 'Password has been successfully reset. You may now log in.'
-        ]);
     }
-
 }
