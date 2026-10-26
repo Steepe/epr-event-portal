@@ -136,6 +136,7 @@ class EmergenceFunnelController extends BaseController
             'city' => trim((string) ($payload['city'] ?? '')),
             'country' => trim((string) ($payload['country'] ?? '')),
             'referral_source' => trim((string) ($payload['referral_source'] ?? '')),
+            'data_protection_consent' => filter_var($payload['data_protection_consent'] ?? false, FILTER_VALIDATE_BOOLEAN),
             'marketing_consent' => filter_var($payload['marketing_consent'] ?? false, FILTER_VALIDATE_BOOLEAN),
             'utm' => [
                 'source' => $this->nullableString($utm['source'] ?? null),
@@ -178,8 +179,8 @@ class EmergenceFunnelController extends BaseController
             $errors['referral_source'] = 'Referral source is required.';
         }
 
-        if (! $payload['marketing_consent']) {
-            $errors['marketing_consent'] = 'Marketing consent is required.';
+        if (! $payload['data_protection_consent']) {
+            $errors['data_protection_consent'] = 'You must acknowledge the data protection notice.';
         }
 
         if ($payload['phone'] !== '' && strlen(preg_replace('/\D+/', '', $payload['phone'])) < 7) {
@@ -253,6 +254,7 @@ class EmergenceFunnelController extends BaseController
             'city' => $payload['city'] ?: null,
             'country' => $payload['country'] ?: null,
             'referral_source' => $payload['referral_source'] ?: null,
+            'data_protection_consent' => $payload['data_protection_consent'] ? 1 : 0,
             'marketing_consent' => $payload['marketing_consent'] ? 1 : 0,
             'utm_source' => $payload['utm']['source'],
             'utm_medium' => $payload['utm']['medium'],

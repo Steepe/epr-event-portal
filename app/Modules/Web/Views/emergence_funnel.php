@@ -374,10 +374,15 @@
         </label>
 
         <label class="check-row">
-            <input type="checkbox" name="marketing_consent" required>
+            <input type="checkbox" name="data_protection_consent" required>
+            <span>Data Protection Notice: By submitting this form, you acknowledge that EPR Global will collect, use, store and otherwise process the personal information you provide for the purposes of managing your registration, administering the programme or event, communicating relevant information to you, maintaining appropriate organisational records, and supporting EPR Global&rsquo;s related activities. Your personal data will be handled securely and in accordance with applicable data protection laws and EPR Global&rsquo;s Privacy Policy.</span>
+        </label>
+        <span class="error" data-error="data_protection_consent"></span>
+
+        <label class="check-row">
+            <input type="checkbox" name="marketing_consent">
             <span>Send me updates on speakers, registration and the agenda.</span>
         </label>
-        <span class="error" data-error="marketing_consent"></span>
 
         <div class="alert" id="submitError" hidden></div>
 
@@ -495,7 +500,7 @@
         if (!payload.city) errors.city = 'Required';
         if (!payload.country) errors.country = 'Required';
         if (!payload.referral_source) errors.referral_source = 'Required';
-        if (!payload.marketing_consent) errors.marketing_consent = 'Required';
+        if (!payload.data_protection_consent) errors.data_protection_consent = 'You must acknowledge the data protection notice.';
         if (payload.phone && payload.phone.replace(/\D/g, '').length < 7) errors.phone = 'Enter a valid phone number';
         return errors;
     };
@@ -511,6 +516,7 @@
             city: String(data.get('city') || '').trim(),
             country: String(data.get('country') || '').trim(),
             referral_source: String(data.get('referral_source') || '').trim(),
+            data_protection_consent: data.has('data_protection_consent'),
             marketing_consent: data.has('marketing_consent'),
             utm: {
                 source: params.get('utm_source'),
