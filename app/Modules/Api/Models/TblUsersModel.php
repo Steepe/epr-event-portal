@@ -24,7 +24,7 @@ class TblUsersModel extends Model
 
     protected array $allowedFields    = [
         'uuid', 'email', 'password', 'role', 'is_verified',
-        'last_login_at', 'created_at', 'updated_at', 'deleted_at'
+        'last_login_at', 'registered_2026_at', 'created_at', 'updated_at', 'deleted_at'
     ];
 
     protected bool $useTimestamps = true;

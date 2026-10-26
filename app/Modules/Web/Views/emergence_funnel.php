@@ -433,7 +433,6 @@
     const checkoutUrl = <?php echo json_encode($checkoutUrl); ?>;
     const portalUrl = <?php echo json_encode($portalUrl ?? site_url('attendees/login')); ?>;
     const calendarEvent = <?php echo json_encode($calendarEvent ?? []); ?>;
-    const mailchimpTags = <?php echo json_encode($mailchimpTags); ?>;
     const showUpsellOffer = <?php echo json_encode((bool) ($showUpsell ?? false)); ?>;
     const form = document.getElementById('funnelForm');
     const submitButton = document.getElementById('submitButton');
@@ -513,10 +512,6 @@
             country: String(data.get('country') || '').trim(),
             referral_source: String(data.get('referral_source') || '').trim(),
             marketing_consent: data.has('marketing_consent'),
-            mailchimp: {
-                tags: mailchimpTags.split(',').map(tag => tag.trim()).filter(Boolean),
-                status_if_new: data.has('marketing_consent') ? 'subscribed' : 'transactional'
-            },
             utm: {
                 source: params.get('utm_source'),
                 medium: params.get('utm_medium'),

@@ -12,6 +12,7 @@ namespace App\Modules\Api\Controllers;
 
 use App\Controllers\BaseController;
 use App\Modules\Api\Models\TblUsersModel;
+use App\Services\PasswordResetTokenService;
 use CodeIgniter\API\ResponseTrait;
 
 class AuthController extends BaseController
@@ -96,15 +97,8 @@ class AuthController extends BaseController
             ], 404);
         }
 
-        // ✅ Generate reset token
-        $token = bin2hex(random_bytes(32));
-
-        // Store token in password_resets
-        $this->db->table('password_resets')->insert([
-            'email'      => $email,
-            'token'      => $token,
-            'created_at' => date('Y-m-d H:i:s'),
-        ]);
+        // Store only a digest of the one-time token in the portal database.
+        $token = (new PasswordResetTokenService($this->db))->issue((int) $user['id']);
 
         // ✅ Build password reset link
         $resetLink = base_url('attendees/reset-password?token=' . $token);
@@ -166,11 +160,8 @@ class AuthController extends BaseController
             ], 400);
         }
 
-        // ✅ Look up token
-        $reset = $this->db->table('password_resets')
-            ->where('token', $token)
-            ->get()
-            ->getRowArray();
+        $tokens = new PasswordResetTokenService($this->db);
+        $reset = $tokens->valid($token);
 
         if (!$reset) {
             return $this->respond([
@@ -179,26 +170,16 @@ class AuthController extends BaseController
             ], 400);
         }
 
-        // ✅ Check expiration (1 hour)
-        $created = strtotime($reset['created_at']);
-        if (time() - $created > 3600) { // 1 hour = 3600 seconds
-            $this->db->table('password_resets')->where('token', $token)->delete();
-            return $this->respond([
-                'status' => 'error',
-                'message' => 'Token expired. Please request a new password reset link.'
-            ], 400);
-        }
-
         // ✅ Hash new password
         $hashed = password_hash($newPassword, PASSWORD_DEFAULT);
 
         // ✅ Update user’s password
         $this->db->table('tbl_users')
-            ->where('email', $reset['email'])
+            ->where('id', $reset['user_id'])
             ->update(['password' => $hashed, 'updated_at' => date('Y-m-d H:i:s')]);
 
         // ✅ Remove the used token
-        $this->db->table('password_resets')->where('token', $token)->delete();
+        $tokens->consume((int) $reset['token_id']);
 
         return $this->respond([
             'status' => 'success',

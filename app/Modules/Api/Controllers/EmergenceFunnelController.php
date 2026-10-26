@@ -3,7 +3,8 @@
 namespace App\Modules\Api\Controllers;
 
 use App\Controllers\BaseController;
-use App\Services\MailchimpService;
+use App\Services\EmergenceRegistrationMailer;
+use App\Services\PasswordResetTokenService;
 use CodeIgniter\API\ResponseTrait;
 use CodeIgniter\HTTP\ResponseInterface;
 use Ramsey\Uuid\Uuid;
@@ -32,6 +33,7 @@ class EmergenceFunnelController extends BaseController
         }
 
         $status = 'created';
+        $isNewUser = false;
 
         try {
             $this->db->transStart();
@@ -42,22 +44,32 @@ class EmergenceFunnelController extends BaseController
                 $userId = (int) $user['id'];
                 $this->db->table('tbl_users')
                     ->where('id', $userId)
-                    ->update(['updated_at' => date('Y-m-d H:i:s')]);
+                    ->update([
+                        'registered_2026_at' => date('Y-m-d H:i:s'),
+                        'updated_at' => date('Y-m-d H:i:s'),
+                    ]);
+
+                // A returning attendee's existing profile must not be replaced
+                // by values from a conference registration form.
+                $attendeeId = $this->attendeeIdForUser($userId);
             } else {
+                $isNewUser = true;
                 $this->db->table('tbl_users')->insert([
                     'uuid' => Uuid::uuid4()->toString(),
                     'email' => $payload['email'],
                     'password' => password_hash(bin2hex(random_bytes(16)), PASSWORD_DEFAULT),
                     'role' => 'attendee',
                     'is_verified' => 1,
+                    'registered_2026_at' => date('Y-m-d H:i:s'),
                     'created_at' => date('Y-m-d H:i:s'),
                     'updated_at' => date('Y-m-d H:i:s'),
                 ]);
                 $userId = (int) $this->db->insertID();
+
+                $attendeeId = $this->upsertAttendee($userId, $payload);
             }
 
-            $attendeeId = $this->upsertAttendee($userId, $payload);
-            $submissionId = $this->recordSubmission($userId, $payload, $status);
+            $this->recordSubmission($userId, $payload, $status);
 
             $this->db->transComplete();
 
@@ -71,11 +83,29 @@ class EmergenceFunnelController extends BaseController
             return $this->failServerError('Unable to save registration.');
         }
 
-        $mailchimp = (new MailchimpService())->syncEmergenceContact($payload);
-        $this->updateSubmissionMailchimpStatus($submissionId, $mailchimp);
+        $passwordSetupUrl = null;
 
-        if ($mailchimp['status'] === 'failed') {
-            log_message('error', 'Emergence funnel Mailchimp sync failed for ' . $payload['email'] . ': ' . json_encode($mailchimp['detail']));
+        try {
+            if ($isNewUser) {
+                $token = (new PasswordResetTokenService($this->db))->issue($userId);
+                $passwordSetupUrl = site_url('attendees/reset-password') . '?token=' . rawurlencode($token);
+            }
+
+            $emailSent = (new EmergenceRegistrationMailer(service('email')))
+                ->send($payload['email'], $payload['first_name'], $passwordSetupUrl);
+        } catch (\Throwable $e) {
+            $emailSent = false;
+            log_message('error', 'Emergence registration confirmation email failed: ' . $e->getMessage());
+        }
+
+        if (! $emailSent) {
+            return $this->respond([
+                'status' => $status,
+                'message' => 'Registration saved, but we could not send the confirmation email. Please contact registration@eprglobal.com.',
+                'user_id' => $userId,
+                'attendee_id' => $attendeeId,
+                'email' => 'failed',
+            ], 202);
         }
 
         return $this->respond([
@@ -83,7 +113,7 @@ class EmergenceFunnelController extends BaseController
             'message' => $status === 'updated' ? 'Registration updated.' : 'Registration created.',
             'user_id' => $userId,
             'attendee_id' => $attendeeId,
-            'mailchimp' => $mailchimp['status'],
+            'email' => 'sent',
         ]);
     }
 
@@ -96,7 +126,6 @@ class EmergenceFunnelController extends BaseController
 
     private function normalisePayload(array $payload): array
     {
-        $mailchimp = $payload['mailchimp'] ?? [];
         $utm = $payload['utm'] ?? [];
 
         return [
@@ -108,10 +137,6 @@ class EmergenceFunnelController extends BaseController
             'country' => trim((string) ($payload['country'] ?? '')),
             'referral_source' => trim((string) ($payload['referral_source'] ?? '')),
             'marketing_consent' => filter_var($payload['marketing_consent'] ?? false, FILTER_VALIDATE_BOOLEAN),
-            'mailchimp' => [
-                'tags' => $this->mailchimpTags($mailchimp['tags'] ?? []),
-                'status_if_new' => $mailchimp['status_if_new'] ?? 'transactional',
-            ],
             'utm' => [
                 'source' => $this->nullableString($utm['source'] ?? null),
                 'medium' => $this->nullableString($utm['medium'] ?? null),
@@ -206,6 +231,17 @@ class EmergenceFunnelController extends BaseController
         return (int) $this->db->insertID();
     }
 
+    private function attendeeIdForUser(int $userId): ?int
+    {
+        $attendee = $this->db->table('tbl_attendees')
+            ->select('id')
+            ->where('attendee_id', $userId)
+            ->get()
+            ->getRowArray();
+
+        return $attendee ? (int) $attendee['id'] : null;
+    }
+
     private function recordSubmission(int $userId, array $payload, string $status): int
     {
         $this->db->table('tbl_emergence_funnel_submissions')->insert([
@@ -229,47 +265,11 @@ class EmergenceFunnelController extends BaseController
         return (int) $this->db->insertID();
     }
 
-    private function updateSubmissionMailchimpStatus(int $submissionId, array $mailchimp): void
-    {
-        try {
-            $this->db->table('tbl_emergence_funnel_submissions')
-                ->where('id', $submissionId)
-                ->update([
-                    'mailchimp_status' => $mailchimp['status'],
-                    'mailchimp_detail' => json_encode($mailchimp['detail'] ?? null),
-                    'updated_at' => date('Y-m-d H:i:s'),
-                ]);
-        } catch (\Throwable $e) {
-            log_message('warning', 'Emergence funnel submission Mailchimp status update failed: ' . $e->getMessage());
-        }
-    }
-
     private function nullableString(mixed $value): ?string
     {
         $value = trim((string) $value);
 
         return $value === '' ? null : $value;
-    }
-
-    private function mailchimpTags(array|string $submittedTags): array
-    {
-        $tags = array_merge(
-            $this->splitTags(env('funnel.emergence.mailchimpTags') ?: 'emergence-registrant'),
-            $this->splitTags(env('funnel.emergence.conferenceTag') ?: 'conference-2026'),
-            is_array($submittedTags) ? $submittedTags : $this->splitTags($submittedTags)
-        );
-
-        $tags = array_map(
-            static fn ($tag): string => trim((string) $tag),
-            $tags
-        );
-
-        return array_values(array_unique(array_filter($tags)));
-    }
-
-    private function splitTags(string $tags): array
-    {
-        return array_map('trim', explode(',', $tags));
     }
 
     private function submittedAt(?string $submittedAt): ?string
