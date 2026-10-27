@@ -34,6 +34,20 @@ $this->section('content');
   </div>
 <?php endif; ?>
 
+<form method="get" action="<?php echo site_url('admin/attendees'); ?>" class="mb-4 flex flex-wrap items-end gap-3">
+  <label class="block text-sm text-gray-300">
+    <span class="mb-1 block text-gray-400">Conference registration</span>
+    <select name="conference" class="bg-gray-900 border border-gray-700 text-gray-200 text-sm rounded p-2.5">
+      <option value="">All attendees</option>
+      <option value="2026" <?php echo ($conference ?? null) === '2026' ? 'selected' : ''; ?>>Emergence Conference 2026</option>
+    </select>
+  </label>
+  <button type="submit" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-medium">Filter</button>
+  <?php if (($conference ?? null) === '2026'): ?>
+    <a href="<?php echo site_url('admin/attendees'); ?>" class="px-4 py-2.5 text-sm text-gray-300 hover:text-white">Clear filter</a>
+  <?php endif; ?>
+</form>
+
 <!-- Table -->
 <div class="relative overflow-x-auto shadow-md rounded-lg border border-gray-700 bg-gray-900">
   <table class="w-full text-sm text-left text-gray-300">
@@ -47,12 +61,13 @@ $this->section('content');
         <th class="px-4 py-3">City</th>
         <th class="px-4 py-3">State</th>
         <th class="px-4 py-3">Reg. Date</th>
+        <th class="px-4 py-3">Emergence 2026</th>
         <th class="px-4 py-3 text-center">Actions</th>
       </tr>
     </thead>
     <tbody>
       <?php if (empty($attendees)): ?>
-        <tr><td colspan="9" class="px-4 py-6 text-center text-gray-500">No attendees found.</td></tr>
+        <tr><td colspan="10" class="px-4 py-6 text-center text-gray-500">No attendees found.</td></tr>
       <?php else: ?>
         <?php foreach ($attendees as $attendee): ?>
           <tr class="border-t border-gray-700 hover:bg-gray-800">
@@ -64,6 +79,7 @@ $this->section('content');
             <td class="px-4 py-3"><?php echo esc($attendee['city'] ?? ''); ?></td>
             <td class="px-4 py-3"><?php echo esc($attendee['state'] ?? ''); ?></td>
             <td class="px-4 py-3"><?php echo esc($attendee['registration_timestamp'] ?? ''); ?></td>
+            <td class="px-4 py-3"><?php echo esc($attendee['registered_2026_at'] ?? '—'); ?></td>
             <td class="px-4 py-3 text-center">
               <div class="flex justify-center gap-3">
                 <button data-modal-target="editModal_<?php echo $attendee['id']; ?>"
