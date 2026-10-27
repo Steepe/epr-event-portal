@@ -1,0 +1,164 @@
+name: Test and deploy portal
+
+on:
+  pull_request:
+    branches: [main, staging]
+  push:
+    branches: [main, staging]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: portal-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  test:
+    name: Test PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: ['8.3', '8.5']
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: curl, intl, mbstring
+          coverage: none
+          tools: composer:v2
+
+      - name: Install dependencies
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Run automated tests
+        run: vendor/bin/phpunit --no-coverage
+
+  deploy_staging:
+    name: Deploy staging
+    needs: test
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/staging'
+    runs-on: ubuntu-latest
+    environment: staging
+    env:
+      DEPLOY_HOST: ${{ secrets.STAGING_SSH_HOST }}
+      DEPLOY_PORT: ${{ secrets.STAGING_SSH_PORT }}
+      DEPLOY_USER: ${{ secrets.STAGING_SSH_USER }}
+      DEPLOY_PATH: ${{ secrets.STAGING_DEPLOY_PATH }}
+      DEPLOY_PHP: ${{ secrets.STAGING_PHP_BINARY }}
+      DEPLOY_SSH_KEY: ${{ secrets.STAGING_SSH_PRIVATE_KEY }}
+      DEPLOY_KNOWN_HOSTS: ${{ secrets.STAGING_SSH_KNOWN_HOSTS }}
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: curl, intl, mbstring
+          coverage: none
+          tools: composer:v2
+
+      - name: Install production dependencies
+        run: composer install --no-dev --no-interaction --no-progress --prefer-dist --optimize-autoloader
+
+      - name: Configure deployment SSH key
+        run: |
+          : "${DEPLOY_HOST:?Missing STAGING_SSH_HOST}"
+          : "${DEPLOY_USER:?Missing STAGING_SSH_USER}"
+          : "${DEPLOY_PATH:?Missing STAGING_DEPLOY_PATH}"
+          : "${DEPLOY_SSH_KEY:?Missing STAGING_SSH_PRIVATE_KEY}"
+          : "${DEPLOY_KNOWN_HOSTS:?Missing STAGING_SSH_KNOWN_HOSTS}"
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_ed25519
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/id_ed25519 ~/.ssh/known_hosts
+
+      - name: Transfer application files
+        run: |
+          rsync -az --omit-dir-times --no-perms --no-owner --no-group \
+            --exclude='.env' \
+            --exclude='.git/' \
+            --exclude='.github/' \
+            --exclude='build/' \
+            --exclude='tests/' \
+            --exclude='writable/' \
+            --exclude='public/uploads/' \
+            -e "ssh -i ~/.ssh/id_ed25519 -p ${DEPLOY_PORT:-22} -o StrictHostKeyChecking=yes" \
+            ./ "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH%/}/"
+
+      - name: Run database migrations and clear cache
+        run: |
+          ssh -i ~/.ssh/id_ed25519 -p "${DEPLOY_PORT:-22}" -o StrictHostKeyChecking=yes \
+            "${DEPLOY_USER}@${DEPLOY_HOST}" \
+            "cd '${DEPLOY_PATH}' && '${DEPLOY_PHP:-php}' spark migrate --no-interaction && '${DEPLOY_PHP:-php}' spark cache:clear"
+
+  deploy_production:
+    name: Deploy production
+    needs: test
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      DEPLOY_HOST: ${{ secrets.PRODUCTION_SSH_HOST }}
+      DEPLOY_PORT: ${{ secrets.PRODUCTION_SSH_PORT }}
+      DEPLOY_USER: ${{ secrets.PRODUCTION_SSH_USER }}
+      DEPLOY_PATH: ${{ secrets.PRODUCTION_DEPLOY_PATH }}
+      DEPLOY_PHP: ${{ secrets.PRODUCTION_PHP_BINARY }}
+      DEPLOY_SSH_KEY: ${{ secrets.PRODUCTION_SSH_PRIVATE_KEY }}
+      DEPLOY_KNOWN_HOSTS: ${{ secrets.PRODUCTION_SSH_KNOWN_HOSTS }}
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: curl, intl, mbstring
+          coverage: none
+          tools: composer:v2
+
+      - name: Install production dependencies
+        run: composer install --no-dev --no-interaction --no-progress --prefer-dist --optimize-autoloader
+
+      - name: Configure deployment SSH key
+        run: |
+          : "${DEPLOY_HOST:?Missing PRODUCTION_SSH_HOST}"
+          : "${DEPLOY_USER:?Missing PRODUCTION_SSH_USER}"
+          : "${DEPLOY_PATH:?Missing PRODUCTION_DEPLOY_PATH}"
+          : "${DEPLOY_SSH_KEY:?Missing PRODUCTION_SSH_PRIVATE_KEY}"
+          : "${DEPLOY_KNOWN_HOSTS:?Missing PRODUCTION_SSH_KNOWN_HOSTS}"
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_ed25519
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/id_ed25519 ~/.ssh/known_hosts
+
+      - name: Transfer application files
+        run: |
+          rsync -az --omit-dir-times --no-perms --no-owner --no-group \
+            --exclude='.env' \
+            --exclude='.git/' \
+            --exclude='.github/' \
+            --exclude='build/' \
+            --exclude='tests/' \
+            --exclude='writable/' \
+            --exclude='public/uploads/' \
+            -e "ssh -i ~/.ssh/id_ed25519 -p ${DEPLOY_PORT:-22} -o StrictHostKeyChecking=yes" \
+            ./ "${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH%/}/"
+
+      - name: Run database migrations and clear cache
+        run: |
+          ssh -i ~/.ssh/id_ed25519 -p "${DEPLOY_PORT:-22}" -o StrictHostKeyChecking=yes \
+            "${DEPLOY_USER}@${DEPLOY_HOST}" \
+            "cd '${DEPLOY_PATH}' && '${DEPLOY_PHP:-php}' spark migrate --no-interaction && '${DEPLOY_PHP:-php}' spark cache:clear"
