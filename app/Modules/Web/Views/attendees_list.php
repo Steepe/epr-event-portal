@@ -52,10 +52,10 @@ $attendeeFilters = ['All', 'Online now', 'Founders', 'Operations', 'Finance', 'T
             <section class="rc-attendee-grid" data-attendee-grid>
                 <?php foreach ($attendees as $attendee): ?>
                     <?php
-                    $firstName = ucfirst(strtolower($attendee['firstname'] ?? ''));
-                    $lastName = ucfirst(strtolower($attendee['lastname'] ?? ''));
+                    $firstName = mb_convert_case((string) ($attendee['firstname'] ?? ''), MB_CASE_TITLE, 'UTF-8');
+                    $lastName = mb_convert_case((string) ($attendee['lastname'] ?? ''), MB_CASE_TITLE, 'UTF-8');
                     $fullName = trim($firstName . ' ' . $lastName);
-                    $firstLetter = strtoupper(substr($firstName ?: 'A', 0, 1));
+                    $firstLetter = mb_strtoupper(mb_substr($firstName ?: 'A', 0, 1, 'UTF-8'), 'UTF-8');
                     $image = !empty($attendee['profile_picture'])
                         ? base_url('uploads/attendee_pictures/' . $attendee['profile_picture'])
                         : asset_url('images/user.png');
