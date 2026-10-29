@@ -6,11 +6,6 @@ $timezone = $timezone ?? 'Africa/Lagos';
 ?>
 
 <main data-screen-label="Webinars" style="position:absolute;inset:0;overflow-y:auto;padding:112px 7vw 64px;box-sizing:border-box">
-    <div class="rc-corner-logo" aria-hidden="true">
-        <span class="rc-kicker" style="font-size:11px">EPR Global Webinars &middot; Bi-weekly</span>
-        <img src="<?php echo asset_url('images/accelerate-logo-white.png'); ?>" alt="">
-    </div>
-
     <div style="display:flex;flex-direction:column;gap:8px;max-width:520px">
         <a href="<?php echo base_url('attendees/start'); ?>" class="rc-back-link">
             <i class="fa fa-long-arrow-left" aria-hidden="true"></i>BACK
