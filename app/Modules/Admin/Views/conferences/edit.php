@@ -75,6 +75,14 @@
                 class="bg-gray-800 border border-gray-700 rounded w-full p-2.5"><?php echo esc($conference['description']); ?></textarea>
     </div>
 
+    <div>
+      <label class="block text-sm mb-1">Attendee Home Welcome Video</label>
+      <input type="url" name="welcome_video_url" value="<?php echo esc($conference['welcome_video_url'] ?? ''); ?>"
+             placeholder="https://iframe.mediadelivery.net/embed/..."
+             class="bg-gray-800 border border-gray-700 rounded w-full p-2.5">
+      <p class="mt-1 text-xs text-gray-500">Optional HTTPS embed URL. This video plays on <code>/attendees/home</code> when this conference is live.</p>
+    </div>
+
       <div>
           <label class="block text-sm mb-1">Conference Icon</label>
           <?php if (!empty($conference['icon'])): ?>

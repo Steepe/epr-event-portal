@@ -7,6 +7,7 @@ $checkoutEnabled = (bool) ($checkout_enabled ?? false);
 $ticketPrice = $ticket_price ?? null;
 $ticketCurrency = $ticket_currency ?? 'USD';
 $conferenceTitle = $conference['title'] ?? 'Accelerate';
+$welcomeVideoUrl = $welcome_video_url ?? '';
 ?>
 
 <?php if ($portalLocked): ?>
@@ -28,7 +29,7 @@ $conferenceTitle = $conference['title'] ?? 'Accelerate';
         <span style="font-size:36px;font-weight:600;letter-spacing:-.02em">Welcome to Accelerate</span>
     </div>
 
-    <div data-home-video style="position:relative;width:min(900px,58vw,calc((100vh - 360px) * 1.7778));aspect-ratio:16 / 9;border-radius:16px;overflow:hidden;background:#0b030d;border:1px solid rgba(255,255,255,.14);box-shadow:0 30px 80px rgba(0,0,0,.45),0 0 0 8px rgba(255,255,255,.03)">
+    <div data-home-video data-video-src="<?php echo esc($welcomeVideoUrl, 'attr'); ?>" style="position:relative;width:min(900px,58vw,calc((100vh - 360px) * 1.7778));aspect-ratio:16 / 9;border-radius:16px;overflow:hidden;background:#0b030d;border:1px solid rgba(255,255,255,.14);box-shadow:0 30px 80px rgba(0,0,0,.45),0 0 0 8px rgba(255,255,255,.03)">
         <div data-home-video-cover style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
             <button type="button" data-home-video-play aria-label="Play welcome video" style="width:84px;height:84px;padding:0 0 0 6px;box-sizing:border-box;border:0;border-radius:50%;background:linear-gradient(90deg,#7d0686,#bd159e 50%,#7c0585);color:#fff;display:flex;align-items:center;justify-content:center;font-size:30px;cursor:pointer;box-shadow:0 0 40px rgba(216,25,142,.6)">
                 <i class="fa fa-play" aria-hidden="true"></i>
@@ -50,8 +51,17 @@ $conferenceTitle = $conference['title'] ?? 'Accelerate';
 document.querySelector("[data-home-video-play]")?.addEventListener("click", function() {
     const video = document.querySelector("[data-home-video]");
     const cover = document.querySelector("[data-home-video-cover]");
+    const source = video?.dataset.videoSrc;
+    if (!video || !cover || !source) return;
+
+    const sourceUrl = new URL(source);
+    sourceUrl.searchParams.set("autoplay", "true");
+    sourceUrl.searchParams.set("loop", "false");
+    sourceUrl.searchParams.set("muted", "false");
+    sourceUrl.searchParams.set("preload", "true");
+    sourceUrl.searchParams.set("responsive", "true");
     const iframe = document.createElement("iframe");
-    iframe.src = "https://iframe.mediadelivery.net/embed/405384/60589a7b-3fe7-40fb-a2ae-3c024f23e01e?autoplay=true&loop=false&muted=false&preload=true&responsive=true";
+    iframe.src = sourceUrl.toString();
     iframe.allow = "accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;";
     iframe.allowFullscreen = true;
     iframe.style.cssText = "position:absolute;inset:0;width:100%;height:100%;border:0";

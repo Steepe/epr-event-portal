@@ -15,6 +15,8 @@ use App\Services\PortalAccessService;
 
 class HomeController extends BaseController
 {
+    private const DEFAULT_WELCOME_VIDEO_URL = 'https://iframe.mediadelivery.net/embed/405384/60589a7b-3fe7-40fb-a2ae-3c024f23e01e?loop=false&muted=false&preload=true&responsive=true';
+
     public function index()
     {
         $session = session();
@@ -48,6 +50,7 @@ class HomeController extends BaseController
 
         $data = [
             'conference' => $conference,
+            'welcome_video_url' => $conference['welcome_video_url'] ?? self::DEFAULT_WELCOME_VIDEO_URL,
             'ticket_price' => $ticketPrice,
             'ticket_currency' => $ticketCurrency,
             'is_paid' => $isPaid,
