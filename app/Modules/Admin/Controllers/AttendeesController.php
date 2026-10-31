@@ -48,7 +48,7 @@ class AttendeesController extends BaseController
     public function export2026()
     {
         $registrants = $this->attendeesModel
-            ->select('tbl_attendees.firstname, tbl_attendees.lastname, COALESCE(tbl_users.email, tbl_attendees.useremail) AS email, tbl_attendees.telephone, tbl_attendees.country, tbl_attendees.city, tbl_attendees.state, tbl_users.registered_2026_at', false)
+            ->select('tbl_attendees.firstname, tbl_attendees.lastname, tbl_users.email, tbl_attendees.telephone, tbl_attendees.country, tbl_attendees.city, tbl_attendees.state, tbl_users.registered_2026_at')
             ->join('tbl_users', 'tbl_users.id = tbl_attendees.attendee_id', 'left')
             ->where('tbl_users.registered_2026_at IS NOT NULL', null, false)
             ->orderBy('tbl_users.registered_2026_at', 'DESC')
