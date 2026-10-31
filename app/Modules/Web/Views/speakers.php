@@ -5,7 +5,6 @@ echo module_view('Web', 'includes/topbar');
 $tabs = [
     ['ATTENDEES', base_url('attendees/attendees'), false],
     ['SPEAKERS', base_url('attendees/speakers'), true],
-    ['COMMUNITIES', base_url('attendees/communities'), false],
 ];
 $speakers = $speakers ?? [];
 $slots = ['NOV 11 · 12:30 PM', 'NOV 11 · 12:45 PM', 'NOV 11 · 02:45 PM', 'NOV 12 · 11:45 AM', 'NOV 12 · 01:15 PM', 'NOV 12 · 04:45 PM'];

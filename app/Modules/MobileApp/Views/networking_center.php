@@ -117,9 +117,6 @@ echo module_view('MobileApp', 'includes/header'); ?>
     .speakers:hover {
         box-shadow: 0 0 18px rgba(157, 15, 130, 0.4);
     }
-    .communities:hover {
-        box-shadow: 0 0 18px rgba(255, 120, 209, 0.4);
-    }
     .points:hover {
         box-shadow: 0 0 18px rgba(255, 200, 60, 0.4);
     }
@@ -162,11 +159,6 @@ echo module_view('MobileApp', 'includes/header'); ?>
         <a href="<?php echo base_url('mobile/speakers'); ?>" class="networking-item speakers">
             <img src="<?php echo asset_url('images/speakers-icon.png'); ?>" alt="Speakers">
             <span>Speakers</span>
-        </a>
-
-        <a href="<?php echo base_url('mobile/communities'); ?>" class="networking-item communities">
-            <img src="<?php echo asset_url('images/community-icon.png'); ?>" alt="Communities">
-            <span>Communities</span>
         </a>
 
         <a href="<?php echo base_url('mobile/points'); ?>" class="networking-item points">

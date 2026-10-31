@@ -10,7 +10,6 @@ $notifications = [
     ['id' => 'n2', 'cat' => 'Messages', 'group' => 'TODAY', 'unread' => true, 'title' => 'Grace Otieno sent you a message', 'body' => '“Happy to share our weekly ops dashboard after the session.”', 'time' => '8 MIN AGO', 'icon' => 'fa-comment', 'url' => base_url('attendees/attendees')],
     ['id' => 'n3', 'cat' => 'Messages', 'group' => 'TODAY', 'unread' => true, 'title' => 'Femi Adebayo mentioned you in session chat', 'body' => '@Ada Okafor would love to compare notes after the session.', 'time' => '12 MIN AGO', 'icon' => 'fa-at', 'url' => base_url('attendees/sessions/1')],
     ['id' => 'n4', 'cat' => 'Networking', 'group' => 'TODAY', 'unread' => true, 'title' => 'Your 1:1 with Kemi Bello is confirmed', 'body' => 'Tomorrow · 2:30 PM WAT · 15 minutes', 'time' => '40 MIN AGO', 'icon' => 'fa-calendar-check-o', 'url' => base_url('attendees/speakers')],
-    ['id' => 'n5', 'cat' => 'Networking', 'group' => 'TODAY', 'unread' => false, 'title' => '3 new posts in Founders Circle', 'body' => 'Zainab Musa and 2 others posted while you were away.', 'time' => '1 HR AGO', 'icon' => 'fa-users', 'url' => base_url('attendees/communities')],
     ['id' => 'n6', 'cat' => 'Sessions', 'group' => 'TODAY', 'unread' => false, 'title' => 'Starting in 15 min: Operating Cadence for Scale', 'body' => 'You added this session to your agenda.', 'time' => '2 HR AGO', 'icon' => 'fa-clock-o', 'url' => $agendaUrl],
     ['id' => 'n7', 'cat' => 'Booths', 'group' => 'EARLIER', 'unread' => false, 'title' => 'Utica Capital replied to your booth message', 'body' => '“Thanks for stopping by. Let’s set up a call next week.”', 'time' => 'YESTERDAY', 'icon' => 'fa-th-large', 'url' => base_url('attendees/exhibitors')],
     ['id' => 'n8', 'cat' => 'Networking', 'group' => 'EARLIER', 'unread' => false, 'title' => 'Zainab Musa accepted your connection request', 'body' => 'You can now message each other directly.', 'time' => 'YESTERDAY', 'icon' => 'fa-user-plus', 'url' => base_url('attendees/attendees')],
@@ -37,7 +36,6 @@ $preferences = [
     ['messages', 'Direct messages', 'When an attendee or speaker messages you'],
     ['mentions', 'Mentions', 'When you are @mentioned in chat or posts'],
     ['connections', 'Connections & bookings', 'Requests, acceptances and 1:1 confirmations'],
-    ['community', 'Community activity', 'New posts in communities you joined'],
     ['booths', 'Booth replies', 'When an exhibitor responds to you'],
     ['email', 'Email digest', 'A summary every evening at 6 PM'],
 ];

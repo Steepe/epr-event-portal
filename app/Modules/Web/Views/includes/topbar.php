@@ -35,7 +35,7 @@ if ($currentUserId > 0) {
 $navKey = $current;
 if ($current === 'sessions') {
     $navKey = 'agenda';
-} elseif (in_array($current, ['networking_center', 'attendees', 'speakers', 'communities'], true)) {
+} elseif (in_array($current, ['networking_center', 'attendees', 'speakers'], true)) {
     $navKey = 'networking_center';
 } elseif ($current === 'emergence_booth') {
     $navKey = 'emergence_booth';
@@ -47,7 +47,6 @@ $showNav = in_array($current, [
     'networking_center',
     'attendees',
     'speakers',
-    'communities',
     'exhibitors',
     'sponsors',
     'emergence_booth',
@@ -61,7 +60,6 @@ $showNavLogo = in_array($current, [
     'networking_center',
     'attendees',
     'speakers',
-    'communities',
     'exhibitors',
     'sponsors',
     'emergence_booth',
@@ -83,7 +81,6 @@ $notificationPreview = [
     ['Messages', 'Grace Otieno sent you a message', '“Happy to share our weekly ops dashboard after the session.”', '8 MIN AGO', true, 'fa-comment', '#9d0f82', '#fff', base_url('attendees/attendees')],
     ['Messages', 'Femi Adebayo mentioned you in session chat', '@Ada Okafor would love to compare notes after the session.', '12 MIN AGO', true, 'fa-at', '#9d0f82', '#fff', base_url('attendees/sessions/1')],
     ['Networking', 'Your 1:1 with Kemi Bello is confirmed', 'Tomorrow · 2:30 PM WAT · 15 minutes', '40 MIN AGO', true, 'fa-calendar-check-o', '#efb11e', '#260029', base_url('attendees/speakers')],
-    ['Networking', '3 new posts in Founders Circle', 'Zainab Musa and 2 others posted while you were away.', '1 HR AGO', false, 'fa-users', '#efb11e', '#260029', base_url('attendees/communities')],
 ];
 $displayUnreadCount = max(4, $unreadCount);
 ?>
