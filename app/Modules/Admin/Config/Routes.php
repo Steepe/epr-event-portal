@@ -33,6 +33,7 @@ $routes->group('admin', ['namespace' => 'App\Modules\Admin\Controllers'], functi
     $routes->group('', ['filter' => 'adminAuth'], function ($routes) {
 // Attendees Management
         $routes->get('attendees', 'AttendeesController::index');
+        $routes->get('attendees/export/2026', 'AttendeesController::export2026');
         $routes->get('attendees/(:num)', 'AttendeesController::view/$1');
         $routes->post('attendees/(:num)/toggle', 'AttendeesController::toggle/$1');
 

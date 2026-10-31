@@ -44,6 +44,9 @@ $this->section('content');
   </label>
   <button type="submit" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-medium">Filter</button>
   <?php if (($conference ?? null) === '2026'): ?>
+    <a href="<?php echo site_url('admin/attendees/export/2026'); ?>" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-sm font-medium">
+      Export 2026 CSV
+    </a>
     <a href="<?php echo site_url('admin/attendees'); ?>" class="px-4 py-2.5 text-sm text-gray-300 hover:text-white">Clear filter</a>
   <?php endif; ?>
 </form>
