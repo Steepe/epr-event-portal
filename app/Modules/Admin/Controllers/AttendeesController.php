@@ -45,6 +45,56 @@ class AttendeesController extends BaseController
         ]);
     }
 
+    public function export2026()
+    {
+        $registrants = $this->attendeesModel
+            ->select('tbl_attendees.firstname, tbl_attendees.lastname, COALESCE(tbl_users.email, tbl_attendees.useremail) AS email, tbl_attendees.telephone, tbl_attendees.country, tbl_attendees.city, tbl_attendees.state, tbl_users.registered_2026_at', false)
+            ->join('tbl_users', 'tbl_users.id = tbl_attendees.attendee_id', 'left')
+            ->where('tbl_users.registered_2026_at IS NOT NULL', null, false)
+            ->orderBy('tbl_users.registered_2026_at', 'DESC')
+            ->findAll();
+
+        $stream = fopen('php://temp', 'r+');
+        $safeCsvValue = static function ($value): string {
+            $value = (string) $value;
+
+            return preg_match('/^[=+\-@]/', $value) ? "'" . $value : $value;
+        };
+
+        fwrite($stream, "\xEF\xBB\xBF");
+        fputcsv($stream, [
+            'First Name',
+            'Last Name',
+            'Email',
+            'Telephone',
+            'Country',
+            'City',
+            'State',
+            'Registered for Emergence 2026',
+        ]);
+
+        foreach ($registrants as $registrant) {
+            fputcsv($stream, [
+                $safeCsvValue($registrant['firstname'] ?? ''),
+                $safeCsvValue($registrant['lastname'] ?? ''),
+                $safeCsvValue($registrant['email'] ?? ''),
+                $safeCsvValue($registrant['telephone'] ?? ''),
+                $safeCsvValue($registrant['country'] ?? ''),
+                $safeCsvValue($registrant['city'] ?? ''),
+                $safeCsvValue($registrant['state'] ?? ''),
+                $safeCsvValue($registrant['registered_2026_at'] ?? ''),
+            ]);
+        }
+
+        rewind($stream);
+        $csv = stream_get_contents($stream);
+        fclose($stream);
+
+        return $this->response
+            ->download('emergence-2026-registrants-' . date('Y-m-d') . '.csv', $csv)
+            ->setHeader('Content-Type', 'text/csv; charset=UTF-8');
+    }
+
     public function update($id)
     {
         $data = [
