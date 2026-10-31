@@ -71,55 +71,18 @@ body {
     object-fit: contain;
 }
 
-/* 💫 Center Live Bubble */
-.lobby-center {
-    position: relative;
-    bottom: 180px;
-    z-index: 2;
-    animation: pulseGlow 3s infinite ease-in-out;
-}
-.lobby-center img {
-    width: 380px;
-    height: auto;
-}
-@keyframes pulseGlow {
-    0%, 100% { transform: scale(1); filter: drop-shadow(0 0 20px rgba(255,200,50,0.8)); }
-    50% { transform: scale(1.07); filter: drop-shadow(0 0 35px rgba(255,210,90,1)); }
-}
-
-/* 🎯 Static Top Bubbles */
-.bubble-webinars {
-    position: absolute;
-    top: 13.5%; left: 15%;
-    width: 150px;
-    height: 150px;
-}
-.bubble-envision {
-    position: absolute;
-    top: 13.5%;
-    right: 15%;
-    width: 150px;
-    height: 150px;
-}
-
 /* 🔵 Past Conference Bubbles */
 .lobby-events {
     display: flex;
     justify-content: center;
     flex-wrap: wrap;
     gap: 40px;
-    margin-top: 70px;
+    margin-top: 0;
     z-index: 1;
 }
 
 /* 📱 Responsive */
 @media (max-width: 992px) {
-    .bubble-webinars, .bubble-envision {
-        position: static;
-        width: 120px; height: 120px;
-        margin-bottom: 30px;
-    }
-    .lobby-center img { width: 240px; }
     .lobby-events { gap: 25px; }
 }
 </style>
@@ -132,38 +95,9 @@ body {
 
 <div class="lobby-container">
 
-    <!-- 🟣 Static Bubbles -->
-    <div class="lobby-bubble bubble-webinars"
-         onclick="window.location='<?php echo base_url('attendees/webinars'); ?>'">
-        <img src="<?php echo asset_url('images/webinars.png'); ?>" alt="EPR Global Webinars">
-    </div>
-
-    <div class="lobby-bubble bubble-envision"
-         onclick="window.location='<?php echo base_url('attendees/envision'); ?>'">
-        <img src="<?php echo asset_url('images/envision.png'); ?>" alt="Envision">
-    </div>
-
     <?php
-    $live = null;
-    $past = [];
-
-    if (!empty($conferences)) {
-        foreach ($conferences as $conf) {
-            if ($conf['status'] === 'live') $live = $conf;
-            else $past[] = $conf;
-        }
-    }
+    $past = $conferences ?? [];
     ?>
-
-    <!-- 🌟 Live Conference -->
-    <?php if (!empty($live)): ?>
-        <?php session()->set('live-conference-id', $live['conference_id']); ?>
-        <div class="lobby-center" style="cursor: pointer;">
-            <img src="<?php echo base_url('uploads/conferences/' . $live['icon']); ?>"
-                 alt="<?php echo esc($live['title']); ?>"
-                 onclick="window.location='<?php echo base_url('attendees/home'); ?>'">
-        </div>
-    <?php endif; ?>
 
     <!-- 🏆 Past Conferences -->
     <div class="lobby-events">

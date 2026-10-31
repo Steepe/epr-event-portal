@@ -24,9 +24,9 @@ class StartController extends BaseController
 
         $conferenceModel = new ConferenceModel();
 
-        // Fetch all conferences (live + past)
+        // The production archive entry point exposes past conferences only.
         $conferences = $conferenceModel
-            ->whereIn('status', ['live', 'past'])
+            ->where('status', 'past')
             ->orderBy('year', 'DESC')
             ->findAll();
 
