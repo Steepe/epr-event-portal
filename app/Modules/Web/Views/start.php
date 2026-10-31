@@ -71,6 +71,21 @@ body {
     object-fit: contain;
 }
 
+/* 🎯 Static top bubbles */
+.bubble-webinars {
+    position: absolute;
+    top: 13.5%; left: 15%;
+    width: 150px;
+    height: 150px;
+}
+.bubble-envision {
+    position: absolute;
+    top: 13.5%;
+    right: 15%;
+    width: 150px;
+    height: 150px;
+}
+
 /* 🔵 Past Conference Bubbles */
 .lobby-events {
     display: flex;
@@ -83,6 +98,11 @@ body {
 
 /* 📱 Responsive */
 @media (max-width: 992px) {
+    .bubble-webinars, .bubble-envision {
+        position: static;
+        width: 120px; height: 120px;
+        margin-bottom: 30px;
+    }
     .lobby-events { gap: 25px; }
 }
 </style>
@@ -94,6 +114,16 @@ body {
 <div id="videoOverlay"></div>
 
 <div class="lobby-container">
+
+    <div class="lobby-bubble bubble-webinars"
+         onclick="window.location='<?php echo base_url('attendees/webinars'); ?>'">
+        <img src="<?php echo asset_url('images/webinars.png'); ?>" alt="EPR Global Webinars">
+    </div>
+
+    <div class="lobby-bubble bubble-envision"
+         onclick="window.location='<?php echo base_url('attendees/envision'); ?>'">
+        <img src="<?php echo asset_url('images/envision.png'); ?>" alt="Envision">
+    </div>
 
     <?php
     $past = $conferences ?? [];
