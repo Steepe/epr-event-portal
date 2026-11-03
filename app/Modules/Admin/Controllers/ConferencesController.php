@@ -57,6 +57,12 @@ class ConferencesController extends BaseController
 
     public function store(): \CodeIgniter\HTTP\RedirectResponse
     {
+        if ($this->postExceedsUploadLimit()) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'The selected video is larger than this server allows. No conference was created. Increase both upload_max_filesize and post_max_size before trying again.');
+        }
+
         $title = trim((string)$this->request->getPost('title'));
         $welcomeVideoUrl = '';
         if ($title === '') {
@@ -115,6 +121,19 @@ class ConferencesController extends BaseController
             throw new PageNotFoundException('Conference not found.');
         }
 
+        if ($this->postExceedsUploadLimit()) {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'The selected video is larger than this server allows. No conference changes were saved. Increase both upload_max_filesize and post_max_size before trying again.');
+        }
+
+        $title = trim((string) $this->request->getPost('title'));
+        if ($title === '') {
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Conference name is required. No conference changes were saved.');
+        }
+
         $welcomeVideoUrl = (string) ($conference['welcome_video_url'] ?? '');
         try {
             $uploadedVideoUrl = $this->uploadWelcomeVideo();
@@ -126,7 +145,7 @@ class ConferencesController extends BaseController
         }
 
         $data = [
-            'title'        => trim($this->request->getPost('title')),
+            'title'        => $title,
             'description' => $this->request->getPost('description'),
             'year'        => $this->request->getPost('year'),
             'is_paid'     => $this->request->getPost('is_paid') ? 1 : 0,
@@ -190,5 +209,31 @@ class ConferencesController extends BaseController
             $file,
             trim((string) $this->request->getPost('title')) . ' welcome video'
         );
+    }
+
+    private function postExceedsUploadLimit(): bool
+    {
+        $contentLength = (int) $this->request->getServer('CONTENT_LENGTH');
+        $limit = $this->iniBytes((string) ini_get('post_max_size'));
+
+        return $contentLength > 0 && $limit > 0 && $contentLength > $limit;
+    }
+
+    private function iniBytes(string $value): int
+    {
+        $value = trim($value);
+        if ($value === '') {
+            return 0;
+        }
+
+        $unit = strtolower(substr($value, -1));
+        $bytes = (int) $value;
+
+        return match ($unit) {
+            'g' => $bytes * 1024 * 1024 * 1024,
+            'm' => $bytes * 1024 * 1024,
+            'k' => $bytes * 1024,
+            default => $bytes,
+        };
     }
 }
