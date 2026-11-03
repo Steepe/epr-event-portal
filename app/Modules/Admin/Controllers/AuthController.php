@@ -11,6 +11,7 @@ namespace App\Modules\Admin\Controllers;
 
 use App\Controllers\BaseController;
 use App\Modules\Admin\Models\AdminModel;
+use App\Services\AdminAuditService;
 use CodeIgniter\I18n\Time;
 
 class AuthController extends BaseController
@@ -50,16 +51,25 @@ class AuthController extends BaseController
             ]);
 
             $this->adminModel->markLogin($admin['id']);
+            (new AdminAuditService())->record('login', $this->request, null, [
+                'admin_id' => (int) $admin['id'],
+                'admin_name' => $admin['name'],
+                'admin_email' => $admin['email'],
+            ]);
 
             return redirect()->to(site_url('admin/dashboard'));
         }
 
+        (new AdminAuditService())->record('failed_login', $this->request, null, [
+            'admin_email' => (string) $email,
+        ]);
         session()->setFlashdata('login_error', 'Invalid credentials or disabled account.');
         return redirect()->to(site_url('admin/login'));
     }
 
     public function logout()
     {
+        (new AdminAuditService())->record('logout', $this->request);
         session()->remove(['admin_id','admin_name','admin_email','admin_role','is_admin']);
         return redirect()->to(site_url('admin/login'));
     }
@@ -142,6 +152,11 @@ class AuthController extends BaseController
             ->where('admin_id', $record['admin_id'])
             ->where('used_at IS NULL', null, false)
             ->delete();
+
+        (new AdminAuditService())->record('password_reset', $this->request, null, [
+            'admin_id' => (int) $record['admin_id'],
+            'admin_email' => (string) $record['email'],
+        ]);
 
         return redirect()->to(site_url('admin/login'))
             ->with('success', 'Password reset successfully. You can now sign in.');

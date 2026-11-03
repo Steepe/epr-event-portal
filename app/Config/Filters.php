@@ -30,6 +30,7 @@ class Filters extends BaseFilters
         'apiauth'       => \App\Filters\ApiAuth::class,
         'auth'          => \App\Filters\AuthFilter::class,
         'adminAuth' => \App\Filters\AdminAuth::class,
+        'adminAudit' => \App\Filters\AdminAudit::class,
         'role' => \App\Filters\RoleFilter::class,
         'mobileauth' => \App\Filters\MobileAuthFilter::class,
         'PremiumAccess' => \App\Filters\PremiumAccess::class,

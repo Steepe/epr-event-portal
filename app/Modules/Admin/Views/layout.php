@@ -88,6 +88,10 @@
                class="flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-700">
                 <i class="bx bx-shield-quarter text-lg"></i> Admin Users
             </a>
+            <a href="<?php echo base_url('admin/audit-logs'); ?>"
+               class="flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-700">
+                <i class="bx bx-history text-lg"></i> Activity Log
+            </a>
         <?php endif; ?>
 
         <!-- Messages -->
