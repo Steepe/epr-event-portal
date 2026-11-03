@@ -100,7 +100,7 @@ jobs:
         run: |
           ssh -i ~/.ssh/id_ed25519 -p "${DEPLOY_PORT:-22}" -o StrictHostKeyChecking=yes \
             "${DEPLOY_USER}@${DEPLOY_HOST}" \
-            "cd '${DEPLOY_PATH}' && '${DEPLOY_PHP:-php}' spark migrate --no-interaction && '${DEPLOY_PHP:-php}' spark cache:clear"
+            "cd '${DEPLOY_PATH}' && '${DEPLOY_PHP:-php}' spark cache:clear"
 
   deploy_production:
     name: Deploy production
@@ -161,4 +161,4 @@ jobs:
         run: |
           ssh -i ~/.ssh/id_ed25519 -p "${DEPLOY_PORT:-22}" -o StrictHostKeyChecking=yes \
             "${DEPLOY_USER}@${DEPLOY_HOST}" \
-            "cd '${DEPLOY_PATH}' && '${DEPLOY_PHP:-php}' spark migrate --no-interaction && '${DEPLOY_PHP:-php}' spark cache:clear"
+            "cd '${DEPLOY_PATH}' && '${DEPLOY_PHP:-php}' spark cache:clear"
