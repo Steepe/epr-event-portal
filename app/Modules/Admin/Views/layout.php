@@ -6,6 +6,8 @@
  * Date: 09/11/2025
  * Time: 01:13
  */
+$adminRole = strtolower((string) preg_replace('/[\\s_-]+/', '', (string) session('admin_role')));
+$isSuperadmin = $adminRole === 'superadmin';
 ?>
 
 <!DOCTYPE html>
@@ -58,7 +60,7 @@
             <i class="bx bx-calendar text-lg"></i> Conferences
         </a>
 
-        <?php if (session('admin_role') !== 'superadmin'): ?>
+        <?php if (! $isSuperadmin): ?>
             <a href="<?php echo base_url('admin/sessions'); ?>"
                class="flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-700">
                 <i class="bx bx-list-ul text-lg"></i> Sessions
@@ -90,7 +92,7 @@
         </a>
 
         <!-- Admin Users (Superadmin only) -->
-        <?php if (session('admin_role') === 'superadmin'): ?>
+        <?php if ($isSuperadmin): ?>
             <a href="<?php echo base_url('admin/admins'); ?>"
                class="flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-700">
                 <i class="bx bx-shield-quarter text-lg"></i> Admin Users

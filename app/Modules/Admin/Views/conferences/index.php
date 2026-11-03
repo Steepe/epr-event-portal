@@ -7,6 +7,9 @@
  * Time: 03:07
  */
 
+$adminRole = strtolower((string) preg_replace('/[\\s_-]+/', '', (string) session('admin_role')));
+$isSuperadmin = $adminRole === 'superadmin';
+
 $this->extend('App\Modules\Admin\Views\layout');
 $this->section('content');
 ?>
@@ -93,7 +96,7 @@ $this->section('content');
               </button>
             </div>
           </div>
-          <?php if (session('admin_role') === 'superadmin'): ?>
+          <?php if ($isSuperadmin): ?>
             <div class="mt-4 pt-4 border-t border-gray-700">
               <a href="<?php echo site_url('admin/conferences/' . $conf['conference_id'] . '/sessions'); ?>"
                  class="inline-flex items-center gap-2 text-sm text-blue-300 hover:text-blue-200 hover:underline">
