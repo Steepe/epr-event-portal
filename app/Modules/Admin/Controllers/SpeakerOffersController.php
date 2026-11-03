@@ -45,11 +45,21 @@ class SpeakerOffersController extends BaseController
         ]);
     }
 
-    public function create($speakerId): string
+    public function create($speakerId): string|\CodeIgniter\HTTP\RedirectResponse
     {
+        $speaker = $this->db->table('tbl_speakers')
+            ->where('speaker_id', $speakerId)
+            ->get()
+            ->getRowArray();
+
+        if (! $speaker) {
+            return redirect()->back()->with('error', 'Speaker not found.');
+        }
+
         return module_view('Admin', 'speaker_offers/form', [
             'speaker_id' => $speakerId,
-            'offer'      => null
+            'offer'      => null,
+            'speaker'    => $speaker,
         ]);
     }
 
@@ -105,6 +115,10 @@ class SpeakerOffersController extends BaseController
             ->where('id', $offerId)
             ->get()
             ->getRowArray();
+
+        if (! $offer) {
+            return redirect()->back()->with('error', 'Offer not found.');
+        }
 
         $data = [
             'title'    => $this->request->getPost('title'),
