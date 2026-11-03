@@ -11,6 +11,7 @@ namespace App\Modules\Admin\Controllers;
 
 use App\Controllers\BaseController;
 use App\Modules\Admin\Models\ConferencesModel;
+use App\Services\BunnyStreamService;
 use CodeIgniter\Exceptions\PageNotFoundException;
 
 class ConferencesController extends BaseController
@@ -57,17 +58,17 @@ class ConferencesController extends BaseController
     public function store(): \CodeIgniter\HTTP\RedirectResponse
     {
         $title = trim((string)$this->request->getPost('title'));
-        $welcomeVideoUrl = trim((string)$this->request->getPost('welcome_video_url'));
+        $welcomeVideoUrl = '';
         if ($title === '') {
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Conference title is required.');
         }
 
-        if (! $this->isValidWelcomeVideoUrl($welcomeVideoUrl)) {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'The attendee home welcome video must be a valid HTTPS embed URL.');
+        try {
+            $welcomeVideoUrl = $this->uploadWelcomeVideo();
+        } catch (\RuntimeException $exception) {
+            return redirect()->back()->withInput()->with('error', $exception->getMessage());
         }
 
         $data = [
@@ -114,11 +115,14 @@ class ConferencesController extends BaseController
             throw new PageNotFoundException('Conference not found.');
         }
 
-        $welcomeVideoUrl = trim((string)$this->request->getPost('welcome_video_url'));
-        if (! $this->isValidWelcomeVideoUrl($welcomeVideoUrl)) {
-            return redirect()->back()
-                ->withInput()
-                ->with('error', 'The attendee home welcome video must be a valid HTTPS embed URL.');
+        $welcomeVideoUrl = (string) ($conference['welcome_video_url'] ?? '');
+        try {
+            $uploadedVideoUrl = $this->uploadWelcomeVideo();
+            if ($uploadedVideoUrl !== null) {
+                $welcomeVideoUrl = $uploadedVideoUrl;
+            }
+        } catch (\RuntimeException $exception) {
+            return redirect()->back()->withInput()->with('error', $exception->getMessage());
         }
 
         $data = [
@@ -172,16 +176,19 @@ class ConferencesController extends BaseController
         return redirect()->to(site_url('admin/conferences'))->with('success', 'Conference deleted.');
     }
 
-    private function isValidWelcomeVideoUrl(string $url): bool
+    /**
+     * @throws \RuntimeException
+     */
+    private function uploadWelcomeVideo(): ?string
     {
-        if ($url === '') {
-            return true;
+        $file = $this->request->getFile('welcome_video');
+        if ($file === null || $file->getError() === UPLOAD_ERR_NO_FILE) {
+            return null;
         }
 
-        $parts = parse_url($url);
-
-        return filter_var($url, FILTER_VALIDATE_URL)
-            && ($parts['scheme'] ?? null) === 'https'
-            && ! empty($parts['host']);
+        return (new BunnyStreamService())->uploadWelcomeVideo(
+            $file,
+            trim((string) $this->request->getPost('title')) . ' welcome video'
+        );
     }
 }
