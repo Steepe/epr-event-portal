@@ -58,6 +58,13 @@
             <i class="bx bx-calendar text-lg"></i> Conferences
         </a>
 
+        <?php if (session('admin_role') !== 'superadmin'): ?>
+            <a href="<?php echo base_url('admin/sessions'); ?>"
+               class="flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-700">
+                <i class="bx bx-list-ul text-lg"></i> Sessions
+            </a>
+        <?php endif; ?>
+
         <!-- Speakers -->
         <a href="<?php echo base_url('admin/speakers'); ?>"
            class="flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-700">
