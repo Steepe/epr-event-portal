@@ -21,12 +21,23 @@ class ConferenceSessionsController extends BaseController
 
     public function __construct()
     {
-        if (session('admin_role') !== 'superadmin') {
-            throw PageNotFoundException::forPageNotFound();
-        }
-
         $this->sessionModel = new ConferenceSessionsModel();
         $this->conferenceModel = new ConferencesModel();
+    }
+
+    public function all()
+    {
+        $sessions = $this->sessionModel
+            ->select('tbl_conference_sessions.*, tbl_conferences.title AS conference_title')
+            ->join('tbl_conferences', 'tbl_conferences.conference_id = tbl_conference_sessions.conference_id', 'left')
+            ->orderBy('event_date', 'DESC')
+            ->orderBy('start_time', 'DESC')
+            ->findAll();
+
+        return module_view('Admin', 'sessions/all', [
+            'sessions' => $sessions,
+            'pageTitle' => 'Sessions',
+        ]);
     }
 
     public function index($conference_id = null)

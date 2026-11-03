@@ -50,6 +50,9 @@ $routes->group('admin', ['namespace' => 'App\Modules\Admin\Controllers'], functi
         $routes->post('conferences/(:num)/update', 'ConferencesController::update/$1');
         $routes->post('conferences/(:num)/delete', 'ConferencesController::delete/$1');
 
+        // Sessions overview for non-superadmin navigation
+        $routes->get('sessions', 'ConferenceSessionsController::all');
+
 // Inside the admin group
         $routes->group('conferences', ['namespace' => 'App\Modules\Admin\Controllers'], function ($routes) {
             $routes->get('(:num)/sessions', 'ConferenceSessionsController::index/$1');
