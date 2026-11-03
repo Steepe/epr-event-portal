@@ -82,12 +82,6 @@ $this->section('content');
             <span class="px-2 py-1 text-xs rounded <?php echo $statusClass; ?>">
               <?php echo $statusLabel; ?>
             </span>
-              <a href="<?php echo site_url('admin/conferences/' . $conf['conference_id'] . '/sessions'); ?>"
-                 class="px-3 py-1 bg-gray-700 hover:bg-gray-600 text-sm text-white rounded">
-                  View Sessions
-              </a>
-
-
               <div class="flex gap-2">
               <a href="<?php echo site_url('admin/conferences/' . $conf['conference_id'] . '/edit'); ?>"
                  class="px-3 py-1 text-xs bg-blue-700 hover:bg-blue-800 text-white rounded">
@@ -99,6 +93,14 @@ $this->section('content');
               </button>
             </div>
           </div>
+          <?php if (session('admin_role') === 'superadmin'): ?>
+            <div class="mt-4 pt-4 border-t border-gray-700">
+              <a href="<?php echo site_url('admin/conferences/' . $conf['conference_id'] . '/sessions'); ?>"
+                 class="inline-flex items-center gap-2 text-sm text-blue-300 hover:text-blue-200 hover:underline">
+                <i class="bx bx-list-ul text-base"></i> View Sessions
+              </a>
+            </div>
+          <?php endif; ?>
         </div>
       </div>
     <?php endforeach; ?>
