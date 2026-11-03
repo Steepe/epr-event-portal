@@ -77,12 +77,12 @@ $this->section('content');
                     </td>
 
                     <td class="p-3 text-right">
-                        <a href="<?php echo site_url('admin/speaker-offers/' . $offer['id'] . '/edit'); ?>"
+                        <a href="<?php echo site_url('admin/speakers/offers/' . $offer['id'] . '/edit'); ?>"
                            class="px-3 py-1 bg-yellow-500 hover:bg-yellow-600 text-white rounded text-sm">
                             Edit
                         </a>
 
-                        <a href="<?php echo site_url('admin/speaker-offers/' . $offer['id'] . '/delete'); ?>"
+                        <a href="<?php echo site_url('admin/speakers/offers/' . $offer['id'] . '/delete'); ?>"
                            onclick="return confirm('Delete this offer?');"
                            class="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded text-sm ml-2">
                             Delete
