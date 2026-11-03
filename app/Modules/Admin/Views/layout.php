@@ -60,12 +60,10 @@ $isSuperadmin = $adminRole === 'superadmin';
             <i class="bx bx-calendar text-lg"></i> Conferences
         </a>
 
-        <?php if (! $isSuperadmin): ?>
-            <a href="<?php echo base_url('admin/sessions'); ?>"
-               class="flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-700">
-                <i class="bx bx-list-ul text-lg"></i> Sessions
-            </a>
-        <?php endif; ?>
+        <a href="<?php echo base_url('admin/sessions'); ?>"
+           class="flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-700">
+            <i class="bx bx-list-ul text-lg"></i> Sessions
+        </a>
 
         <!-- Speakers -->
         <a href="<?php echo base_url('admin/speakers'); ?>"
