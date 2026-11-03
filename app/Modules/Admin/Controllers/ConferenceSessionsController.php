@@ -21,6 +21,10 @@ class ConferenceSessionsController extends BaseController
 
     public function __construct()
     {
+        if (session('admin_role') !== 'superadmin') {
+            throw PageNotFoundException::forPageNotFound();
+        }
+
         $this->sessionModel = new ConferenceSessionsModel();
         $this->conferenceModel = new ConferencesModel();
     }
