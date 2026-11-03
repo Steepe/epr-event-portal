@@ -16,10 +16,6 @@ use CodeIgniter\Router\RouteCollection;
  Controllers namespace: App\Modules\Admin\Controllers
 */
 $routes->group('admin', ['namespace' => 'App\Modules\Admin\Controllers'], function ($routes) {
-    // Dashboard
-    $routes->get('/', 'DashboardController::index');
-    $routes->get('dashboard', 'DashboardController::index');
-
     // Auth (login/logout)
     $routes->get('login', 'AuthController::login');           // /admin/login
     $routes->post('login', 'AuthController::attempt');
@@ -30,7 +26,11 @@ $routes->group('admin', ['namespace' => 'App\Modules\Admin\Controllers'], functi
     $routes->get('logout', 'AuthController::logout');
 
     // Protected group (requires 'adminAuth' filter registered in app/Filters)
-    $routes->group('', ['filter' => 'adminAuth'], function ($routes) {
+    $routes->group('', ['filter' => ['adminAuth', 'adminAudit']], function ($routes) {
+        // Dashboard
+        $routes->get('/', 'DashboardController::index');
+        $routes->get('dashboard', 'DashboardController::index');
+
 // Attendees Management
         $routes->get('attendees', 'AttendeesController::index');
         $routes->get('attendees/export/2026', 'AttendeesController::export2026');
@@ -124,5 +124,6 @@ $routes->group('admin', ['namespace' => 'App\Modules\Admin\Controllers'], functi
 
         // Payments / reports
         $routes->get('payments', 'PaymentsController::index');
+        $routes->get('audit-logs', 'AuditLogsController::index');
     });
 });
