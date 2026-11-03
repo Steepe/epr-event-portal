@@ -27,15 +27,15 @@ class ConferenceSessionsController extends BaseController
 
     public function all()
     {
-        $sessions = $this->sessionModel
-            ->select('tbl_conference_sessions.*, tbl_conferences.title AS conference_title')
-            ->join('tbl_conferences', 'tbl_conferences.conference_id = tbl_conference_sessions.conference_id', 'left')
-            ->orderBy('event_date', 'DESC')
-            ->orderBy('start_time', 'DESC')
+        $conferences = $this->conferenceModel
+            ->select('tbl_conferences.*, COUNT(tbl_conference_sessions.sessions_id) AS session_count')
+            ->join('tbl_conference_sessions', 'tbl_conference_sessions.conference_id = tbl_conferences.conference_id', 'left')
+            ->groupBy('tbl_conferences.conference_id')
+            ->orderBy('tbl_conferences.start_date', 'DESC')
             ->findAll();
 
         return module_view('Admin', 'sessions/all', [
-            'sessions' => $sessions,
+            'conferences' => $conferences,
             'pageTitle' => 'Sessions',
         ]);
     }
