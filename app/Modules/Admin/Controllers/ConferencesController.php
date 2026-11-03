@@ -11,6 +11,7 @@ namespace App\Modules\Admin\Controllers;
 
 use App\Controllers\BaseController;
 use App\Modules\Admin\Models\ConferencesModel;
+use App\Services\BunnyStreamService;
 use CodeIgniter\Exceptions\PageNotFoundException;
 
 class ConferencesController extends BaseController
@@ -63,6 +64,12 @@ class ConferencesController extends BaseController
                 ->with('error', 'Conference title is required.');
         }
 
+        try {
+            $welcomeVideoUrl = $this->uploadWelcomeVideo();
+        } catch (\RuntimeException $exception) {
+            return redirect()->back()->withInput()->with('error', $exception->getMessage());
+        }
+
         $data = [
             'title'        => $title, // still mapped to DB field `name`
             'slug'        => url_title($title, '-', true) ?: uniqid('conf-'),
@@ -73,6 +80,7 @@ class ConferencesController extends BaseController
             'days'        => $this->request->getPost('days'),
             'start_date'  => $this->request->getPost('start_date'),
             'end_date'    => $this->request->getPost('end_date'),
+            'welcome_video_url' => $welcomeVideoUrl,
         ];
 
         // ✅ Enforce one-live rule
@@ -106,6 +114,16 @@ class ConferencesController extends BaseController
             throw new PageNotFoundException('Conference not found.');
         }
 
+        $welcomeVideoUrl = (string) ($conference['welcome_video_url'] ?? '');
+        try {
+            $uploadedVideoUrl = $this->uploadWelcomeVideo();
+            if ($uploadedVideoUrl !== null) {
+                $welcomeVideoUrl = $uploadedVideoUrl;
+            }
+        } catch (\RuntimeException $exception) {
+            return redirect()->back()->withInput()->with('error', $exception->getMessage());
+        }
+
         $data = [
             'title'        => trim($this->request->getPost('title')),
             'description' => $this->request->getPost('description'),
@@ -115,6 +133,7 @@ class ConferencesController extends BaseController
             'days'        => $this->request->getPost('days'),
             'start_date'  => $this->request->getPost('start_date'),
             'end_date'    => $this->request->getPost('end_date'),
+            'welcome_video_url' => $welcomeVideoUrl ?: null,
         ];
 
         // ✅ Enforce one live conference rule (excluding current one)
@@ -154,5 +173,21 @@ class ConferencesController extends BaseController
     {
         $this->conferenceModel->delete($id);
         return redirect()->to(site_url('admin/conferences'))->with('success', 'Conference deleted.');
+    }
+
+    /**
+     * @throws \RuntimeException
+     */
+    private function uploadWelcomeVideo(): ?string
+    {
+        $file = $this->request->getFile('welcome_video');
+        if ($file === null || $file->getError() === UPLOAD_ERR_NO_FILE) {
+            return null;
+        }
+
+        return (new BunnyStreamService())->uploadWelcomeVideo(
+            $file,
+            trim((string) $this->request->getPost('title')) . ' welcome video'
+        );
     }
 }

@@ -18,7 +18,7 @@ class ConferencesModel extends Model
     protected array $allowedFields = [
         'title', 'slug', 'description', 'year',
         'is_paid', 'status', 'days',
-        'start_date', 'end_date', 'icon'
+        'start_date', 'end_date', 'icon', 'welcome_video_url'
     ];
     protected string $returnType = 'array';
     protected bool $useTimestamps = true;

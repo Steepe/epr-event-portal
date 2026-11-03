@@ -75,6 +75,16 @@
                 class="bg-gray-800 border border-gray-700 rounded w-full p-2.5"><?php echo esc($conference['description']); ?></textarea>
     </div>
 
+    <div>
+      <label class="block text-sm mb-1">Attendee Home Welcome Video</label>
+      <input type="file" name="welcome_video" accept="video/mp4,video/webm,video/quicktime,.mp4,.m4v,.mov,.webm"
+             class="bg-gray-800 border border-gray-700 rounded w-full p-2.5">
+      <p class="mt-1 text-xs text-gray-500">Upload an MP4, M4V, MOV, or WebM replacement. It uploads securely to Bunny Stream; leave blank to keep the current video.</p>
+      <?php if (!empty($conference['welcome_video_url'])): ?>
+        <a href="<?php echo esc($conference['welcome_video_url']); ?>" target="_blank" rel="noopener" class="mt-1 inline-block text-xs text-blue-400 hover:underline">View current Bunny video</a>
+      <?php endif; ?>
+    </div>
+
       <div>
           <label class="block text-sm mb-1">Conference Icon</label>
           <?php if (!empty($conference['icon'])): ?>

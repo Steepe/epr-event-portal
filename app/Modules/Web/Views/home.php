@@ -16,6 +16,7 @@ $portalLocked = (bool) ($portal_locked ?? false);
 $checkoutEnabled = (bool) ($checkout_enabled ?? false);
 $ticketPrice = $ticket_price ?? null;
 $ticketCurrency = $ticket_currency ?? 'USD';
+$welcomeVideoUrl = $welcome_video_url ?? '';
 ?>
 
 <style>
@@ -75,7 +76,7 @@ $ticketCurrency = $ticket_currency ?? 'USD';
 
 <div class="container mt-5" style="margin-top: 90px !important;">
     <div class="col-md-10 mx-auto">
-        <div style="position:relative;padding-top:56.25%;"><iframe src="https://iframe.mediadelivery.net/embed/405384/60589a7b-3fe7-40fb-a2ae-3c024f23e01e?autoplay=true&loop=false&muted=false&preload=true&responsive=true" loading="lazy" style="border:0;position:absolute;top:0;height:100%;width:100%;" allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;" allowfullscreen="true"></iframe></div>
+        <div style="position:relative;padding-top:56.25%;"><iframe src="<?php echo esc($welcomeVideoUrl, 'attr'); ?>" loading="lazy" style="border:0;position:absolute;top:0;height:100%;width:100%;" allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;" allowfullscreen="true"></iframe></div>
     </div>
 </div>
 
