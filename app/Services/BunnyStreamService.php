@@ -21,6 +21,10 @@ class BunnyStreamService
     public function uploadWelcomeVideo(UploadedFile $file, string $title): string
     {
         if (! $file->isValid()) {
+            if ($file->getError() === UPLOAD_ERR_INI_SIZE) {
+                throw new RuntimeException('The selected video is larger than this server allows. Increase upload_max_filesize and post_max_size before trying again.');
+            }
+
             throw new RuntimeException('The video upload failed: ' . $file->getErrorString());
         }
 
