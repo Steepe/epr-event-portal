@@ -16,21 +16,12 @@ $sessionSponsor  = $sponsors[0] ?? null;
 $timezone        = $timezone ?? 'Africa/Lagos';
 
 $canAccess = (session('plan') ?? 1) >= ($event['access_level'] ?? 1);
-$vimeo_id  = trim($event['vimeo_id'] ?? '');
-$videoSrc  = ''; // default
+$livepushId = trim($event['vimeo_id'] ?? '');
+$videoSrc = '';
 
-// 🎥 Auto-detect correct Vimeo embed URL
-if (!empty($vimeo_id)) {
-    if (is_numeric($vimeo_id)) {
-        // Standard video
-        $videoSrc = "https://player.vimeo.com/video/" . $vimeo_id;
-    } elseif (str_contains($vimeo_id, 'event')) {
-        // Already includes 'event'
-        $videoSrc = "https://vimeo.com/{$vimeo_id}/embed";
-    } else {
-        // Possibly an event ID only
-        $videoSrc = "https://vimeo.com/event/{$vimeo_id}/embed";
-    }
+if (preg_match('/^[A-Za-z0-9_-]+$/', $livepushId)) {
+    // Keep the provider URL in one place; only the Livepush video ID comes from admin.
+    $videoSrc = 'https://watch.livepush.io/live/' . rawurlencode($livepushId);
 }
 ?>
 

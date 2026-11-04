@@ -81,8 +81,8 @@ $this->section('content');
             <div class="mt-3">
               <button type="button"
                       class="text-blue-400 text-sm underline hover:text-blue-300"
-                      onclick="openVimeoPreview('<?php echo esc($session['vimeo_id']); ?>')">
-                View Video
+                      onclick='openLivepushPreview(<?php echo json_encode($session['vimeo_id']); ?>)'>
+                Preview Live Stream
               </button>
             </div>
           <?php endif; ?>
@@ -104,15 +104,15 @@ $this->section('content');
   <?php endif; ?>
 </div>
 
-<!-- Global Vimeo Preview Modal -->
-<div id="vimeoModal"
+<!-- Global Livepush Preview Modal -->
+<div id="livepushModal"
      class="hidden fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
   <div class="bg-gray-900 border border-gray-700 rounded-lg overflow-hidden shadow-lg relative w-full max-w-xl">
-    <iframe id="vimeoPlayer" class="w-full h-64 rounded-lg"
+    <iframe id="livepushPlayer" class="w-full h-64 rounded-lg"
             src="" frameborder="0"
             allow="autoplay; fullscreen; picture-in-picture"
             allowfullscreen></iframe>
-    <button id="closeVimeoModal"
+    <button id="closeLivepushModal"
             class="absolute top-2 right-2 text-gray-400 hover:text-white text-xl font-bold">
       &times;
     </button>
@@ -120,26 +120,23 @@ $this->section('content');
 </div>
 
 <script>
-function openVimeoPreview(vimeoId) {
-  const modal = document.getElementById('vimeoModal');
-  const player = document.getElementById('vimeoPlayer');
+function openLivepushPreview(livepushId) {
+  const modal = document.getElementById('livepushModal');
+  const player = document.getElementById('livepushPlayer');
   modal.classList.remove('hidden');
-  player.src = `https://player.vimeo.com/video/${vimeoId}?autoplay=1&muted=1`;
-
-  // Auto-close after 5 seconds
-  setTimeout(() => closeVimeoPreview(), 50000);
+  player.src = `https://watch.livepush.io/live/${encodeURIComponent(livepushId)}`;
 }
 
-function closeVimeoPreview() {
-  const modal = document.getElementById('vimeoModal');
-  const player = document.getElementById('vimeoPlayer');
+function closeLivepushPreview() {
+  const modal = document.getElementById('livepushModal');
+  const player = document.getElementById('livepushPlayer');
   player.src = '';
   modal.classList.add('hidden');
 }
 
-document.getElementById('closeVimeoModal').addEventListener('click', closeVimeoPreview);
-document.getElementById('vimeoModal').addEventListener('click', e => {
-  if (e.target === e.currentTarget) closeVimeoPreview();
+document.getElementById('closeLivepushModal').addEventListener('click', closeLivepushPreview);
+document.getElementById('livepushModal').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeLivepushPreview();
 });
 </script>
 
