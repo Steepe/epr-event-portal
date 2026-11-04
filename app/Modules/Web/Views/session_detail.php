@@ -7,17 +7,12 @@ $sessionSpeakers = $speakers ?? [];
 $sessionSponsor = $sponsors[0] ?? null;
 $timezone = $timezone ?? 'Africa/Lagos';
 $canAccess = (session('plan') ?? 1) >= ($event['access_level'] ?? 1);
-$vimeoId = trim($event['vimeo_id'] ?? '');
+$livepushId = trim($event['vimeo_id'] ?? '');
 $videoSrc = '';
 
-if (!empty($vimeoId)) {
-    if (is_numeric($vimeoId)) {
-        $videoSrc = 'https://player.vimeo.com/video/' . $vimeoId;
-    } elseif (str_contains($vimeoId, 'event')) {
-        $videoSrc = 'https://vimeo.com/' . $vimeoId . '/embed';
-    } else {
-        $videoSrc = 'https://vimeo.com/event/' . $vimeoId . '/embed';
-    }
+if (preg_match('/^[A-Za-z0-9_-]+$/', $livepushId)) {
+    // Keep the provider URL in one place; only the Livepush video ID comes from admin.
+    $videoSrc = 'https://watch.livepush.io/live/' . rawurlencode($livepushId);
 }
 
 $title = $event['sessions_name'] ?? 'Designing Systems That Outlast Motivation';

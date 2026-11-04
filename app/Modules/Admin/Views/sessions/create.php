@@ -78,10 +78,11 @@ $this->section('content');
     </div>
 
     <div>
-      <label class="block text-sm text-gray-400 mb-2">Vimeo ID</label>
-      <input type="text" name="vimeo_id"
+      <label class="block text-sm text-gray-400 mb-2">Livepush Video ID</label>
+      <input type="text" name="livepush_id" pattern="[A-Za-z0-9_-]+"
              class="w-full p-2 rounded bg-gray-900 border border-gray-700 text-gray-200 focus:ring-blue-500 focus:border-blue-500"
-             placeholder="Enter Vimeo video ID (e.g., 123456789)">
+             placeholder="e.g., emMVd4NBsIW87CXc">
+      <p class="mt-1 text-xs text-gray-500">Paste only the ID after <code class="text-gray-400">/live/</code>, not the full iframe code.</p>
     </div>
 
     <div>

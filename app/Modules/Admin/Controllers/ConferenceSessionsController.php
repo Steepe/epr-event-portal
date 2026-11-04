@@ -115,7 +115,9 @@ class ConferenceSessionsController extends BaseController
             'end_time'      => $this->request->getPost('end_time'),
             'access_level'  => $this->request->getPost('access_level'),
             'description'   => $this->request->getPost('description'),
-            'vimeo_id'      => $this->request->getPost('vimeo_id'),
+            // The existing column is retained for backwards-compatible storage;
+            // new live-session values are Livepush video IDs, not Vimeo IDs.
+            'vimeo_id'      => $this->normaliseLivepushId($this->request->getPost('livepush_id')),
             'workbook'      => $workbookPath,
             'tags'          => $this->request->getPost('tags'),
         ];
@@ -212,7 +214,9 @@ class ConferenceSessionsController extends BaseController
             'end_time'      => $this->request->getPost('end_time'),
             'access_level'  => $this->request->getPost('access_level'),
             'description'   => $this->request->getPost('description'),
-            'vimeo_id'      => $this->request->getPost('vimeo_id'),
+            // The existing column is retained for backwards-compatible storage;
+            // new live-session values are Livepush video IDs, not Vimeo IDs.
+            'vimeo_id'      => $this->normaliseLivepushId($this->request->getPost('livepush_id')),
             'workbook'      => $workbookPath,
             'tags'          => $this->request->getPost('tags'),
         ];
@@ -259,5 +263,20 @@ class ConferenceSessionsController extends BaseController
         return redirect()
             ->to(site_url('admin/conferences/' . $session['conference_id'] . '/sessions'))
             ->with('success', 'Session deleted successfully.');
+    }
+
+    private function normaliseLivepushId(mixed $value): string
+    {
+        if (! is_string($value)) {
+            return '';
+        }
+
+        $value = trim($value);
+
+        if (preg_match('~watch\.livepush\.io/live/([A-Za-z0-9_-]+)~', $value, $matches)) {
+            return $matches[1];
+        }
+
+        return preg_match('/^[A-Za-z0-9_-]+$/', $value) ? $value : '';
     }
 }

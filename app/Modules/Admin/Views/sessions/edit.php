@@ -78,15 +78,16 @@ $this->section('content');
 
     <div class="grid md:grid-cols-2 gap-6">
       <div>
-        <label class="block text-sm text-gray-400 mb-2">Vimeo ID</label>
-        <input type="text" name="vimeo_id" value="<?php echo esc($session['vimeo_id']); ?>"
+        <label class="block text-sm text-gray-400 mb-2">Livepush Video ID</label>
+        <input type="text" name="livepush_id" value="<?php echo esc($session['vimeo_id']); ?>" pattern="[A-Za-z0-9_-]+"
                class="w-full p-2 rounded bg-gray-900 border border-gray-700 text-gray-200 focus:ring-blue-500 focus:border-blue-500"
-               placeholder="Enter Vimeo video ID">
+               placeholder="e.g., emMVd4NBsIW87CXc">
+        <p class="mt-1 text-xs text-gray-500">Paste only the ID after <code class="text-gray-400">/live/</code>, not the full iframe code.</p>
 
         <?php if (!empty($session['vimeo_id'])): ?>
           <div class="mt-3">
             <button type="button" class="text-blue-400 hover:text-blue-300 text-sm underline"
-                    onclick="openPreview('<?php echo esc($session['vimeo_id']); ?>')">
+                    onclick='openPreview(<?php echo json_encode($session['vimeo_id']); ?>)'>
               View Video
             </button>
           </div>
@@ -160,30 +161,30 @@ $this->section('content');
 </div>
 
 <!-- Video Preview Modal -->
-<div id="vimeoModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
+<div id="livepushModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-50">
   <div class="bg-gray-900 rounded-lg shadow-lg overflow-hidden border border-gray-700 w-[480px]">
     <div class="flex justify-between items-center p-3 border-b border-gray-700">
       <h3 class="text-sm text-gray-300">Video Preview</h3>
       <button onclick="closePreview()" class="text-gray-400 hover:text-gray-100">✕</button>
     </div>
     <div class="p-3">
-      <iframe id="vimeoPlayer" class="rounded-md w-full h-64"
+      <iframe id="livepushPlayer" class="rounded-md w-full h-64"
               src="" allow="autoplay; fullscreen" allowfullscreen></iframe>
     </div>
   </div>
 </div>
 
 <script>
-  function openPreview(vimeoId) {
-    const modal = document.getElementById('vimeoModal');
-    const iframe = document.getElementById('vimeoPlayer');
-    iframe.src = `https://player.vimeo.com/video/${vimeoId}?autoplay=1&muted=0`;
+  function openPreview(livepushId) {
+    const modal = document.getElementById('livepushModal');
+    const iframe = document.getElementById('livepushPlayer');
+    iframe.src = `https://watch.livepush.io/live/${encodeURIComponent(livepushId)}`;
     modal.classList.remove('hidden');
   }
 
   function closePreview() {
-    const modal = document.getElementById('vimeoModal');
-    const iframe = document.getElementById('vimeoPlayer');
+    const modal = document.getElementById('livepushModal');
+    const iframe = document.getElementById('livepushPlayer');
     iframe.src = '';
     modal.classList.add('hidden');
   }
