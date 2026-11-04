@@ -34,7 +34,25 @@ $this->section('content');
   </div>
 <?php endif; ?>
 
-<form method="get" action="<?php echo site_url('admin/attendees'); ?>" class="mb-4 flex flex-wrap items-end gap-3">
+<?php
+$activeFilters = ($conference ?? null) === '2026' || ($email ?? '') !== '' || ($country ?? '') !== '';
+$filterQuery = array_filter([
+  'conference' => $conference ?? null,
+  'email' => $email ?? '',
+  'country' => $country ?? '',
+], static fn ($value) => $value !== null && $value !== '');
+$exportLabel = $activeFilters ? 'Export filtered list' : 'Export all attendees';
+?>
+
+<form method="get" action="<?php echo site_url('admin/attendees'); ?>" class="mb-4 rounded-lg border border-gray-700 bg-gray-800 p-4">
+  <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+    <div>
+      <h2 class="text-sm font-semibold text-gray-200">Find attendees</h2>
+      <p class="text-xs text-gray-400">Combine any filters below. Export uses exactly the list currently shown.</p>
+    </div>
+    <span class="rounded-full bg-gray-700 px-3 py-1 text-xs text-gray-300"><?php echo (int) ($attendeeCount ?? 0); ?> found</span>
+  </div>
+  <div class="flex flex-wrap items-end gap-3">
   <label class="block text-sm text-gray-300">
     <span class="mb-1 block text-gray-400">Conference registration</span>
     <select name="conference" class="bg-gray-900 border border-gray-700 text-gray-200 text-sm rounded p-2.5">
@@ -42,13 +60,28 @@ $this->section('content');
       <option value="2026" <?php echo ($conference ?? null) === '2026' ? 'selected' : ''; ?>>Emergence Conference 2026</option>
     </select>
   </label>
+  <label class="block text-sm text-gray-300">
+    <span class="mb-1 block text-gray-400">Email address</span>
+    <input type="search" name="email" value="<?php echo esc($email ?? ''); ?>" placeholder="Search by email"
+           class="bg-gray-900 border border-gray-700 text-gray-200 text-sm rounded p-2.5">
+  </label>
+  <label class="block text-sm text-gray-300">
+    <span class="mb-1 block text-gray-400">Country</span>
+    <select name="country" class="bg-gray-900 border border-gray-700 text-gray-200 text-sm rounded p-2.5">
+      <option value="">All countries</option>
+      <?php foreach (($countries ?? []) as $countryOption): ?>
+        <option value="<?php echo esc($countryOption); ?>" <?php echo ($country ?? '') === $countryOption ? 'selected' : ''; ?>><?php echo esc($countryOption); ?></option>
+      <?php endforeach; ?>
+    </select>
+  </label>
   <button type="submit" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-medium">Filter</button>
-  <?php if (($conference ?? null) === '2026'): ?>
-    <a href="<?php echo site_url('admin/attendees/export/2026'); ?>" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-sm font-medium">
-      Export 2026 CSV
-    </a>
+  <a href="<?php echo site_url('admin/attendees/export') . (!empty($filterQuery) ? '?' . http_build_query($filterQuery) : ''); ?>" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded text-sm font-medium">
+    <?php echo $exportLabel; ?> CSV
+  </a>
+  <?php if ($activeFilters): ?>
     <a href="<?php echo site_url('admin/attendees'); ?>" class="px-4 py-2.5 text-sm text-gray-300 hover:text-white">Clear filter</a>
   <?php endif; ?>
+</div>
 </form>
 
 <!-- Table -->
@@ -76,7 +109,7 @@ $this->section('content');
           <tr class="border-t border-gray-700 hover:bg-gray-800">
             <td class="px-4 py-3"><?php echo esc($attendee['firstname']); ?></td>
             <td class="px-4 py-3"><?php echo esc($attendee['lastname']); ?></td>
-            <td class="px-4 py-3"><?php echo esc($attendee['useremail'] ?? ''); ?></td>
+            <td class="px-4 py-3"><?php echo esc($attendee['email'] ?? ''); ?></td>
             <td class="px-4 py-3"><?php echo esc($attendee['telephone'] ?? ''); ?></td>
             <td class="px-4 py-3"><?php echo esc($attendee['country'] ?? ''); ?></td>
             <td class="px-4 py-3"><?php echo esc($attendee['city'] ?? ''); ?></td>

@@ -23,35 +23,42 @@ class AttendeesController extends BaseController
 
     public function index()
     {
-        $conference = $this->request->getGet('conference') === '2026' ? '2026' : null;
-
-        $attendeesQuery = $this->attendeesModel
-            ->select('tbl_attendees.*, tbl_users.email, tbl_users.registered_2026_at, tbl_attendee_payments.amount, tbl_attendee_payments.paymentdate')
-            ->join('tbl_users', 'tbl_users.id = tbl_attendees.attendee_id', 'left')
-            ->join('tbl_attendee_payments', 'tbl_attendee_payments.attendee_id = tbl_attendees.attendee_id', 'left');
-
-        if ($conference === '2026') {
-            $attendeesQuery->where('tbl_users.registered_2026_at IS NOT NULL', null, false);
-        }
-
-        $attendees = $attendeesQuery
+        $filters = $this->attendeeFilters();
+        $attendees = $this->attendeesQuery($filters)
             ->orderBy('tbl_users.registered_2026_at', 'DESC')
             ->orderBy('tbl_attendees.registration_timestamp', 'DESC')
             ->findAll();
 
         return module_view('Admin', 'attendees/index', [
             'attendees' => $attendees,
-            'conference' => $conference,
+            'conference' => $filters['conference'],
+            'email' => $filters['email'],
+            'country' => $filters['country'],
+            'countries' => $this->countries(),
+            'attendeeCount' => count($attendees),
         ]);
+    }
+
+    public function export()
+    {
+        return $this->exportAttendees($this->attendeeFilters());
     }
 
     public function export2026()
     {
-        $registrants = $this->attendeesModel
+        return $this->exportAttendees([
+            'conference' => '2026',
+            'email' => '',
+            'country' => '',
+        ]);
+    }
+
+    private function exportAttendees(array $filters)
+    {
+        $registrants = $this->attendeesQuery($filters, false)
             ->select('tbl_attendees.firstname, tbl_attendees.lastname, tbl_users.email, tbl_attendees.telephone, tbl_attendees.country, tbl_attendees.city, tbl_attendees.state, tbl_users.registered_2026_at')
-            ->join('tbl_users', 'tbl_users.id = tbl_attendees.attendee_id', 'left')
-            ->where('tbl_users.registered_2026_at IS NOT NULL', null, false)
             ->orderBy('tbl_users.registered_2026_at', 'DESC')
+            ->orderBy('tbl_attendees.registration_timestamp', 'DESC')
             ->findAll();
 
         $stream = fopen('php://temp', 'r+');
@@ -90,9 +97,68 @@ class AttendeesController extends BaseController
         $csv = stream_get_contents($stream);
         fclose($stream);
 
+        $filename = $filters['conference'] === '2026'
+            ? 'emergence-2026-registrants'
+            : 'attendees';
+        if ($filters['email'] !== '' || $filters['country'] !== '') {
+            $filename .= '-filtered';
+        }
+
         return $this->response
-            ->download('emergence-2026-registrants-' . date('Y-m-d') . '.csv', $csv)
+            ->download($filename . '-' . date('Y-m-d') . '.csv', $csv)
             ->setHeader('Content-Type', 'text/csv; charset=UTF-8');
+    }
+
+    private function attendeeFilters(): array
+    {
+        $email = trim((string) $this->request->getGet('email'));
+        $country = trim((string) $this->request->getGet('country'));
+
+        return [
+            'conference' => $this->request->getGet('conference') === '2026' ? '2026' : null,
+            'email' => mb_substr($email, 0, 254),
+            'country' => mb_substr($country, 0, 100),
+        ];
+    }
+
+    private function attendeesQuery(array $filters, bool $includePayment = true)
+    {
+        $query = (new AttendeesModel())
+            ->select('tbl_attendees.*, tbl_users.email, tbl_users.registered_2026_at')
+            ->join('tbl_users', 'tbl_users.id = tbl_attendees.attendee_id', 'left');
+
+        if ($includePayment) {
+            $query->select('tbl_attendee_payments.amount, tbl_attendee_payments.paymentdate')
+                ->join('tbl_attendee_payments', 'tbl_attendee_payments.attendee_id = tbl_attendees.attendee_id', 'left');
+        }
+
+        if ($filters['conference'] === '2026') {
+            $query->where('tbl_users.registered_2026_at IS NOT NULL', null, false);
+        }
+
+        if ($filters['email'] !== '') {
+            $query->like('tbl_users.email', $filters['email']);
+        }
+
+        if ($filters['country'] !== '') {
+            $query->where('tbl_attendees.country', $filters['country']);
+        }
+
+        return $query;
+    }
+
+    private function countries(): array
+    {
+        $rows = db_connect()->table('tbl_attendees')
+            ->select('country')
+            ->where('country IS NOT NULL', null, false)
+            ->where("TRIM(country) <> ''", null, false)
+            ->groupBy('country')
+            ->orderBy('country', 'ASC')
+            ->get()
+            ->getResultArray();
+
+        return array_column($rows, 'country');
     }
 
     public function update($id)
