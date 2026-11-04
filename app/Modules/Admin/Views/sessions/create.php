@@ -100,18 +100,25 @@ $this->section('content');
     <?php if ($isLive): ?>
       <div>
         <label class="block text-sm text-gray-400 mb-2">Assign Speakers</label>
-        <select name="speakers[]" multiple
-                class="w-full p-2 rounded bg-gray-900 border border-gray-700 text-gray-200 focus:ring-blue-500 focus:border-blue-500">
-          <?php foreach ($speakers as $sp): ?>
-            <option value="<?php echo $sp['speaker_id']; ?>">
-              <?php echo esc($sp['speaker_name']); ?>
-              <?php if ($sp['speaker_company']): ?>
-                — <?php echo esc($sp['speaker_company']); ?>
-              <?php endif; ?>
-            </option>
-          <?php endforeach; ?>
-        </select>
-        <p class="text-xs text-gray-500 mt-1">Hold Ctrl or Cmd to select multiple speakers.</p>
+        <?php if ($speakers): ?>
+          <div class="max-h-64 overflow-y-auto rounded border border-gray-700 bg-gray-900 divide-y divide-gray-800">
+            <?php foreach ($speakers as $sp): ?>
+              <label class="flex cursor-pointer items-center gap-3 px-3 py-2.5 text-sm text-gray-200 hover:bg-gray-800">
+                <input type="checkbox" name="speakers[]" value="<?php echo (int) $sp['speaker_id']; ?>"
+                       class="h-4 w-4 rounded border-gray-600 bg-gray-800 text-blue-600 focus:ring-blue-500">
+                <span>
+                  <?php echo esc($sp['speaker_name']); ?>
+                  <?php if ($sp['speaker_company']): ?>
+                    <span class="text-gray-400">— <?php echo esc($sp['speaker_company']); ?></span>
+                  <?php endif; ?>
+                </span>
+              </label>
+            <?php endforeach; ?>
+          </div>
+          <p class="text-xs text-gray-500 mt-1">Tick each speaker who will appear in this session.</p>
+        <?php else: ?>
+          <p class="rounded border border-gray-700 bg-gray-900 p-3 text-sm text-gray-400">No speakers are available yet.</p>
+        <?php endif; ?>
       </div>
     <?php else: ?>
       <div class="p-4 bg-gray-900 border border-gray-700 rounded">
