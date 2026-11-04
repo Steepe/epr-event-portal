@@ -11,8 +11,16 @@ class PortalAccessService
         $this->db = db_connect();
     }
 
-    public function requiresPayment(): bool
+    public function requiresPayment(?array $conference = null): bool
     {
+        $conference ??= $this->liveConference();
+
+        // The conference setting is authoritative. A global payment setting must
+        // never turn a free conference into a paid one.
+        if (! $conference || (int) ($conference['is_paid'] ?? 0) !== 1) {
+            return false;
+        }
+
         return $this->envBoolean('portal.accessRequiresPayment', false);
     }
 

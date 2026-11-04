@@ -30,14 +30,36 @@ class LobbyController extends BaseController
         $sessions = $this->getAttendeeSessions();
         $unread   = $this->getUnreadMessagesCount();
         $access = new PortalAccessService();
+        $conference = $access->liveConference();
+        $accessRequiresPayment = $access->requiresPayment($conference);
+        $paidUser = $conference && $accessRequiresPayment
+            ? $access->attendeeHasPaid(
+                (int) $session->get('user_id'),
+                (int) $session->get('attendee_id'),
+                (int) $conference['conference_id']
+            )
+            : false;
+        $ticket = $conference
+            ? $access->ticketPriceForCountry(
+                (int) $conference['conference_id'],
+                (string) $session->get('reg_country')
+            )
+            : ['amount' => null, 'currency' => 'USD'];
+
+        if ($conference) {
+            $session->set('live-conference-id', (int) $conference['conference_id']);
+        }
 
         return module_view('Web', 'lobby', [
             'global_attendee_details' => $attendee,
             'attendee_sessions' => $sessions,
             'unread_messages' => $unread,
             'page_title' => 'Event Lobby',
-            'access_requires_payment' => $access->requiresPayment(),
+            'access_requires_payment' => $accessRequiresPayment,
             'checkout_enabled' => $access->checkoutEnabled(),
+            'payment_notice' => $accessRequiresPayment && ! $paidUser,
+            'ticket_price' => $ticket['amount'],
+            'ticket_currency' => $ticket['currency'],
         ]);
 
     }

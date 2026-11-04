@@ -4,11 +4,10 @@ echo module_view('Web', 'includes/lobby_topbar');
 
 $conferenceId = session()->get('live-conference-id');
 $agendaUrl = $conferenceId ? base_url('attendees/agenda/' . $conferenceId) : base_url('attendees/start');
-$accessRequiresPayment = (bool) ($access_requires_payment ?? false);
 $checkoutEnabled = (bool) ($checkout_enabled ?? false);
-$paymentNotice = isset($payment_notice) ? (bool) $payment_notice : true;
-$paidUser = (bool) (session()->get('portal_paid') ?? session()->get('paid') ?? false);
-$showPaymentNotice = $paymentNotice && !$paidUser;
+$showPaymentNotice = (bool) ($payment_notice ?? false);
+$ticketPrice = $ticket_price ?? null;
+$ticketCurrency = $ticket_currency ?? 'USD';
 ?>
 
 <?php if ($showPaymentNotice): ?>
@@ -17,7 +16,9 @@ $showPaymentNotice = $paymentNotice && !$paidUser;
         <div class="rc-payment-copy">
             <strong style="font-weight:600">Access restricted.</strong>
             This is a paid event. Please complete your registration payment to unlock all sessions.
-            <span class="rc-payment-ticket">Ticket: NGN 25,000</span>
+            <?php if ($ticketPrice !== null): ?>
+                <span class="rc-payment-ticket">Ticket: <?php echo esc($ticketCurrency); ?> <?php echo esc(number_format((float) $ticketPrice, 2)); ?></span>
+            <?php endif; ?>
         </div>
         <a href="<?php echo site_url('attendees/checkout'); ?>" class="rc-payment-action">Pay now</a>
         <button type="button" class="rc-payment-close" aria-label="Close payment notice" data-close-payment-notice>&times;</button>
@@ -27,8 +28,8 @@ $showPaymentNotice = $paymentNotice && !$paidUser;
 <main data-screen-label="Lobby" style="position:absolute;inset:0">
     <a data-node="agenda" data-to="networking exhibitors" class="rc-lobby-node"
        href="<?php echo $agendaUrl; ?>"
-       style="left:15%;top:46%;transform:translate(-50%,-50%);background:radial-gradient(circle at top left,#f1a91e,#d68500)">
-        AGENDA
+       style="left:50%;top:64%;transform:translate(-50%,-50%);background:radial-gradient(circle at top left,#f1a91e,#d68500)">
+        LIVE<br>CONFERENCE
     </a>
 
     <a data-node="networking" data-to="sponsors exhibitors" class="rc-lobby-node"
@@ -39,7 +40,7 @@ $showPaymentNotice = $paymentNotice && !$paidUser;
 
     <a data-node="exhibitors" data-to="sponsors emergence" class="rc-lobby-node"
        href="<?php echo base_url('attendees/exhibitors'); ?>"
-       style="left:50%;top:64%;transform:translate(-50%,-50%);background:radial-gradient(circle at top left,#d61be3,#9b0eaa)">
+       style="left:15%;top:46%;transform:translate(-50%,-50%);background:radial-gradient(circle at top left,#d61be3,#9b0eaa)">
         EXHIBITORS
     </a>
 
@@ -55,9 +56,9 @@ $showPaymentNotice = $paymentNotice && !$paidUser;
         EMERGENCE<br>BOOTH
     </a>
 
-    <span class="rc-lobby-index" style="left:15%;top:calc(46% + 92px)">01</span>
+    <span class="rc-lobby-index" style="left:15%;top:calc(46% + 92px)">03</span>
     <span class="rc-lobby-index" style="left:34%;top:calc(max(30%,250px) + 92px)">02</span>
-    <span class="rc-lobby-index" style="left:50%;top:calc(64% + 92px)">03</span>
+    <span class="rc-lobby-index" style="left:50%;top:calc(64% + 92px)">01</span>
     <span class="rc-lobby-index" style="left:66%;top:calc(max(32%,262px) + 92px)">04</span>
     <span class="rc-lobby-index" style="left:84%;top:calc(56% + 92px)">05</span>
 
