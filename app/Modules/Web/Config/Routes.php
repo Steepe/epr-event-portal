@@ -66,6 +66,9 @@ $routes->group('attendees', ['namespace' => 'App\Modules\Web\Controllers', 'filt
     $routes->get('exhibitors/(:num)', 'ExhibitorsController::booth/$1'); // "Enter Booth" page
 
     $routes->get('emergence_booth', 'EmergenceBoothController::index');
+    $routes->post('emergence_booth/callback', 'EmergenceBoothController::callback');
+    $routes->get('emergence_booth/chat/(:num)', 'EmergenceBoothController::chatMessages/$1');
+    $routes->post('emergence_booth/chat/(:num)', 'EmergenceBoothController::sendChat/$1');
     $routes->get('envision', 'EnvisionController::index');
 
 

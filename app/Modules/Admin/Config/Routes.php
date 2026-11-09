@@ -129,5 +129,22 @@ $routes->group('admin', ['namespace' => 'App\Modules\Admin\Controllers'], functi
         // Payments / reports
         $routes->get('payments', 'PaymentsController::index');
         $routes->get('audit-logs', 'AuditLogsController::index');
+
+        // Emergence Booth
+        $routes->get('emergence-booth', 'EmergenceBoothController::index');
+        $routes->post('emergence-booth/video', 'EmergenceBoothController::saveVideo');
+        $routes->post('emergence-booth/members', 'EmergenceBoothController::saveMember');
+        $routes->post('emergence-booth/members/(:num)/delete', 'EmergenceBoothController::deleteMember/$1');
+        $routes->post('emergence-booth/programmes', 'EmergenceBoothController::saveProgramme');
+        $routes->post('emergence-booth/programmes/(:num)', 'EmergenceBoothController::saveProgramme/$1');
+        $routes->post('emergence-booth/programmes/(:num)/delete', 'EmergenceBoothController::deleteProgramme/$1');
+        $routes->post('emergence-booth/resources', 'EmergenceBoothController::saveResource');
+        $routes->post('emergence-booth/resources/(:num)', 'EmergenceBoothController::saveResource/$1');
+        $routes->post('emergence-booth/resources/(:num)/delete', 'EmergenceBoothController::deleteResource/$1');
+        $routes->post('emergence-booth/callbacks/(:num)', 'EmergenceBoothController::updateCallback/$1');
+        $routes->get('emergence-booth/chats', 'EmergenceBoothController::chats');
+        $routes->get('emergence-booth/chats/(:num)', 'EmergenceBoothController::chatMessages/$1');
+        $routes->post('emergence-booth/chats/(:num)', 'EmergenceBoothController::sendChat/$1');
+        $routes->post('emergence-booth/presence', 'EmergenceBoothController::heartbeat');
     });
 });
