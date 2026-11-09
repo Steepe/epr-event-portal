@@ -89,6 +89,11 @@ $isSuperadmin = $adminRole === 'superadmin';
             <i class="bx bx-video-recording text-lg"></i> Webinars
         </a>
 
+        <a href="<?php echo base_url('admin/emergence-booth'); ?>"
+           class="flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-700">
+            <i class="bx bx-store-alt text-lg"></i> Emergence Booth
+        </a>
+
         <!-- Admin Users (Superadmin only) -->
         <?php if ($isSuperadmin): ?>
             <a href="<?php echo base_url('admin/admins'); ?>"
@@ -146,6 +151,13 @@ $isSuperadmin = $adminRole === 'superadmin';
 <!-- just before </body> -->
 <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js"></script>
 <script>
+    window.setInterval(() => {
+        fetch(<?php echo json_encode(site_url('admin/emergence-booth/presence')); ?>, {
+            method: 'POST',
+            headers: {'X-CSRF-TOKEN': <?php echo json_encode(csrf_hash()); ?>}
+        }).catch(() => {});
+    }, 45000);
+
     const darkIcon = document.getElementById('theme-toggle-dark-icon');
     const lightIcon = document.getElementById('theme-toggle-light-icon');
     const toggleBtn = document.getElementById('theme-toggle');

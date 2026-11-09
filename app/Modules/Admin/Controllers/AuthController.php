@@ -51,6 +51,7 @@ class AuthController extends BaseController
             ]);
 
             $this->adminModel->markLogin($admin['id']);
+            $this->markBoothPresence((int) $admin['id']);
             (new AdminAuditService())->record('login', $this->request, null, [
                 'admin_id' => (int) $admin['id'],
                 'admin_name' => $admin['name'],
@@ -70,6 +71,7 @@ class AuthController extends BaseController
     public function logout()
     {
         (new AdminAuditService())->record('logout', $this->request);
+        $this->clearBoothPresence((int) session('admin_id'));
         session()->remove(['admin_id','admin_name','admin_email','admin_role','is_admin']);
         return redirect()->to(site_url('admin/login'));
     }
@@ -216,6 +218,26 @@ class AuthController extends BaseController
 
         if (! $emailService->send()) {
             log_message('error', 'Admin reset email failed for ' . $email . ': ' . print_r($emailService->printDebugger(['headers']), true));
+        }
+    }
+
+    private function markBoothPresence(int $adminId): void
+    {
+        if ($adminId <= 0 || ! $this->db->tableExists('tbl_admin_presence')) {
+            return;
+        }
+
+        $table = $this->db->table('tbl_admin_presence');
+        $existing = $table->where('admin_id', $adminId)->get()->getRowArray();
+        $existing
+            ? $table->where('admin_id', $adminId)->update(['last_seen_at' => date('Y-m-d H:i:s')])
+            : $table->insert(['admin_id' => $adminId, 'last_seen_at' => date('Y-m-d H:i:s')]);
+    }
+
+    private function clearBoothPresence(int $adminId): void
+    {
+        if ($adminId > 0 && $this->db->tableExists('tbl_admin_presence')) {
+            $this->db->table('tbl_admin_presence')->where('admin_id', $adminId)->delete();
         }
     }
 }
