@@ -122,8 +122,9 @@ $routes->group('admin', ['namespace' => 'App\Modules\Admin\Controllers'], functi
         });
 
 
-        // Messages (admin inbox)
+        // Messages sent by administrators to portal attendees
         $routes->get('messages', 'MessagesController::index');
+        $routes->post('messages/send', 'MessagesController::send');
         $routes->get('messages/(:num)', 'MessagesController::view/$1');
 
         // Payments / reports

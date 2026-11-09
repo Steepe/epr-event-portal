@@ -13,6 +13,7 @@ class NotificationsController extends BaseController
         }
 
         $pendingConnections = [];
+        $portalMessages = [];
         $userId = (int) (session('user_id') ?: session('attendee_id'));
 
         try {
@@ -37,6 +38,17 @@ class NotificationsController extends BaseController
                     ->get()
                     ->getResultArray();
             }
+
+            if ($userId > 0 && $db->tableExists('tbl_admin_portal_messages') && $db->tableExists('tbl_admin_portal_message_deliveries')) {
+                $portalMessages = $db->table('tbl_admin_portal_message_deliveries d')
+                    ->select('d.delivery_id, d.read_at, d.created_at, m.subject, m.body')
+                    ->join('tbl_admin_portal_messages m', 'm.admin_message_id = d.admin_message_id', 'inner')
+                    ->where('d.user_id', $userId)
+                    ->orderBy('d.delivery_id', 'DESC')
+                    ->limit(50)
+                    ->get()
+                    ->getResultArray();
+            }
         } catch (\Throwable $e) {
             log_message('error', '[NotificationsController] Unable to load connection requests: ' . $e->getMessage());
         }
@@ -44,6 +56,7 @@ class NotificationsController extends BaseController
         return module_view('Web', 'notifications', [
             'page_title' => 'Notifications',
             'pendingConnections' => $pendingConnections,
+            'portalMessages' => $portalMessages,
         ]);
     }
 }
