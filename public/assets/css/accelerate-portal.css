@@ -1,6 +1,6 @@
 :root {
-  --acc-bg: #160719;
-  --acc-bg-2: #260029;
+  --acc-bg: #1c0a20;
+  --acc-bg-2: #2d0631;
   --acc-panel: rgba(34, 16, 38, 0.84);
   --acc-panel-strong: rgba(25, 9, 30, 0.94);
   --acc-line: rgba(255, 255, 255, 0.14);
@@ -18,7 +18,7 @@
   --acc-grad: linear-gradient(135deg, #7d0686 0%, #bd159e 52%, #efb11e 100%);
   --acc-grad-soft: radial-gradient(circle at 15% 15%, rgba(239, 177, 30, 0.20), transparent 26%),
     radial-gradient(circle at 82% 12%, rgba(216, 25, 142, 0.22), transparent 30%),
-    linear-gradient(135deg, #150718 0%, #260029 48%, #421244 100%);
+    linear-gradient(135deg, #1b0a20 0%, #2d0631 48%, #4b1950 100%);
 }
 
 html {
@@ -675,7 +675,7 @@ html,
 body.rc-body {
   margin: 0;
   min-height: 100%;
-  background: #1f1121 !important;
+  background: #261528 !important;
 }
 
 body.rc-body {
@@ -703,7 +703,7 @@ body.rc-body a:hover {
   min-width: 900px;
   min-height: 640px;
   overflow: hidden;
-  background: radial-gradient(ellipse 90% 80% at 45% 55%, #55294f 0%, #352039 48%, #1f1121 100%);
+  background: radial-gradient(ellipse 90% 80% at 45% 55%, #62365c 0%, #422846 48%, #261528 100%);
   color: #fff;
   font-family: "Poppins", sans-serif;
   font-size: 14px;
@@ -724,7 +724,7 @@ body.rc-body a:hover {
   width: 100%;
   height: 100%;
   pointer-events: none;
-  filter: saturate(1.35) brightness(1.12);
+  filter: saturate(1.35) brightness(1.16);
 }
 
 .rc-stage-inner {

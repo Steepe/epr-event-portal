@@ -195,7 +195,7 @@
       const P = (lo, la) => [mx0 + (lo + 180) / 360 * mw, my0 + (84 - la) / 142 * mh];
       const [st, g] = mk(W, H, dpr), [dl, d] = mk(W, H, dpr);
       let gr = g.createRadialGradient(cx, cy + mh * 0.1, 0, cx, cy + mh * 0.1, Math.max(W, H) * 0.75);
-      gr.addColorStop(0, 'rgb(50,16,76)'); gr.addColorStop(0.45, 'rgb(24,7,40)'); gr.addColorStop(1, 'rgb(5,1,10)'); g.fillStyle = gr; g.fillRect(0, 0, W, H);
+      gr.addColorStop(0, 'rgb(59,22,86)'); gr.addColorStop(0.45, 'rgb(31,11,49)'); gr.addColorStop(1, 'rgb(12,4,18)'); g.fillStyle = gr; g.fillRect(0, 0, W, H);
       g.globalCompositeOperation = 'lighter';
       [[W * 0.16, H * 0.5, W * 0.4, '255,140,50', 0.05], [W * 0.85, H * 0.42, W * 0.42, '190,60,220', 0.06], [cx, hz, mw * 0.6, '230,90,200', 0.06]].forEach(([x, y, r, c, a]) => { const q = g.createRadialGradient(x, y, 0, x, y, r); q.addColorStop(0, 'rgba(' + c + ',' + a + ')'); q.addColorStop(1, 'rgba(' + c + ',0)'); g.fillStyle = q; g.fillRect(x - r, y - r, r * 2, r * 2); });
       g.globalCompositeOperation = 'source-over';
@@ -611,7 +611,7 @@
       const key = W + 'x' + H;
       if (AU.key !== key) { AU.key = key; AU.sp = Array.from({ length: Math.round(W * H / 14000) }, () => ({ x: Math.random() * W, y: Math.random() * H, s: .5 + Math.random() * 1.4, ph: Math.random() * 6.28, v: 4 + Math.random() * 10, g: Math.random() < .35 })); }
       const bg = ctx.createLinearGradient(0, 0, 0, H);
-      bg.addColorStop(0, '#13051a'); bg.addColorStop(.55, web ? '#200a38' : '#2a0b2f'); bg.addColorStop(1, '#100410');
+      bg.addColorStop(0, '#1a0922'); bg.addColorStop(.55, web ? '#291047' : '#35103b'); bg.addColorStop(1, '#170718');
       ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
       ctx.globalCompositeOperation = 'lighter';
       const M = Math.max(W, H);
