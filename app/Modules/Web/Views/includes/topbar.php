@@ -2,6 +2,8 @@
 $session = session();
 $uri = service('uri');
 $current = $uri->getSegment(2) ?? '';
+$conferenceId = $session->get('live-conference-id');
+$agendaUrl = $conferenceId ? base_url('attendees/agenda/' . $conferenceId) : base_url('attendees/lobby');
 $currentUserId = (int) ($session->get('user_id') ?: $session->get('attendee_id'));
 $websocketUrl = trim((string) env('websocket.url'));
 // Realtime uses the API reconciliation fallback unless a reachable socket URL
