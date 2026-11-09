@@ -151,6 +151,7 @@ $attendeeFilters = ['All', 'Online now', 'Founders', 'Operations', 'Finance', 'T
                                 <span style="font-size:16px;font-weight:600"><?php echo esc($fullName ?: 'Attendee'); ?></span>
                                 <span style="font-size:13px;color:rgba(255,255,255,.78)"><?php echo esc($role ?: 'Attendee'); ?></span>
                                 <span style="font-size:13px;color:rgba(255,255,255,.62)"><?php echo esc($company); ?></span>
+                                <span style="font-size:11px;font-weight:600;color:<?php echo $isOnline ? '#86efac' : 'rgba(255,255,255,.5)'; ?>"><i class="fa fa-circle" style="font-size:8px" aria-hidden="true"></i> <?php echo $isOnline ? 'Online now' : 'Offline'; ?></span>
                             </div>
                         </div>
 
@@ -199,7 +200,7 @@ $attendeeFilters = ['All', 'Online now', 'Founders', 'Operations', 'Finance', 'T
         <span class="rc-profile-avatar" data-profile-avatar>
             <span data-profile-initial>A</span>
         </span>
-        <span class="rc-profile-online" data-profile-online hidden>Online now</span>
+        <span class="rc-profile-online" data-profile-online>Offline</span>
         <h2 data-profile-name>Attendee</h2>
         <p data-profile-role>Attendee</p>
     </div>
@@ -562,7 +563,9 @@ $attendeeFilters = ['All', 'Online now', 'Founders', 'Operations', 'Finance', 'T
         profileRole.textContent = details.role || "Attendee";
         profileCompany.textContent = details.company || "";
         profileLocation.textContent = details.location || "Conference portal";
-        profileOnline.hidden = !isOnline(details.online);
+        profileOnline.hidden = false;
+        profileOnline.textContent = isOnline(details.online) ? "Online now" : "Offline";
+        profileOnline.classList.toggle("is-offline", !isOnline(details.online));
         createAvatar(profileAvatar, details);
         renderProfileSocials(details);
         setConnectButton(profileConnect, details);

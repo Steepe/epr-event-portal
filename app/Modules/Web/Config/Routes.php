@@ -52,6 +52,7 @@ $routes->group('attendees', ['namespace' => 'App\Modules\Web\Controllers', 'filt
 
     $routes->get('networking_center', 'NetworkingCenterController::index');
     $routes->get('attendees', 'AttendeesController::index');          // Attendees listing
+    $routes->post('presence', 'PresenceController::heartbeat');
 
     // Optional: endpoints for messaging via AJAX
     $routes->post('messages/submit_direct_message', 'MessagesController::submitDirectMessage');

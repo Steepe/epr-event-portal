@@ -221,6 +221,34 @@
     })();
 
     (function() {
+        const config = window.EPR_PORTAL_REALTIME || {};
+        if (!config.userId || !config.presenceUrl) {
+            return;
+        }
+
+        function heartbeat() {
+            if (document.visibilityState === "hidden") {
+                return;
+            }
+            fetch(config.presenceUrl, {
+                method: "POST",
+                credentials: "same-origin",
+                keepalive: true
+            }).catch(function() {
+                // Presence is an enhancement; a failed heartbeat must not interrupt the portal.
+            });
+        }
+
+        heartbeat();
+        window.setInterval(heartbeat, 45000);
+        document.addEventListener("visibilitychange", function() {
+            if (document.visibilityState === "visible") {
+                heartbeat();
+            }
+        });
+    })();
+
+    (function() {
         let activeModal = null;
 
         function removeBootstrapBackdrops() {

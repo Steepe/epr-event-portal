@@ -91,7 +91,8 @@ $displayUnreadCount = max(4, $unreadCount);
         userId: <?php echo json_encode($currentUserId); ?>,
         wsUrl: <?php echo json_encode($websocketUrl); ?>,
         pendingConnectionsUrl: <?php echo json_encode(base_url('api/connections/pending')); ?>,
-        notificationsUrl: <?php echo json_encode(base_url('attendees/notifications')); ?>
+        notificationsUrl: <?php echo json_encode(base_url('attendees/notifications')); ?>,
+        presenceUrl: <?php echo json_encode(base_url('attendees/presence')); ?>
     };
 </script>
 <div class="rc-stage">

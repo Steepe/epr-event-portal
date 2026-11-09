@@ -31,6 +31,7 @@ class AttendeesController extends ResourceController
             $name = $this->request->getGet('attendee_name');
             $sort = $this->request->getGet('sort');
             $db = db_connect();
+            $hasPresenceTable = $db->tableExists('tbl_portal_user_presence');
             $hasStatusTable = $db->tableExists('tbl_user_status');
 
             $builder = $this->model
@@ -53,7 +54,18 @@ class AttendeesController extends ResourceController
     ")
                 ->join('tbl_users', 'tbl_users.id = tbl_attendees.attendee_id');
 
-            if ($hasStatusTable) {
+            if ($hasPresenceTable) {
+                $builder
+                    ->select("
+                        CASE
+                            WHEN tbl_portal_user_presence.last_seen_at >= DATE_SUB(NOW(), INTERVAL 2 MINUTE)
+                            THEN 1
+                            ELSE 0
+                        END AS is_online,
+                        tbl_portal_user_presence.last_seen_at
+                    ", false)
+                    ->join('tbl_portal_user_presence', 'tbl_portal_user_presence.user_id = tbl_attendees.attendee_id', 'left');
+            } elseif ($hasStatusTable) {
                 $builder
                     ->select("
                         CASE
@@ -84,10 +96,13 @@ class AttendeesController extends ResourceController
             }
 
             $attendees = $builder
-                ->orderBy('tbl_attendees.firstname', 'ASC')
+                ->orderBy("LOWER(TRIM(COALESCE(tbl_attendees.firstname, '')))", 'ASC', false)
+                ->orderBy("LOWER(TRIM(COALESCE(tbl_attendees.lastname, '')))", 'ASC', false)
+                ->orderBy('tbl_attendees.attendee_id', 'ASC')
                 ->findAll();
             $attendees = $this->applyRedisOnlineState($attendees);
             $attendees = $this->applyConnectionState($attendees);
+            $attendees = $this->sortAlphabetically($attendees);
 
             // Generate A–Z letters
             $alphabetCount = [];
@@ -119,6 +134,7 @@ class AttendeesController extends ResourceController
             return $this->failValidationError('Missing attendee ID.');
         }
         $db = db_connect();
+        $hasPresenceTable = $db->tableExists('tbl_portal_user_presence');
         $hasStatusTable = $db->tableExists('tbl_user_status');
 
         $attendee = $this->model
@@ -141,7 +157,18 @@ class AttendeesController extends ResourceController
             ")
             ->join('tbl_users', 'tbl_users.id = tbl_attendees.attendee_id');
 
-        if ($hasStatusTable) {
+        if ($hasPresenceTable) {
+            $attendee
+                ->select("
+                    CASE
+                        WHEN tbl_portal_user_presence.last_seen_at >= DATE_SUB(NOW(), INTERVAL 2 MINUTE)
+                        THEN 1
+                        ELSE 0
+                    END AS is_online,
+                    tbl_portal_user_presence.last_seen_at
+                ", false)
+                ->join('tbl_portal_user_presence', 'tbl_portal_user_presence.user_id = tbl_attendees.attendee_id', 'left');
+        } elseif ($hasStatusTable) {
             $attendee
                 ->select("
                     CASE
@@ -232,7 +259,11 @@ class AttendeesController extends ResourceController
 
         $offset = 0;
         foreach ($keysByIndex as $index => $key) {
-            $attendees[$index]['is_online'] = ! empty($statuses[$offset]) && (string) $statuses[$offset] === '1' ? 1 : 0;
+            // Redis only wins when it has an explicit value. Missing socket keys
+            // must not erase the browser-heartbeat presence fallback.
+            if (($statuses[$offset] ?? null) !== false && ($statuses[$offset] ?? null) !== null) {
+                $attendees[$index]['is_online'] = (string) $statuses[$offset] === '1' ? 1 : 0;
+            }
             $offset++;
         }
 
@@ -321,5 +352,17 @@ class AttendeesController extends ResourceController
         }
 
         return (int) $this->request->getGet('current_attendee_id');
+    }
+
+    private function sortAlphabetically(array $attendees): array
+    {
+        usort($attendees, static function (array $left, array $right): int {
+            $leftName = trim((string) ($left['firstname'] ?? '') . ' ' . (string) ($left['lastname'] ?? ''));
+            $rightName = trim((string) ($right['firstname'] ?? '') . ' ' . (string) ($right['lastname'] ?? ''));
+
+            return strnatcasecmp($leftName, $rightName);
+        });
+
+        return $attendees;
     }
 }

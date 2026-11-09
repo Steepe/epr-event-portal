@@ -2360,6 +2360,11 @@ body.rc-body .modal .modal-dialog {
   text-transform: uppercase;
 }
 
+.rc-profile-online.is-offline {
+  background: rgba(255,255,255,.09);
+  color: rgba(255,255,255,.58);
+}
+
 .rc-profile-hero h2 {
   margin: 8px 0 0;
   color: #fff;
