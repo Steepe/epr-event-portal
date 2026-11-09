@@ -4,9 +4,7 @@ echo module_view('Web', 'includes/topbar');
 
 $pendingConnections = $pendingConnections ?? [];
 $portalMessages = $portalMessages ?? [];
-$conferenceId = (int) (session('live-conference-id') ?: session('conference_id'));
-$agendaUrl = $conferenceId > 0 ? base_url('attendees/agenda/' . $conferenceId) : base_url('attendees/lobby');
-$notifications = array_merge(array_map(static function (array $message): array {
+$notifications = array_map(static function (array $message): array {
     return [
         'id' => 'admin-' . (int) $message['delivery_id'],
         'cat' => 'Messages',
@@ -18,16 +16,7 @@ $notifications = array_merge(array_map(static function (array $message): array {
         'icon' => 'fa-envelope',
         'url' => '#',
     ];
-}, $portalMessages), [
-    ['id' => 'n1', 'cat' => 'Sessions', 'group' => 'TODAY', 'unread' => true, 'title' => 'Live now: Building Systems That Outlast Motivation', 'body' => 'Kemi Bello is on stage. 1,284 people are watching.', 'time' => '2 MIN AGO', 'icon' => 'fa-play-circle', 'url' => base_url('attendees/sessions/1')],
-    ['id' => 'n2', 'cat' => 'Messages', 'group' => 'TODAY', 'unread' => true, 'title' => 'Grace Otieno sent you a message', 'body' => '“Happy to share our weekly ops dashboard after the session.”', 'time' => '8 MIN AGO', 'icon' => 'fa-comment', 'url' => base_url('attendees/attendees')],
-    ['id' => 'n3', 'cat' => 'Messages', 'group' => 'TODAY', 'unread' => true, 'title' => 'Femi Adebayo mentioned you in session chat', 'body' => '@Ada Okafor would love to compare notes after the session.', 'time' => '12 MIN AGO', 'icon' => 'fa-at', 'url' => base_url('attendees/sessions/1')],
-    ['id' => 'n4', 'cat' => 'Networking', 'group' => 'TODAY', 'unread' => true, 'title' => 'Your 1:1 with Kemi Bello is confirmed', 'body' => 'Tomorrow · 2:30 PM WAT · 15 minutes', 'time' => '40 MIN AGO', 'icon' => 'fa-calendar-check-o', 'url' => base_url('attendees/speakers')],
-    ['id' => 'n6', 'cat' => 'Sessions', 'group' => 'TODAY', 'unread' => false, 'title' => 'Starting in 15 min: Operating Cadence for Scale', 'body' => 'You added this session to your agenda.', 'time' => '2 HR AGO', 'icon' => 'fa-clock-o', 'url' => $agendaUrl],
-    ['id' => 'n7', 'cat' => 'Booths', 'group' => 'EARLIER', 'unread' => false, 'title' => 'Utica Capital replied to your booth message', 'body' => '“Thanks for stopping by. Let’s set up a call next week.”', 'time' => 'YESTERDAY', 'icon' => 'fa-th-large', 'url' => base_url('attendees/exhibitors')],
-    ['id' => 'n8', 'cat' => 'Networking', 'group' => 'EARLIER', 'unread' => false, 'title' => 'Zainab Musa accepted your connection request', 'body' => 'You can now message each other directly.', 'time' => 'YESTERDAY', 'icon' => 'fa-user-plus', 'url' => base_url('attendees/attendees')],
-    ['id' => 'n9', 'cat' => 'Account', 'group' => 'EARLIER', 'unread' => false, 'title' => 'Complete your registration payment', 'body' => 'Unlock all paid sessions for Accelerate 2026. Ticket: NGN 25,000.', 'time' => '2 DAYS AGO', 'icon' => 'fa-lock', 'url' => base_url('attendees/checkout')],
-]);
+}, $portalMessages);
 
 $categories = [
     'Sessions' => ['fa-play-circle', '#d8198e', '#fff'],
@@ -214,6 +203,8 @@ document.addEventListener("DOMContentLoaded", () => {
                 button.textContent = action === "accept" ? "Accept" : "Decline";
             });
     });
+    updateSummary();
+    applyFilter("All");
 });
 </script>
 </body>

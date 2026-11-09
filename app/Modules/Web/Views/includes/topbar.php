@@ -2,8 +2,6 @@
 $session = session();
 $uri = service('uri');
 $current = $uri->getSegment(2) ?? '';
-$conferenceId = $session->get('live-conference-id');
-$agendaUrl = $conferenceId ? base_url('attendees/agenda/' . $conferenceId) : base_url('attendees/lobby');
 $currentUserId = (int) ($session->get('user_id') ?: $session->get('attendee_id'));
 $websocketUrl = trim((string) env('websocket.url'));
 // Realtime uses the API reconciliation fallback unless a reachable socket URL
@@ -76,13 +74,8 @@ $navItems = [
     ['EMERGENCE BOOTH', 'emergence_booth', base_url('attendees/emergence_booth')],
 ];
 
-$notificationPreview = [
-    ['Sessions', 'Live now: Building Systems That Outlast Motivation', 'Kemi Bello is on stage. 1,284 people are watching.', '2 MIN AGO', true, 'fa-play-circle', '#d8198e', '#fff', base_url('attendees/sessions/1')],
-    ['Messages', 'Grace Otieno sent you a message', '“Happy to share our weekly ops dashboard after the session.”', '8 MIN AGO', true, 'fa-comment', '#9d0f82', '#fff', base_url('attendees/attendees')],
-    ['Messages', 'Femi Adebayo mentioned you in session chat', '@Ada Okafor would love to compare notes after the session.', '12 MIN AGO', true, 'fa-at', '#9d0f82', '#fff', base_url('attendees/sessions/1')],
-    ['Networking', 'Your 1:1 with Kemi Bello is confirmed', 'Tomorrow · 2:30 PM WAT · 15 minutes', '40 MIN AGO', true, 'fa-calendar-check-o', '#efb11e', '#260029', base_url('attendees/speakers')],
-];
-$displayUnreadCount = max(4, $unreadCount);
+$notificationPreview = [];
+$displayUnreadCount = $unreadCount;
 ?>
 
 <body class="rc-body">
