@@ -47,6 +47,7 @@ $routes->group('attendees', ['namespace' => 'App\Modules\Web\Controllers', 'filt
 
     // Optional: endpoints for messaging via AJAX
     $routes->post('messages/submit_direct_message', 'MessagesController::submitDirectMessage');
+    $routes->get('notifications', 'NotificationsController::index');
 
     $routes->get('speakers', 'SpeakersController::index');
 
