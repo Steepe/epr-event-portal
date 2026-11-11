@@ -32,6 +32,7 @@ $routes->group('attendees', ['namespace' => 'App\Modules\Web\Controllers'], func
 });
 
 $routes->get('emergence/funnel', '\App\Modules\Web\Controllers\EmergenceFunnelController::index');
+$routes->get('attendees/background-recording', '\App\Modules\Web\Controllers\LobbyController::backgroundRecording');
 $routes->options('emergence/funnel/register', '\App\Modules\Api\Controllers\EmergenceFunnelController::preflight');
 $routes->post('emergence/funnel/register', '\App\Modules\Api\Controllers\EmergenceFunnelController::register');
 $routes->get('emergence/checkout', '\App\Modules\Web\Controllers\CheckoutController::emergence');
@@ -46,7 +47,6 @@ $routes->group('attendees', ['namespace' => 'App\Modules\Web\Controllers', 'filt
     $routes->get('home', 'HomeController::index');
     $routes->get('start', 'StartController::index');
     $routes->get('lobby', 'LobbyController::index');
-    $routes->get('background-recording', 'LobbyController::backgroundRecording');
     $routes->get('agenda/(:num)', 'AgendaController::index/$1');
     $routes->get('pastConference/(:num)', 'AgendaController::view_past_conference/$1');
     $routes->get('sessions/(:num)', 'SessionsController::view/$1'); // 👈 single session page
