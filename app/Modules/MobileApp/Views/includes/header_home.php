@@ -215,7 +215,7 @@
     </style>
 </head>
 
-<body>
+<body class="epr-mobile-app epr-mobile-auth">
 
 
 <div class="overlay" id="overlay"></div>

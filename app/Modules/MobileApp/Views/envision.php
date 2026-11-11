@@ -7,7 +7,7 @@
  * Time: 07:16
  */
 
- echo module_view('MobileApp', 'includes/header_less_menu'); ?>
+ echo module_view('MobileApp', 'includes/header'); ?>
 
 <style>
     body {
@@ -134,4 +134,4 @@
     </div>
 </div>
 
-<?php echo module_view('MobileApp', 'includes/footer_home'); ?>
+<?php echo module_view('MobileApp', 'includes/footer'); ?>

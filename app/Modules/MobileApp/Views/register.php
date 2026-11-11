@@ -7,7 +7,7 @@
  * Time: 12:45
  */
 
-echo module_view('MobileApp', 'includes/header'); ?>
+echo module_view('MobileApp', 'includes/header_home'); ?>
 
 <style>
     body {
@@ -238,4 +238,4 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>
 
-<?php echo module_view('MobileApp', 'includes/footer'); ?>
+<?php echo module_view('MobileApp', 'includes/footer_home'); ?>

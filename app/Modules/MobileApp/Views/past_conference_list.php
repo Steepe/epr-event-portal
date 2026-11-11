@@ -7,7 +7,7 @@
  * Time: 07:33
  */
 
- echo module_view('MobileApp', 'includes/header_less_menu'); ?>
+ echo module_view('MobileApp', 'includes/header'); ?>
 
 <style>
 body {
@@ -93,4 +93,4 @@ function openSession(url) {
 }
 </script>
 
-<?php echo module_view('MobileApp', 'includes/footer_home'); ?>
+<?php echo module_view('MobileApp', 'includes/footer'); ?>
