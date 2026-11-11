@@ -16,11 +16,11 @@ class Auth extends BaseController
 {
     public function login()
     {
-        $prototype = FCPATH . 'epr-mobile-prototype.html';
+        if (session()->get('user_id')) {
+            return redirect()->to(site_url('mobile/home'));
+        }
 
-        return $this->response
-            ->setContentType('text/html')
-            ->setBody((string) file_get_contents($prototype));
+        return module_view('MobileApp', 'login');
     }
 
     public function attemptLogin()

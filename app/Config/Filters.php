@@ -44,14 +44,13 @@ class Filters extends BaseFilters
         'after' => [
             'pagecache',
             'performance',
+            'toolbar',
         ],
     ];
 
     public array $globals = [
         'before' => [],
-        'after'  => [
-            'toolbar' => ['except' => ['mobile/*']],
-        ],
+        'after'  => [],
     ];
 
     public array $methods = [];
