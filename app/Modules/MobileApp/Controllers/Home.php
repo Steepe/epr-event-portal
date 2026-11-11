@@ -27,6 +27,10 @@ class Home extends BaseController
             ->orderBy('year', 'DESC')
             ->first();
 
+        if (!empty($conference['conference_id'])) {
+            session()->set('live-conference-id', $conference['conference_id']);
+        }
+
         return module_view('MobileApp', 'home', [
             'conference' => $conference,
         ]);

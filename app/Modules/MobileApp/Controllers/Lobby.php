@@ -20,6 +20,8 @@ class Lobby extends BaseController
             return redirect()->to(site_url('mobile/login'));
         }
 
-        return module_view('MobileApp', 'lobby');
+        return module_view('MobileApp', 'lobby', [
+            'conferenceId' => session('live-conference-id'),
+        ]);
     }
 }
