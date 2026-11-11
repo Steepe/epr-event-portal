@@ -18,6 +18,11 @@ class LobbyController extends BaseController
 {
     use AttendeeTrait;
 
+    public function backgroundRecording(): string
+    {
+        return module_view('Web', 'background_recording');
+    }
+
     public function index(): string|\CodeIgniter\HTTP\RedirectResponse
     {
 

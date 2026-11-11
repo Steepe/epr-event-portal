@@ -46,6 +46,7 @@ $routes->group('attendees', ['namespace' => 'App\Modules\Web\Controllers', 'filt
     $routes->get('home', 'HomeController::index');
     $routes->get('start', 'StartController::index');
     $routes->get('lobby', 'LobbyController::index');
+    $routes->get('background-recording', 'LobbyController::backgroundRecording');
     $routes->get('agenda/(:num)', 'AgendaController::index/$1');
     $routes->get('pastConference/(:num)', 'AgendaController::view_past_conference/$1');
     $routes->get('sessions/(:num)', 'SessionsController::view/$1'); // 👈 single session page
