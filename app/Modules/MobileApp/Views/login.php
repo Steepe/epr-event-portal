@@ -1,184 +1,98 @@
-<?php
-/**
- * Created by PhpStorm.
- * User: oluwamayowasteepe
- * Project: epr-event-portal
- * Date: 11/11/2025
- * Time: 21:28
- */
-
- echo module_view('MobileApp', 'includes/header_home'); ?>
+<?php echo module_view('MobileApp', 'includes/header_home'); ?>
 
 <style>
-    body {
-        background-image: url('<?php echo asset_url('images/mobile-brain-bg.png'); ?>');
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        min-height: 100vh;
-        font-family: 'Inter', 'Open Sans', sans-serif;
-        overflow-x: hidden;
-        color: #fff;
-    }
-
-    .login-container {
+    body.epr-mobile-auth { padding: 0 !important; }
+    .mobile-login-screen {
+        position: relative;
         display: flex;
+        min-height: 100svh;
+        padding: 84px 22px 44px;
+        overflow: hidden;
+        color: #fff;
+        background:
+            radial-gradient(circle at 15% 12%, rgba(239,177,30,.16), transparent 30%),
+            radial-gradient(circle at 88% 22%, rgba(216,25,142,.22), transparent 34%),
+            radial-gradient(ellipse 90% 80% at 45% 55%, #62365c 0%, #422846 48%, #261528 100%);
+    }
+    .mobile-login-screen::before {
+        position: absolute;
+        inset: 0;
+        content: '';
+        pointer-events: none;
+        opacity: .52;
+        background-image: linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px);
+        background-size: 42px 42px;
+        mask-image: linear-gradient(to bottom, rgba(0,0,0,.75), transparent 76%);
+    }
+    .mobile-login-content { position: relative; z-index: 1; display: flex; width: 100%; min-height: calc(100svh - 128px); max-width: 390px; margin: auto; flex-direction: column; }
+    .mobile-login-epr { width: 152px; height: auto; object-fit: contain; object-position: left; }
+    .mobile-login-intro { display: flex; flex-direction: column; gap: 14px; margin-top: 54px; }
+    .mobile-login-kicker { color: #efb11e; font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; }
+    .mobile-login-accelerate { width: min(270px, 86%); height: auto; object-fit: contain; object-position: left center; }
+    .mobile-login-card {
+        display: flex;
+        margin-top: auto;
+        padding: 28px 22px;
         flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        min-height: 100vh;
-        text-align: center;
-        padding: 2rem 1rem;
-    }
-
-    .login-card {
-        width: 100%;
-        max-width: 380px;
-        border: 1px solid rgba(255, 255, 255, 0.25);
+        gap: 16px;
+        border: 1px solid rgba(239,150,190,.32);
         border-radius: 20px;
-        padding: 2.2rem 2rem;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-        margin-top: -55px;
-        height: 650px;
+        background: rgba(22,8,26,.30);
+        box-shadow: 0 0 18px rgba(216,25,142,.20), inset 0 0 12px rgba(216,25,142,.06);
+        backdrop-filter: blur(5px);
     }
-
-    .login-card img {
-        width: 300px;
-        margin-bottom: 4rem;
+    .mobile-login-card h1 { margin: 0 0 4px; color: #fff !important; font-size: 20px !important; font-weight: 600 !important; letter-spacing: 0 !important; text-align: left; }
+    .mobile-login-card h1::after { display: none; }
+    .mobile-login-field { position: relative; display: flex; align-items: center; }
+    .mobile-login-field i { position: absolute; z-index: 1; left: 16px; color: rgba(255,255,255,.60); }
+    .mobile-login-field .form-control {
+        width: 100%; height: 48px; padding: 0 14px 0 42px !important;
+        border: 1px solid rgba(255,255,255,.35) !important; border-radius: 10px !important;
+        background: rgba(255,255,255,.04) !important; color: #fff !important; font-size: 14px !important;
     }
-
-    .login-card h5 {
-        font-weight: 600;
-        color: #ffffff;
-        margin-bottom: 1.5rem;
-    }
-
-    .form-control {
-        background: transparent !important;
-        border: 1px solid rgba(255, 255, 255, 0.6);
-        border-radius: 30px;
-        color: #fff !important;
-        font-size: 0.95rem;
-        padding: 0.7rem 1rem;
-    }
-
-    .form-control::placeholder {
-        color: #e5e5e5;
-        opacity: 0.8;
-    }
-
-    .form-control:focus {
-        border-color: #fff;
-        box-shadow: none;
-    }
-
-    .login-btn {
-        color: #fff;
-        border: none;
-        border-radius: 30px;
-        padding: 0.75rem;
-        font-weight: 600;
-        width: 100%;
-        transition: 0.3s;
-    }
-
-    .login-btn:hover {
-        transform: scale(1.02);
-    }
-
-    .remember-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 7.5rem;
-        font-size: 0.85rem;
-    }
-
-    .remember-row label {
-        color: #fff;
-    }
-
-    .remember-row a {
-        color: #ffffff;
-        text-decoration: none;
-    }
-
-    .remember-row a:hover {
-        text-decoration: underline;
-    }
-
-    .signup-text {
-        color: #e0e0e0;
-        margin-top: 1.25rem;
-        font-size: 0.9rem;
-    }
-
-    .signup-text a {
-        color: #ffffff;
-        font-weight: 600;
-        text-decoration: none;
-    }
-
-    .signup-text a:hover {
-        text-decoration: underline;
-    }
-
-    @media (max-width: 575px) {
-        .login-card {
-            padding: 1.8rem 1.5rem;
-            border-radius: 16px;
-        }
-
-        .login-card img {
-            width: 300px;
-        }
-
-        .login-card h5 {
-            font-size: 1rem;
-        }
-    }
+    .mobile-login-field .form-control:focus { border-color: #efb11e !important; }
+    .mobile-login-submit { width: 100%; height: 48px; border: 0; border-radius: 15px; background: linear-gradient(90deg,#7d0686,#bd159e 50%,#7c0585); color: #fff; font-size: 15px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+    .mobile-login-links { display: flex; justify-content: space-between; gap: 12px; margin-top: 4px; color: rgba(255,255,255,.85); font-size: 13px; }
+    .mobile-login-links a { color: inherit; text-decoration: none; }
+    .mobile-login-links a:last-child { color: #fff; font-weight: 600; }
+    .mobile-login-error { margin: 0; border: 1px solid rgba(239,177,30,.6); border-radius: 10px; background: rgba(239,177,30,.14); color: #fff4cc; font-size: 12px; }
+    @media (max-height: 720px) { .mobile-login-screen { padding-top: 48px; padding-bottom: 28px; } .mobile-login-intro { margin-top: 28px; } .mobile-login-card { margin-top: 34px; } }
 </style>
 
-<div class="login-container">
-    <div class="login-card">
-        <img src="<?php echo asset_url('images/eventslogo.png'); ?>" alt="EPR Logo">
+<main class="mobile-login-screen">
+    <div class="mobile-login-content">
+        <img class="mobile-login-epr" src="<?= asset_url('images/eventslogo.png') ?>" alt="EPR Events">
 
-        <h5>Login to Continue</h5>
+        <div class="mobile-login-intro">
+            <span class="mobile-login-kicker">Emergence Conference · 2026</span>
+            <img class="mobile-login-accelerate" src="<?= asset_url('images/accelerate-logo-white.png') ?>" alt="Accelerate: Building sustainable systems for execution">
+        </div>
 
-        <?php if (session()->getFlashdata('error')): ?>
-            <div class="alert alert-danger small py-2 mb-3">
-                <?php echo esc(session()->getFlashdata('error')); ?>
-            </div>
-        <?php endif; ?>
+        <section class="mobile-login-card" aria-labelledby="mobile-login-title">
+            <h1 id="mobile-login-title">Login to continue</h1>
+            <?php if (session()->getFlashdata('error')): ?>
+                <div class="alert mobile-login-error"><?= esc(session()->getFlashdata('error')) ?></div>
+            <?php endif; ?>
 
-        <form method="post" action="<?php echo site_url('mobile/login'); ?>">
-            <?php echo csrf_field(); ?>
-
-            <div class="mb-5 text-start">
-                <input type="email" name="email" id="email" class="form-control"
-                    placeholder="User Email" value="<?php echo old('email'); ?>" required>
-            </div>
-
-            <div class="mb-5 text-start">
-                <input type="password" name="password" id="password" class="form-control"
-                    placeholder="Password" required>
-            </div>
-
-            <div class="remember-row">
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" name="remember" id="remember" value="1" style="cursor:pointer;">
-                    <label class="form-check-label" for="remember">Remember me</label>
+            <form method="post" action="<?= site_url('mobile/login') ?>">
+                <?= csrf_field() ?>
+                <div class="mobile-login-field mb-3">
+                    <i class="fa fa-envelope" aria-hidden="true"></i>
+                    <input type="email" name="email" id="email" class="form-control" placeholder="Enter Email" value="<?= old('email') ?>" required autocomplete="email">
                 </div>
-                <a href="<?php echo site_url('mobile/forgot-password'); ?>">Forgot Password</a>
-            </div>
+                <div class="mobile-login-field mb-3">
+                    <i class="fa fa-lock" aria-hidden="true"></i>
+                    <input type="password" name="password" id="password" class="form-control" placeholder="Enter Password" required autocomplete="current-password">
+                </div>
+                <button type="submit" class="mobile-login-submit">Login</button>
+            </form>
 
-            <button type="submit" class="epr-btn-four login-btn">LOGIN</button>
-
-            <div class="signup-text">
-                Not a member? <a href="<?php echo site_url('mobile/register'); ?>">Sign Up!</a>
+            <div class="mobile-login-links">
+                <a href="<?= site_url('mobile/forgot-password') ?>">Forgot Password?</a>
+                <span>No account? <a href="<?= site_url('mobile/register') ?>">Register</a></span>
             </div>
-        </form>
+        </section>
     </div>
-</div>
+</main>
 
 <?php echo module_view('MobileApp', 'includes/footer_home'); ?>
