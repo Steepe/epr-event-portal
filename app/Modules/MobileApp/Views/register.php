@@ -27,10 +27,10 @@
 
 <main class="mobile-register-screen">
     <div class="mobile-register-wrap">
-        <img class="mobile-register-epr" src="<?= asset_url('images/eventslogo.png') ?>" alt="EPR Events">
+        <img class="mobile-register-epr" src="<?= mobile_asset_url('images/eventslogo.png') ?>" alt="EPR Events">
         <div class="mobile-register-intro">
             <span class="mobile-register-kicker">Emergence Conference · 2026</span>
-            <img class="mobile-register-accelerate" src="<?= asset_url('images/accelerate-logo-white.png') ?>" alt="Accelerate">
+            <img class="mobile-register-accelerate" src="<?= mobile_asset_url('images/accelerate-logo-white.png') ?>" alt="Accelerate">
         </div>
         <form id="RegistrationForm" class="mobile-register-card">
             <h1>Create your account</h1>

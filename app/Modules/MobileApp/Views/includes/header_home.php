@@ -22,7 +22,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
     <!-- Favicon -->
-    <link rel="shortcut icon" href="<?php echo asset_url('images/favicon.png'); ?>">
+    <link rel="shortcut icon" href="<?= mobile_asset_url('images/favicon.png') ?>">
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -30,10 +30,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Open+Sans:ital,wght@0,300..800;1,300..800&display=swap" rel="stylesheet">
 
     <!-- Core CSS -->
-    <link rel="stylesheet" href="<?php echo asset_url('css/bootstrap.css'); ?>" type="text/css">
-    <link rel="stylesheet" href="<?php echo asset_url('css/eprglobal.css'); ?>" type="text/css">
-    <link rel="stylesheet" href="<?php echo asset_url('css/mobile.css'); ?>" type="text/css">
-    <link rel="stylesheet" href="<?php echo asset_url('font-awesome/css/font-awesome.min.css'); ?>" type="text/css">
+    <link rel="stylesheet" href="<?= mobile_asset_url('css/bootstrap.css') ?>" type="text/css">
+    <link rel="stylesheet" href="<?= mobile_asset_url('css/eprglobal.css') ?>" type="text/css">
+    <link rel="stylesheet" href="<?= mobile_asset_url('css/mobile.css') ?>" type="text/css">
+    <link rel="stylesheet" href="<?= mobile_asset_url('font-awesome/css/font-awesome.min.css') ?>" type="text/css">
 
     <!-- Matomo Analytics -->
     <script>

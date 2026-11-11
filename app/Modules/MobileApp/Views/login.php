@@ -61,11 +61,11 @@
 
 <main class="mobile-login-screen">
     <div class="mobile-login-content">
-        <img class="mobile-login-epr" src="<?= asset_url('images/eventslogo.png') ?>" alt="EPR Events">
+        <img class="mobile-login-epr" src="<?= mobile_asset_url('images/eventslogo.png') ?>" alt="EPR Events">
 
         <div class="mobile-login-intro">
             <span class="mobile-login-kicker">Emergence Conference · 2026</span>
-            <img class="mobile-login-accelerate" src="<?= asset_url('images/accelerate-logo-white.png') ?>" alt="Accelerate: Building sustainable systems for execution">
+            <img class="mobile-login-accelerate" src="<?= mobile_asset_url('images/accelerate-logo-white.png') ?>" alt="Accelerate: Building sustainable systems for execution">
         </div>
 
         <section class="mobile-login-card" aria-labelledby="mobile-login-title">

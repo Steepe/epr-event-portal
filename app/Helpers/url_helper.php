@@ -25,3 +25,11 @@ if (!function_exists('asset_url')) {
         return base_url('assets/' . $path);
     }
 }
+
+if (!function_exists('mobile_asset_url')) {
+    /** Load mobile visual assets from the current host, including staging previews. */
+    function mobile_asset_url(string $path = ''): string
+    {
+        return '/assets/' . ltrim($path, '/');
+    }
+}

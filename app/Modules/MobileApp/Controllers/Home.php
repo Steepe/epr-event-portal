@@ -22,13 +22,13 @@ class Home extends BaseController
 
         $conferenceModel = new ConferenceModel();
 
-        $conferences = $conferenceModel
-            ->whereIn('status', ['live', 'past'])
+        $conference = $conferenceModel
+            ->where('status', 'live')
             ->orderBy('year', 'DESC')
-            ->findAll();
+            ->first();
 
         return module_view('MobileApp', 'home', [
-            'conferences' => $conferences
+            'conference' => $conference,
         ]);
     }
 

@@ -1,243 +1,54 @@
-<?php
-/**
- * Created by PhpStorm.
- * User: oluwamayowasteepe
- * Project: epr-event-portal
- * Date: 12/11/2025
- * Time: 04:45
- */
+<?php echo module_view('MobileApp', 'includes/header_home'); ?>
 
-echo module_view('MobileApp', 'includes/header_home');
-//var_dump(session());
+<?php
+    $conferenceTitle = trim((string) ($conference['title'] ?? 'Accelerate')) ?: 'Accelerate';
+    $conferenceYear = esc((string) ($conference['year'] ?? '2026'));
+    $videoSource = mobile_asset_url('videos/start-bg.mp4');
 ?>
 
 <style>
-    body {
-        margin: 0;
-        padding: 0;
-        font-family: 'Inter', 'Poppins', sans-serif;
-        overflow-x: hidden;
-        color: #fff;
-        position: relative;
-    }
-
-    /* 🎥 Video Background */
-    #bgVideo {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        filter: blur(8px) brightness(0.5);
-        z-index: -2;
-    }
-
-    /* 🌈 Overlay Gradient */
-    #videoOverlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: -1;
-    }
-
-    /* 🌀 Lobby Layout */
-    .mobile-lobby {
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-start;
-        align-items: center;
-        text-align: center;
-        padding: 80px 1.5rem 100px;
-        position: relative;
-        z-index: 2;
-    }
-
-    .lobby-header {
-        margin-bottom: 1.5rem;
-    }
-
-    .lobby-header h3 {
-        font-weight: 600;
-        color: #fff;
-        font-size: 1.3rem;
-    }
-
-    .lobby-header p {
-        font-size: 0.9rem;
-        opacity: 0.85;
-        margin-bottom: 0;
-    }
-
-    /* 🔘 Bubble Defaults */
-    .lobby-bubble {
-        border-radius: 50%;
-        cursor: pointer;
-        overflow: hidden;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        transition: transform .3s ease, box-shadow .3s ease;
-        filter: drop-shadow(0 0 10px rgba(255,255,255,0.15));
-        background: rgba(255,255,255,0.08);
-        border: 1px solid rgba(255,255,255,0.15);
-    }
-
-    .lobby-bubble img {
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-    }
-
-    .lobby-bubble:active {
-        transform: scale(0.95);
-    }
-
-    /* 🌟 Live Big Bubble */
-    .lobby-center-wrapper {
-        width: 100%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        margin: 40px 0;
-    }
-
-    .lobby-center {
-        position: relative;
-        z-index: 5;
-        animation: pulseGlow 3.5s infinite ease-in-out;
-        cursor: pointer;
-    }
-
-    .lobby-center img {
-        width: 320px;
-        height: 320px;
-        border-radius: 50%;
-        object-fit: contain;
-        transition: transform .3s ease;
-    }
-
-    .lobby-center img:active {
-        transform: scale(0.98);
-    }
-
-    @keyframes pulseGlow {
-        0%, 100% { transform: scale(1); filter: drop-shadow(0 0 25px rgba(255,210,80,0.8)); }
-        50% { transform: scale(1.08); filter: drop-shadow(0 0 40px rgba(255,230,100,1)); }
-    }
-
-    /* 🔝 Top Functional Bubbles */
-    .lobby-top {
-        display: flex;
-        justify-content: space-around;
-        align-items: center;
-        width: 100%;
-        margin-bottom: 1.5rem;
-        z-index: 3;
-    }
-
-    .lobby-top .lobby-bubble {
-        width: 120px;
-        height: 120px;
-    }
-
-    /* 🏆 Past Conferences Grid */
-    .lobby-past {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 25px;
-        width: 100%;
-        justify-items: center;
-        margin-top: 30px;
-    }
-
-    .lobby-past .lobby-bubble {
-        width: 120px;
-        height: 120px;
-    }
-
-    /* 📱 Responsive scaling */
-    @media (max-width: 600px) {
-        .lobby-center img {
-            width: 260px;
-            height: 260px;
-        }
-        .lobby-top .lobby-bubble,
-        .lobby-past .lobby-bubble {
-            width: 110px;
-            height: 110px;
-        }
-    }
+    body.epr-mobile-auth { padding: 0 !important; }
+    .mobile-welcome { position:relative; display:flex; min-height:100svh; box-sizing:border-box; align-items:center; justify-content:center; overflow:hidden; padding:28px 20px 44px; color:#fff; background:radial-gradient(circle at 15% 12%,rgba(239,177,30,.16),transparent 30%),radial-gradient(circle at 88% 22%,rgba(216,25,142,.22),transparent 34%),radial-gradient(ellipse 90% 80% at 45% 55%,#62365c 0%,#422846 48%,#261528 100%); }
+    .mobile-welcome::before { position:absolute; inset:0; content:''; opacity:.52; pointer-events:none; background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px); background-size:42px 42px; mask-image:linear-gradient(to bottom,rgba(0,0,0,.75),transparent 76%); }
+    .mobile-welcome__content { position:relative; z-index:1; display:flex; width:100%; max-width:390px; flex-direction:column; align-items:center; gap:26px; text-align:center; }
+    .mobile-welcome__eyebrow { color:#efb11e; font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:600; letter-spacing:.22em; text-transform:uppercase; }
+    .mobile-welcome__title { margin:0; font-size:28px; font-weight:600; letter-spacing:-.02em; line-height:1.15; }
+    .mobile-welcome__video { position:relative; width:100%; aspect-ratio:16 / 9; overflow:hidden; border:1px solid rgba(255,255,255,.14); border-radius:16px; background:#0b030d; box-shadow:0 30px 80px rgba(0,0,0,.45),0 0 0 6px rgba(255,255,255,.03); }
+    .mobile-welcome__video video { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0; transition:opacity .2s ease; }
+    .mobile-welcome__video.is-playing video { opacity:.72; }
+    .mobile-welcome__play { position:absolute; z-index:1; top:50%; left:50%; display:flex; width:68px; height:68px; align-items:center; justify-content:center; padding-left:4px; border:0; border-radius:50%; transform:translate(-50%,-50%); background:linear-gradient(90deg,#7d0686,#bd159e 50%,#7c0585); box-shadow:0 0 40px rgba(216,25,142,.6); color:#fff; font-size:24px; cursor:pointer; }
+    .mobile-welcome__video.is-playing .mobile-welcome__play { opacity:0; pointer-events:none; }
+    .mobile-welcome__label { position:absolute; z-index:1; bottom:14px; left:16px; color:rgba(255,255,255,.6); font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:.16em; }
+    .mobile-welcome__button { display:flex; height:52px; align-items:center; gap:12px; padding:0 32px; border:0; border-radius:15px; background:linear-gradient(90deg,#7d0686,#bd159e 50%,#7c0585); color:#fff; font-size:15px; font-weight:600; letter-spacing:.1em; text-decoration:none; text-transform:uppercase; }
+    .mobile-welcome__button:focus-visible, .mobile-welcome__play:focus-visible { outline:2px solid #efb11e; outline-offset:3px; }
 </style>
 
-<!-- 🎥 Background Video -->
-<video autoplay muted loop playsinline id="bgVideo">
-    <source src="<?php echo asset_url('videos/mobile-brain-bg.mp4'); ?>" type="video/mp4">
-</video>
-<div id="videoOverlay"></div>
-
-<div class="mobile-lobby">
-    <div class="lobby-header">
-        <h3>Welcome, <?php echo esc(session('firstname')); ?></h3>
-        <p>Tap a bubble to explore conferences and experiences</p>
-    </div>
-
-    <!-- 🔝 Quick Access -->
-    <div class="lobby-top">
-        <div class="lobby-bubble"
-             onclick="window.location='<?php echo base_url('mobile/webinars'); ?>'">
-            <img src="<?php echo asset_url('images/webinars.png'); ?>" alt="Webinars">
+<main class="mobile-welcome">
+    <section class="mobile-welcome__content" aria-labelledby="welcome-title">
+        <div>
+            <div class="mobile-welcome__eyebrow">Emergence Conference · <?= $conferenceYear ?></div>
+            <h1 class="mobile-welcome__title" id="welcome-title">Welcome to <?= esc($conferenceTitle) ?></h1>
         </div>
-        <div class="lobby-bubble"
-             onclick="window.location='<?php echo base_url('mobile/envision'); ?>'">
-            <img src="<?php echo asset_url('images/envision.png'); ?>" alt="Envision">
+        <div class="mobile-welcome__video" data-welcome-video>
+            <video preload="metadata" playsinline data-welcome-player>
+                <source src="<?= esc($videoSource, 'attr') ?>" type="video/mp4">
+            </video>
+            <button class="mobile-welcome__play" type="button" aria-label="Play welcome video" data-welcome-play><i class="fa fa-play" aria-hidden="true"></i></button>
+            <span class="mobile-welcome__label">WELCOME TO <?= esc(strtoupper($conferenceTitle)) ?></span>
         </div>
-    </div>
+        <a class="mobile-welcome__button" href="<?= site_url('mobile/lobby') ?>">Enter Lobby <i class="fa fa-long-arrow-right" aria-hidden="true"></i></a>
+    </section>
+</main>
 
-    <?php
-    $live = null;
-    $past = [];
-
-    if (!empty($conferences)) {
-        foreach ($conferences as $conf) {
-            if ($conf['status'] === 'live') $live = $conf;
-            else $past[] = $conf;
-        }
-    }
-    ?>
-
-    <!-- 🌟 Live Big Bubble -->
-    <?php if (!empty($live)): ?>
-        <?php session()->set('live-conference-id', $live['conference_id']); ?>
-        <div class="lobby-center-wrapper">
-            <div class="lobby-center"
-                 onclick="window.location='<?php echo base_url('mobile/welcome'); ?>'">
-                <img src="<?php echo base_url('uploads/conferences/' . $live['icon']); ?>"
-                     alt="<?php echo esc($live['title']); ?>">
-            </div>
-        </div>
-    <?php endif; ?>
-
-    <!-- 🏆 Past Conferences -->
-    <?php if (!empty($past)): ?>
-        <div class="lobby-past">
-            <?php
-            usort($past, fn($a, $b) => (int)$a['year'] <=> (int)$b['year']);
-            foreach ($past as $conf):
-                $image = !empty($conf['icon'])
-                    ? base_url('uploads/conferences/' . $conf['icon'])
-                    : asset_url('images/lobby/default.png');
-            ?>
-                <div class="lobby-bubble"
-                     onclick="window.location='<?php echo base_url('mobile/pastConference/' . $conf['conference_id']); ?>'">
-                    <img src="<?php echo $image; ?>" alt="<?php echo esc($conf['title']); ?>">
-                </div>
-            <?php endforeach; ?>
-        </div>
-    <?php endif; ?>
-</div>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const frame = document.querySelector('[data-welcome-video]');
+    const video = document.querySelector('[data-welcome-player]');
+    document.querySelector('[data-welcome-play]')?.addEventListener('click', async () => {
+        try { await video.play(); frame.classList.add('is-playing'); } catch (_) {}
+    });
+    video?.addEventListener('pause', () => frame.classList.remove('is-playing'));
+});
+</script>
 
 <?php echo module_view('MobileApp', 'includes/footer_home'); ?>
