@@ -31,6 +31,11 @@ $this->section('content');
     </div>
   <?php endif; ?>
 
+  <div class="mb-6 rounded-lg border border-amber-500/70 bg-amber-950/30 p-4 text-amber-100">
+    <p class="font-semibold">Important: enter every session date and time in GMT (UTC+0).</p>
+    <p class="mt-1 text-sm text-amber-200/85">The portal automatically converts the saved GMT time to each attendee’s local time zone.</p>
+  </div>
+
   <form method="post" enctype="multipart/form-data"
         action="<?php echo site_url('admin/conferences/' . $conference['conference_id'] . '/sessions/store'); ?>"
         class="space-y-6">
@@ -44,19 +49,19 @@ $this->section('content');
       </div>
 
       <div>
-        <label class="block text-sm text-gray-400 mb-2">Event Date</label>
+        <label class="block text-sm text-gray-400 mb-2">Event Date (GMT / UTC+0)</label>
         <input type="date" name="event_date" required
                class="w-full p-2 rounded bg-gray-900 border border-gray-700 text-gray-200 focus:ring-blue-500 focus:border-blue-500">
       </div>
 
       <div>
-        <label class="block text-sm text-gray-400 mb-2">Start Time</label>
+        <label class="block text-sm text-gray-400 mb-2">Start Time (GMT / UTC+0)</label>
         <input type="time" name="start_time" required
                class="w-full p-2 rounded bg-gray-900 border border-gray-700 text-gray-200 focus:ring-blue-500 focus:border-blue-500">
       </div>
 
       <div>
-        <label class="block text-sm text-gray-400 mb-2">End Time</label>
+        <label class="block text-sm text-gray-400 mb-2">End Time (GMT / UTC+0)</label>
         <input type="time" name="end_time" required
                class="w-full p-2 rounded bg-gray-900 border border-gray-700 text-gray-200 focus:ring-blue-500 focus:border-blue-500">
       </div>

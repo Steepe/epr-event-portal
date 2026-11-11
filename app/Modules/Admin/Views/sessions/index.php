@@ -16,7 +16,7 @@ $this->section('content');
     <h1 class="text-2xl font-semibold text-gray-200">
       Sessions — <?php echo esc($conference['title']); ?>
     </h1>
-    <p class="text-sm text-gray-400">All sessions under this conference.</p>
+    <p class="text-sm text-gray-400">All sessions under this conference. Times below are stored in GMT (UTC+0).</p>
   </div>
   <a href="<?php echo site_url('admin/conferences/' . $conference['conference_id'] . '/sessions/create'); ?>"
      class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm">
@@ -46,7 +46,7 @@ $this->section('content');
           </h2>
           <p class="text-sm text-gray-400 mt-1">
             <?php echo date('M d, Y', strtotime($session['event_date'])); ?>
-            • <?php echo esc($session['start_time']); ?> - <?php echo esc($session['end_time']); ?>
+            • <?php echo esc(substr((string) $session['start_time'], 0, 5)); ?> - <?php echo esc(substr((string) $session['end_time'], 0, 5)); ?> GMT
           </p>
 
           <p class="mt-3 text-gray-300 text-sm line-clamp-3">

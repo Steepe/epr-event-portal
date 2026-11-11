@@ -24,14 +24,14 @@ $conferenceTitle = $conference['title'] ?? 'Conference';
             <div class="rc-agenda-list">
                 <?php foreach ($sessions as $s): ?>
                     <?php
-                    $start = !empty($s['start_time']) ? substr($s['start_time'], 0, 5) : '';
-                    $end = !empty($s['end_time']) ? substr($s['end_time'], 0, 5) : '';
+                    $start = !empty($s['start_time']) ? (new DateTime($s['event_date'] . ' ' . $s['start_time'], new DateTimeZone('UTC')))->format('g:i A') : '';
+                    $end = !empty($s['end_time']) ? (new DateTime($s['event_date'] . ' ' . $s['end_time'], new DateTimeZone('UTC')))->format('g:i A') : '';
                     $date = !empty($s['event_date']) ? date('F j, Y', strtotime($s['event_date'])) : '';
                     ?>
                     <article class="rc-session-row">
-                        <div class="rc-time-col">
-                            <span style="font-size:14px;color:#fff"><?php echo esc($start ?: 'TBA'); ?></span>
-                            <span style="font-size:12px;color:rgba(255,255,255,.55)"><?php echo esc($end ? '- ' . $end : $date); ?></span>
+                        <div class="rc-time-col" data-local-session-time data-event-date="<?php echo esc($s['event_date'], 'attr'); ?>" data-start-time="<?php echo esc($s['start_time'], 'attr'); ?>" data-end-time="<?php echo esc($s['end_time'], 'attr'); ?>">
+                            <span data-local-session-range style="font-size:14px;color:#fff"><?php echo esc($start ?: 'TBA'); ?><?php echo $end ? ' – ' . esc($end) : ''; ?></span>
+                            <span data-local-session-zone style="font-size:12px;color:rgba(255,255,255,.55)">GMT</span>
                         </div>
                         <div class="rc-timeline">
                             <span class="rc-dot done"></span>
@@ -39,7 +39,7 @@ $conferenceTitle = $conference['title'] ?? 'Conference';
                         <div style="display:flex;flex-direction:column;gap:6px;min-width:0">
                             <span style="font-size:17px;font-weight:600;letter-spacing:-.01em"><?php echo esc($s['sessions_name']); ?></span>
                             <span style="font-size:13px;color:rgba(255,255,255,.7)">
-                                <?php echo esc($date); ?> · Speakers: <?php echo esc($s['speakers'] ?: 'TBA'); ?>
+                                <span data-local-session-date data-event-date="<?php echo esc($s['event_date'], 'attr'); ?>" data-start-time="<?php echo esc($s['start_time'], 'attr'); ?>"><?php echo esc($date); ?></span> · Speakers: <?php echo esc($s['speakers'] ?: 'TBA'); ?>
                             </span>
                         </div>
                         <a href="<?php echo base_url('attendees/sessions/' . $s['sessions_id']); ?>" class="rc-pill" style="text-decoration:none">View Session</a>

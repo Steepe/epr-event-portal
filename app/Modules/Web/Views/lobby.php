@@ -56,12 +56,6 @@ $ticketCurrency = $ticket_currency ?? 'USD';
         EMERGENCE<br>BOOTH
     </a>
 
-    <span class="rc-lobby-index" style="left:15%;top:calc(46% + 92px)">03</span>
-    <span class="rc-lobby-index" style="left:34%;top:calc(max(30%,250px) + 92px)">02</span>
-    <span class="rc-lobby-index" style="left:50%;top:calc(64% + 92px)">01</span>
-    <span class="rc-lobby-index" style="left:66%;top:calc(max(32%,262px) + 92px)">04</span>
-    <span class="rc-lobby-index" style="left:84%;top:calc(56% + 92px)">05</span>
-
     <div class="rc-lobby-brand">
         <span class="rc-kicker">Lobby &middot; Emergence 2026</span>
         <img src="<?php echo asset_url('images/accelerate-logo-white.png'); ?>" alt="Accelerate: Building sustainable systems for execution">

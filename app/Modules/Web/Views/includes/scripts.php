@@ -221,6 +221,45 @@
     })();
 
     (function() {
+        function localizeSessionTimes() {
+            const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+            const timeFormatter = new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" });
+            const dateFormatter = new Intl.DateTimeFormat(undefined, { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+            const toUtcDate = function(date, time) {
+                const normalizedTime = String(time || "").slice(0, 8);
+                const value = new Date(String(date || "") + "T" + normalizedTime + "Z");
+                return Number.isNaN(value.getTime()) ? null : value;
+            };
+
+            document.querySelectorAll("[data-local-session-time]").forEach(function(item) {
+                const start = toUtcDate(item.dataset.eventDate, item.dataset.startTime);
+                const end = toUtcDate(item.dataset.eventDate, item.dataset.endTime);
+                if (!start || !end) return;
+
+                const range = item.querySelector("[data-local-session-range]");
+                const zone = item.querySelector("[data-local-session-zone]");
+                if (range) range.textContent = timeFormatter.format(start) + " – " + timeFormatter.format(end);
+                if (zone) zone.textContent = timeZone;
+            });
+
+            document.querySelectorAll("[data-local-session-date]").forEach(function(item) {
+                const date = toUtcDate(item.dataset.eventDate, item.dataset.startTime || "00:00:00");
+                if (date) item.textContent = dateFormatter.format(date);
+            });
+
+            document.querySelectorAll("[data-local-timezone-note]").forEach(function(item) {
+                item.textContent = "All session times are shown in your local time (" + timeZone + ").";
+            });
+        }
+
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", localizeSessionTimes, { once: true });
+        } else {
+            localizeSessionTimes();
+        }
+    })();
+
+    (function() {
         const config = window.EPR_PORTAL_REALTIME || {};
         if (!config.userId || !config.presenceUrl) {
             return;

@@ -3,7 +3,6 @@ echo module_view('Web', 'includes/header');
 echo module_view('Web', 'includes/topbar');
 
 $userPremium = (int) ($premium ?? 0);
-$timezone = $timezone ?? 'Africa/Lagos';
 $dayIndex = 0;
 ?>
 
@@ -13,7 +12,7 @@ $dayIndex = 0;
             <div class="rc-title-stack">
                 <span class="rc-kicker">Accelerate 2026</span>
                 <span class="rc-page-title">Agenda</span>
-                <span class="rc-page-sub">All times in <?php echo esc($timezone); ?></span>
+                <span class="rc-page-sub" data-local-timezone-note>All session times are shown in your local time.</span>
             </div>
 
             <?php if (!empty($sessionsByDate)): ?>
@@ -41,8 +40,8 @@ $dayIndex = 0;
                     <section id="<?php echo $target; ?>" class="agenda-day-panel" style="<?php echo $dayIndex === 0 ? '' : 'display:none'; ?>">
                         <?php foreach ($sessions as $s): ?>
                             <?php
-                            $start = (new DateTime($s['event_date'] . ' ' . $s['start_time']))->format('h:i A');
-                            $end = (new DateTime($s['event_date'] . ' ' . $s['end_time']))->format('h:i A');
+                            $start = (new DateTime($s['event_date'] . ' ' . $s['start_time'], new DateTimeZone('UTC')))->format('g:i A');
+                            $end = (new DateTime($s['event_date'] . ' ' . $s['end_time'], new DateTimeZone('UTC')))->format('g:i A');
                             $isPaidSession = (int) ($s['access_level'] ?? 1) === 2;
                             $canAccess = ! $isPaidSession || $userPremium === 1;
                             $speakerList = [];
@@ -53,9 +52,9 @@ $dayIndex = 0;
                             $dotClass = $status === 'live' ? ' live' : ($status === 'done' ? ' done' : '');
                             ?>
                             <article class="rc-session-row" style="opacity:<?php echo $status === 'done' ? '0.7' : '1'; ?>">
-                                <div class="rc-time-col">
-                                    <span style="font-size:14px;color:#fff"><?php echo $start; ?></span>
-                                    <span style="font-size:12px;color:rgba(255,255,255,.55)">- <?php echo $end; ?></span>
+                                <div class="rc-time-col" data-local-session-time data-event-date="<?php echo esc($s['event_date'], 'attr'); ?>" data-start-time="<?php echo esc($s['start_time'], 'attr'); ?>" data-end-time="<?php echo esc($s['end_time'], 'attr'); ?>">
+                                    <span data-local-session-range style="font-size:14px;color:#fff"><?php echo esc($start); ?> – <?php echo esc($end); ?></span>
+                                    <span data-local-session-zone style="font-size:12px;color:rgba(255,255,255,.55)">GMT</span>
                                 </div>
 
                                 <div class="rc-timeline">

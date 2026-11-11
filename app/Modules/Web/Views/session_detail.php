@@ -5,7 +5,6 @@ echo module_view('Web', 'includes/topbar');
 $event = $session ?? [];
 $sessionSpeakers = $speakers ?? [];
 $sessionSponsor = $sponsors[0] ?? null;
-$timezone = $timezone ?? 'Africa/Lagos';
 $canAccess = (session('plan') ?? 1) >= ($event['access_level'] ?? 1);
 $livepushId = trim($event['vimeo_id'] ?? '');
 $videoSrc = '';
@@ -17,8 +16,8 @@ if (preg_match('/^[A-Za-z0-9_-]+$/', $livepushId)) {
 
 $title = $event['sessions_name'] ?? 'Designing Systems That Outlast Motivation';
 $dateText = !empty($event['event_date']) ? date('F j, Y', strtotime($event['event_date'])) : 'November 11, 2026';
-$start = !empty($event['start_time']) ? date('h:i A', strtotime($event['start_time'])) : '10:00 AM';
-$end = !empty($event['end_time']) ? date('h:i A', strtotime($event['end_time'])) : '11:00 AM';
+$start = !empty($event['start_time']) ? (new DateTime($event['event_date'] . ' ' . $event['start_time'], new DateTimeZone('UTC')))->format('g:i A') : '10:00 AM';
+$end = !empty($event['end_time']) ? (new DateTime($event['event_date'] . ' ' . $event['end_time'], new DateTimeZone('UTC')))->format('g:i A') : '11:00 AM';
 $chatSessionId = (int) ($event['sessions_id'] ?? 0);
 $chatAttendeeId = (int) session('attendee_id');
 $leadSpeaker = $sessionSpeakers[0] ?? [];
@@ -34,11 +33,11 @@ $leadSpeakerPhoto = !empty($leadSpeaker['speaker_photo'])
         <div style="display:flex;flex-direction:column;gap:10px">
             <a href="<?php echo session('live-conference-id') ? base_url('attendees/agenda/' . session('live-conference-id')) : base_url('attendees/lobby'); ?>"
                class="rc-back-link">
-                <i class="fa fa-long-arrow-left" aria-hidden="true"></i>Agenda · <?php echo esc($dateText); ?>
+                <i class="fa fa-long-arrow-left" aria-hidden="true"></i>Agenda · <span data-local-session-date data-event-date="<?php echo esc($event['event_date'] ?? '', 'attr'); ?>" data-start-time="<?php echo esc($event['start_time'] ?? '', 'attr'); ?>"><?php echo esc($dateText); ?></span>
             </a>
             <span style="font-size:28px;font-weight:600;letter-spacing:-.02em;line-height:1.15;text-wrap:pretty"><?php echo esc($title); ?></span>
             <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;font-size:13px;color:rgba(255,255,255,.75)">
-                <span class="rc-mono" style="font-size:12px"><?php echo esc($start); ?> - <?php echo esc($end); ?> · <?php echo esc($timezone); ?></span>
+                <span class="rc-mono" data-local-session-time data-event-date="<?php echo esc($event['event_date'] ?? '', 'attr'); ?>" data-start-time="<?php echo esc($event['start_time'] ?? '', 'attr'); ?>" data-end-time="<?php echo esc($event['end_time'] ?? '', 'attr'); ?>" style="font-size:12px"><span data-local-session-range><?php echo esc($start); ?> – <?php echo esc($end); ?></span> · <span data-local-session-zone>GMT</span></span>
                 <span style="display:flex;align-items:center;gap:6px"><i class="fa fa-eye" aria-hidden="true"></i>1,284 watching</span>
             </div>
         </div>

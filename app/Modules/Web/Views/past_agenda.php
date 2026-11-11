@@ -3,7 +3,6 @@ echo module_view('Web', 'includes/header');
 echo module_view('Web', 'includes/topbar');
 
 $plan = $plan ?? 1;
-$timezone = $timezone ?? 'Africa/Lagos';
 $title = $conf_title ?? 'Conference Archive';
 $dayIndex = 0;
 ?>
@@ -14,7 +13,7 @@ $dayIndex = 0;
             <div class="rc-title-stack">
                 <span class="rc-kicker">Past Conferences</span>
                 <span class="rc-page-title"><?php echo esc($title); ?></span>
-                <span class="rc-page-sub">Recorded sessions and archive access. Times shown in <?php echo esc($timezone); ?></span>
+                <span class="rc-page-sub">Recorded sessions and archive access. <span data-local-timezone-note>All session times are shown in your local time.</span></span>
             </div>
 
             <a href="<?php echo base_url('attendees/past_conferences'); ?>" class="rc-back-link">
@@ -44,8 +43,8 @@ $dayIndex = 0;
                     <section id="<?php echo $target; ?>" class="agenda-day-panel" style="<?php echo $dayIndex === 0 ? '' : 'display:none'; ?>">
                         <?php foreach ($sessions as $s): ?>
                             <?php
-                            $start = (new DateTime($s['event_date'] . ' ' . $s['start_time']))->format('h:i A');
-                            $end = (new DateTime($s['event_date'] . ' ' . $s['end_time']))->format('h:i A');
+                            $start = (new DateTime($s['event_date'] . ' ' . $s['start_time'], new DateTimeZone('UTC')))->format('g:i A');
+                            $end = (new DateTime($s['event_date'] . ' ' . $s['end_time'], new DateTimeZone('UTC')))->format('g:i A');
                             $canAccess = $plan >= (int) ($s['access_level'] ?? 1);
                             $hasRecording = !empty($s['vimeo_id']);
                             $speakerText = $s['speakers'] ?? 'TBA';
@@ -54,9 +53,9 @@ $dayIndex = 0;
                             }
                             ?>
                             <article class="rc-session-row" style="grid-template-columns:132px 28px minmax(0,1fr) auto">
-                                <div class="rc-time-col">
-                                    <span style="font-size:14px;color:#fff"><?php echo $start; ?></span>
-                                    <span style="font-size:12px;color:rgba(255,255,255,.55)">- <?php echo $end; ?></span>
+                                <div class="rc-time-col" data-local-session-time data-event-date="<?php echo esc($s['event_date'], 'attr'); ?>" data-start-time="<?php echo esc($s['start_time'], 'attr'); ?>" data-end-time="<?php echo esc($s['end_time'], 'attr'); ?>">
+                                    <span data-local-session-range style="font-size:14px;color:#fff"><?php echo esc($start); ?> – <?php echo esc($end); ?></span>
+                                    <span data-local-session-zone style="font-size:12px;color:rgba(255,255,255,.55)">GMT</span>
                                 </div>
 
                                 <div class="rc-timeline">
