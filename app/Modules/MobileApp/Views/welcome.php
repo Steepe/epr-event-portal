@@ -1,139 +1,60 @@
+<?= module_view('MobileApp', 'includes/header', ['shell' => 'plain', 'back' => false, 'activeTab' => '', 'title' => 'Start']) ?>
 <?php
-/**
- * Created by PhpStorm.
- * User: oluwamayowasteepe
- * Project: epr-event-portal
- * Date: 12/11/2025
- * Time: 05:13
- */
-
- echo module_view('MobileApp', 'includes/header'); ?>
-
-<style>
-    body {
-        margin: 0;
-        padding: 0;
-        font-family: 'Inter', 'Poppins', sans-serif;
-        overflow-x: hidden;
-        color: #fff;
-        background: url('<?php echo asset_url('images/mobile-brain-light.png'); ?>') no-repeat center center fixed;
-        background-size: cover;
-        position: relative;
+$firstName      = trim((string) session('firstname'));
+$conferenceYear = (string) ($conference['year'] ?? date('Y'));
+$isLive         = !empty($conference);
+$pastIcons      = [];
+foreach (array_reverse($pastConferences ?? []) as $item) {
+    if (!empty($item['icon'])) {
+        $pastIcons[] = base_url('uploads/conferences/' . rawurlencode(basename((string) $item['icon'])));
     }
+}
+if (count($pastIcons) < 3) {
+    $pastIcons = [mobile_asset_url('images/innovate-icon.png'), mobile_asset_url('images/dominate-icon.png'), mobile_asset_url('images/unleash-icon.png')];
+}
+?>
 
-    /* 🌈 Overlay Gradient */
-    #imageOverlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: -1;
-    }
-
-    /* 🧠 Container */
-    .envision-container {
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        text-align: center;
-        padding: 100px 1.5rem 100px;
-        z-index: 2;
-        position: relative;
-        backdrop-filter: blur(2px);
-    }
-
-    .envision-container h4 {
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        margin-bottom: 30px;
-        text-shadow: 0 0 10px rgba(255, 216, 77, 0.5);
-        font-size: 1.3rem;
-    }
-
-    /* 🎬 Responsive Video Wrapper */
-    .envision-video {
-        position: relative;
-        width: 100%;
-        max-width: 700px;
-        border-radius: 20px;
-        overflow: hidden;
-        box-shadow: 0 0 40px rgba(0, 0, 0, 0.6);
-        background: rgba(0, 0, 0, 0.4);
-    }
-
-    .envision-video iframe {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        border: none;
-        border-radius: 20px;
-    }
-
-    /* 💡 Text / Description Section */
-    .envision-description {
-        margin-top: 25px;
-        max-width: 700px;
-        font-size: 0.95rem;
-        line-height: 1.6;
-        color: #eee;
-        opacity: 0.9;
-    }
-
-    /* 🚪 CTA Button */
-    .enter-lobby {
-        color: #fff;
-        border: none;
-        border-radius: 50px;
-        padding: 14px 0;
-        font-weight: 600;
-        width: 80%;
-        max-width: 350px;
-        margin-top: 2.5rem;
-        transition: 0.3s;
-        text-decoration: none;
-        text-align: center;
-        font-size: 16px;
-        box-shadow: 0 6px 18px rgba(0,0,0,0.3);
-    }
-
-    .enter-lobby:hover {
-        transform: scale(1.05);
-    }
-
-    /* 📱 Responsive */
-    @media (max-width: 600px) {
-        .envision-container {
-            padding: 80px 1rem 90px;
-        }
-        .envision-container h4 {
-            font-size: 1.1rem;
-            margin-bottom: 20px;
-        }
-        .envision-video {
-            border-radius: 14px;
-            box-shadow: 0 0 25px rgba(0, 0, 0, 0.5);
-        }
-    }
-</style>
-
-<!-- 🌈 Overlay Layer -->
-<div id="imageOverlay"></div>
-
-<!-- 🧠 Main Content -->
-<div class="envision-container">
-    <h4 class="epr-text-purple">Welcome To Unleash 2025</h4>
-
-    <div class="envision-video">
-        <div style="position:relative;padding-top:56.25%;"><iframe src="https://iframe.mediadelivery.net/embed/405384/60589a7b-3fe7-40fb-a2ae-3c024f23e01e?autoplay=true&loop=false&muted=false&preload=true&responsive=true" loading="lazy" style="border:0;position:absolute;top:0;height:100%;width:100%;" allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;" allowfullscreen="true"></iframe></div>
+<div class="m-start">
+    <div class="m-start__head">
+        <span class="m-kicker">Welcome back<?= $firstName !== '' ? ', ' . esc($firstName) : '' ?></span>
+        <h1 class="m-start__title">Where would you like to go?</h1>
     </div>
 
-    <a href="<?php echo site_url('mobile/lobby'); ?>" class="enter-lobby epr-btn-four">ENTER LOBBY</a>
+    <a class="m-start__hero" href="<?= site_url('mobile/home') ?>">
+        <div class="m-start__row">
+            <span class="m-start__module">MODULE 02</span>
+            <?php if ($isLive): ?><span class="m-start__live">LIVE NOW</span><?php endif; ?>
+        </div>
+        <div class="m-start__brand">
+            <img src="<?= mobile_asset_url('images/accelerate-logo-white.png') ?>" alt="<?= esc($conference['title'] ?? 'Accelerate', 'attr') ?>">
+            <span class="m-start__year"><?= esc($conferenceYear) ?></span>
+        </div>
+        <div class="m-start__enter"><span>ENTER CONFERENCE</span><i class="fa fa-long-arrow-right" aria-hidden="true"></i></div>
+        <span class="m-start__nub m-start__nub--bottom"></span>
+    </a>
+
+    <svg class="m-start__wire" viewBox="0 0 350 34" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M175 0 V17 H82 V34 M175 17 H268 V34" fill="none" stroke="rgba(239,177,30,.55)" stroke-width="1.2" stroke-dasharray="3 4" vector-effect="non-scaling-stroke"></path>
+    </svg>
+
+    <div class="m-start__grid">
+        <a class="m-start__card" href="<?= site_url('mobile/past-conferences') ?>">
+            <span class="m-start__nub m-start__nub--top"></span>
+            <span class="m-start__module m-start__module--dim">MODULE 01</span>
+            <div class="m-start__icons">
+                <?php foreach (array_slice($pastIcons, 0, 3) as $index => $icon): ?>
+                    <img class="<?= $index === 2 ? 'is-light' : '' ?>" src="<?= esc($icon, 'attr') ?>" alt="">
+                <?php endforeach; ?>
+            </div>
+            <div class="m-start__foot"><span>Past Conferences</span><i class="fa fa-long-arrow-right" aria-hidden="true"></i></div>
+        </a>
+        <a class="m-start__card" href="<?= site_url('mobile/webinars') ?>">
+            <span class="m-start__nub m-start__nub--top"></span>
+            <span class="m-start__module m-start__module--dim">MODULE 03</span>
+            <img class="m-start__webinar" src="<?= mobile_asset_url('images/webinars.png') ?>" alt="EPR Global Webinars">
+            <div class="m-start__foot"><span>Webinars</span><i class="fa fa-long-arrow-right" aria-hidden="true"></i></div>
+        </a>
+    </div>
 </div>
 
-<?php echo module_view('MobileApp', 'includes/footer'); ?>
+<?= module_view('MobileApp', 'includes/footer') ?>

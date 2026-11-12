@@ -37,6 +37,7 @@ $routes->group('mobile', ['namespace' => 'App\Modules\MobileApp\Controllers'], [
     $routes->get('webinars', 'Webinars::index');
     $routes->get('envision', 'Home::envision');
 
+    $routes->get('past-conferences', 'PastConference::archive');
     $routes->get('pastConference/(:num)', 'PastConference::index/$1');
     $routes->get('pastConference/session/(:num)', 'PastConference::viewSession/$1');
 
@@ -54,6 +55,13 @@ $routes->group('mobile', ['namespace' => 'App\Modules\MobileApp\Controllers'], [
 
     $routes->get('emergence-booth', 'EmergenceBoothController::index');
     $routes->post('emergence/sendSupportEmail', 'EmergenceBoothController::sendSupportEmail');
+    // Booth callback + team chat reuse the desktop portal handlers
+    $routes->post('emergence-booth/callback', '\App\Modules\Web\Controllers\EmergenceBoothController::callback');
+    $routes->get('emergence-booth/chat/(:num)', '\App\Modules\Web\Controllers\EmergenceBoothController::chatMessages/$1');
+    $routes->post('emergence-booth/chat/(:num)', '\App\Modules\Web\Controllers\EmergenceBoothController::sendChat/$1');
+
+    $routes->get('notifications', 'Notifications::index');
+    $routes->get('upgrade', 'Upgrade::index');
 
     $routes->get('profile', 'Profile::index');
     $routes->post('profile/update', 'Profile::update');

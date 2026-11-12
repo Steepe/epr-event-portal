@@ -13,10 +13,50 @@ use App\Controllers\BaseController;
 
 class EmergenceBoothController extends BaseController
 {
+    private const TABLES = [
+        'tbl_emergence_booth_settings', 'tbl_emergence_booth_members', 'tbl_admin_presence',
+        'tbl_emergence_booth_programmes', 'tbl_emergence_booth_resources',
+        'tbl_emergence_booth_callback_requests', 'tbl_emergence_booth_messages',
+    ];
+
+    /**
+     * Booth content is managed in the admin and shared with the desktop portal.
+     */
     public function index()
     {
-        // No dynamic data needed for now — static booth items
-        echo module_view('MobileApp', 'emergence_booth');
+        if (!session()->get('isLoggedIn')) {
+            return redirect()->to(site_url('mobile/login'));
+        }
+
+        $db = db_connect();
+
+        foreach (self::TABLES as $table) {
+            if (! $db->tableExists($table)) {
+                return module_view('MobileApp', 'emergence_booth', ['ready' => false]);
+            }
+        }
+
+        $members = $db->table('tbl_emergence_booth_members m')
+            ->select('m.*, p.last_seen_at')
+            ->join('tbl_admin_presence p', 'p.admin_id = m.admin_id', 'left')
+            ->where('m.is_active', 1)
+            ->orderBy('m.sort_order')->orderBy('m.display_name')
+            ->get()->getResultArray();
+
+        foreach ($members as &$member) {
+            $member['is_online'] = ! empty($member['last_seen_at']) && strtotime((string) $member['last_seen_at']) >= time() - 120;
+        }
+        unset($member);
+
+        $video = $db->table('tbl_emergence_booth_settings')->where('setting_key', 'welcome_video_url')->get()->getRowArray();
+
+        return module_view('MobileApp', 'emergence_booth', [
+            'ready'      => true,
+            'members'    => $members,
+            'programmes' => $db->table('tbl_emergence_booth_programmes')->where('is_active', 1)->orderBy('sort_order')->orderBy('title')->get()->getResultArray(),
+            'resources'  => $db->table('tbl_emergence_booth_resources')->where('is_active', 1)->orderBy('sort_order')->orderBy('title')->get()->getResultArray(),
+            'videoUrl'   => (string) ($video['setting_value'] ?? ''),
+        ]);
     }
 
     public function sendSupportEmail()

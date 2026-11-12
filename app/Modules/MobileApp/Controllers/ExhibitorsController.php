@@ -26,13 +26,23 @@ class ExhibitorsController extends BaseController
     public function sendMessage()
     {
         $request = service('request');
-        $apiKey = $request->getHeaderLine('X-API-KEY');
+        $apiKey   = $request->getHeaderLine('X-API-KEY');
+        $loggedIn = (bool) session()->get('isLoggedIn');
 
-        if ($apiKey !== env('api.securityKey')) {
+        // Signed-in attendees post from the app; other clients must present the API key.
+        if (! $loggedIn && $apiKey !== env('api.securityKey')) {
             return $this->response->setStatusCode(401)->setJSON(['status' => 'error', 'message' => 'Unauthorized']);
         }
 
-        $data = $request->getJSON(true);
+        $data = $request->getJSON(true) ?: [];
+
+        if ($loggedIn) {
+            $data['attendee_id'] = (int) session('user_id');
+        }
+
+        if (empty($data['attendee_id']) || empty($data['exhibitor_id']) || trim((string) ($data['message'] ?? '')) === '') {
+            return $this->response->setStatusCode(422)->setJSON(['status' => 'error', 'message' => 'Please add a subject and message.']);
+        }
 
         $messageModel = new ExhibitorMessageModel();
         $saved = $messageModel->insert([

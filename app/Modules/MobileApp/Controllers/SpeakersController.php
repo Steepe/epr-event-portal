@@ -21,18 +21,15 @@ class SpeakersController extends BaseController
         $this->speakersModel = new SpeakersModel();
     }
 
+    /**
+     * The standalone list now lives inside the Networking Center.
+     */
     public function index()
     {
-        // 🔒 Ensure user is logged in
         if (!session()->get('isLoggedIn')) {
             return redirect()->to(site_url('mobile/login'));
         }
 
-        $data = [
-            'page_title' => 'Speakers',
-            'speakers'   => $this->speakersModel->getAllSpeakers()
-        ];
-
-        return module_view('MobileApp', 'speakers_list', $data);
+        return redirect()->to(site_url('mobile/networking-center?tab=speakers'));
     }
 }

@@ -1,937 +1,236 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: oluwamayowasteepe
- * Project: epr-event-portal
- * Date: 12/11/2025
- * Time: 05:56
- */
-
-echo module_view('MobileApp', 'includes/header');
-
 $event           = $session ?? [];
-$sessionSpeakers = $speakers ?? [];
-$timezone        = $timezone ?? 'Africa/Lagos';
-$plan            = (int)(session('plan') ?? 1);
+$sessionSpeakers = array_values(array_filter($speakers ?? [], static fn ($speaker): bool => !empty($speaker['speaker_name'])));
+$conferenceId    = (int) ($event['conference_id'] ?? session('live-conference-id'));
+$isLiveConf      = ($conference['status'] ?? 'live') === 'live';
+$agendaUrl       = $isLiveConf ? site_url('mobile/agenda/' . $conferenceId) : site_url('mobile/pastConference/' . $conferenceId);
 
-// 🧩 Access control (force integer)
-$accessLevel = (int)($event['access_level'] ?? 1);
-$canAccess   = $plan >= $accessLevel;
+echo module_view('MobileApp', 'includes/header', ['shell' => 'tabbed', 'back' => $agendaUrl, 'activeTab' => $isLiveConf ? 'agenda' : 'me', 'title' => $event['sessions_name'] ?? 'Session']);
 
-$vimeo_id  = trim($event['vimeo_id'] ?? '');
+$utc       = new DateTimeZone('UTC');
+$hasTimes  = !empty($event['event_date']) && !empty($event['start_time']) && !empty($event['end_time']);
+$start     = $hasTimes ? new DateTime($event['event_date'] . ' ' . $event['start_time'], $utc) : null;
+$end       = $hasTimes ? new DateTime($event['event_date'] . ' ' . $event['end_time'], $utc) : null;
+$now       = new DateTime('now', $utc);
+$isLiveNow = $start && $end && $now >= $start && $now < $end;
+$dateLong  = !empty($event['event_date']) ? date('F j, Y', strtotime($event['event_date'])) : '';
+
+$canAccess = (int) ($event['access_level'] ?? 1) !== 2 || (int) ($premium ?? 0) === 1;
+$videoId   = trim((string) ($event['vimeo_id'] ?? ''));
 $videoSrc  = '';
-
-if (!empty($vimeo_id)) {
-    if (is_numeric($vimeo_id)) {
-        $videoSrc = "https://player.vimeo.com/video/" . $vimeo_id;
-    } elseif (str_contains($vimeo_id, 'event')) {
-        $videoSrc = "https://vimeo.com/{$vimeo_id}/embed";
+if ($videoId !== '') {
+    if ($isLiveConf && preg_match('/^[A-Za-z0-9_-]+$/', $videoId)) {
+        $videoSrc = 'https://watch.livepush.io/live/' . rawurlencode($videoId);
+    } elseif (ctype_digit($videoId)) {
+        $videoSrc = 'https://player.vimeo.com/video/' . $videoId;
+    } elseif (str_contains($videoId, 'event')) {
+        $videoSrc = 'https://vimeo.com/' . $videoId . '/embed';
     } else {
-        $videoSrc = "https://vimeo.com/event/{$vimeo_id}/embed";
+        $videoSrc = 'https://vimeo.com/event/' . rawurlencode($videoId) . '/embed';
     }
 }
 
-// 🕓 Session Timing
-$startTime = isset($event['start_time']) ? date('h:i A', strtotime($event['start_time'])) : null;
-$endTime   = isset($event['end_time']) ? date('h:i A', strtotime($event['end_time'])) : null;
-$eventDate = isset($event['event_date']) ? date('F j, Y', strtotime($event['event_date'])) : null;
+$lead      = $sessionSpeakers[0] ?? null;
+$leadRole  = $lead ? trim(($lead['speaker_title'] ?? '') . (!empty($lead['speaker_company']) ? ', ' . $lead['speaker_company'] : ''), ', ') : '';
+$leadPhoto = $lead && !empty($lead['speaker_photo']) ? base_url('uploads/speakers/' . rawurlencode($lead['speaker_photo'])) : mobile_asset_url('images/user.png');
+$sessionId = (int) ($event['sessions_id'] ?? 0);
 ?>
 
-<style>
-    body {
-        background-image: url('<?php echo asset_url('images/mobile-brain-light.png'); ?>');
-        background-size: cover;
-        background-position: center;
-        background-repeat: no-repeat;
-        background-attachment: fixed; /* 🔥 Keeps background fixed during scroll */
-        font-family: 'Inter', 'Poppins', sans-serif;
-        min-height: 100vh;
-        color: #A70B91;
-        overflow-x: hidden;
-        overflow-y: auto; /* 🔥 Ensure only content scrolls */
-    }
+<div class="m-screen m-screen--16" style="padding-top:18px">
+    <div class="m-session__head">
+        <a class="m-backlink" href="<?= $agendaUrl ?>"><i class="fa fa-long-arrow-left" aria-hidden="true"></i><?= $isLiveConf ? 'Agenda' : 'Archive' ?><?= $dateLong !== '' ? ' · ' . esc($dateLong) : '' ?></a>
+        <h1 class="m-session__title"><?= esc($event['sessions_name'] ?? 'Session') ?></h1>
+        <?php if ($start && $end): ?>
+            <div class="m-session__meta">
+                <span class="m-mono" data-local-time data-date="<?= esc($event['event_date'], 'attr') ?>" data-start="<?= esc($event['start_time'], 'attr') ?>" data-end="<?= esc($event['end_time'], 'attr') ?>"><span data-lt-start><?= esc($start->format('g:i A')) ?></span>&nbsp;–&nbsp;<span data-lt-end><?= esc($end->format('g:i A')) ?></span>&nbsp;·&nbsp;<span data-lt-zone>GMT</span></span>
+                <?php if ($isLiveNow): ?><span><i class="fa fa-eye" aria-hidden="true"></i>Live now</span><?php endif; ?>
+            </div>
+        <?php endif; ?>
+    </div>
 
-    .overlay-gradient {
-        position: fixed;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        z-index: -1;
-    }
+    <div class="m-video">
+        <?php if ($canAccess && $videoSrc !== ''): ?>
+            <iframe src="<?= esc($videoSrc, 'attr') ?>" title="<?= esc($event['sessions_name'] ?? 'Session video', 'attr') ?>" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+        <?php else: ?>
+            <img class="m-video__speaker" src="<?= esc($leadPhoto, 'attr') ?>" alt="" onerror="this.onerror=null;this.src='<?= mobile_asset_url('images/user.png') ?>'">
+            <?php if ($isLiveNow): ?><div class="m-video__tag" style="padding:0;background:transparent"><span class="m-live m-live--sq">LIVE</span></div><?php endif; ?>
+            <div class="m-video__lead">
+                <?php if (! $canAccess): ?>
+                    <b><i class="fa fa-lock" aria-hidden="true"></i> Paid session</b><span>Upgrade to Premium Access to watch.</span>
+                <?php elseif ($lead): ?>
+                    <b><?= esc($lead['speaker_name']) ?></b><span><?= esc($leadRole !== '' ? $leadRole : 'Video will appear here when the session starts.') ?></span>
+                <?php else: ?>
+                    <b>Coming up</b><span>Video will appear here when the session starts.</span>
+                <?php endif; ?>
+            </div>
+        <?php endif; ?>
+    </div>
 
-    .session-container {
-        padding: 1.5rem;
-        text-align: center;
-        max-width: 600px;
-        margin: 10px auto auto;
-    }
-
-    h4 {
-        color: #ffffff;
-        margin-bottom: 0.4rem;
-        font-weight: 700;
-        font-size: 1.4rem;
-    }
-
-    .session-meta {
-        font-size: 0.85rem;
-        color: #ddd;
-        margin-bottom: 1rem;
-    }
-
-    .session-meta span {
-        display: block;
-        line-height: 1.4;
-    }
-
-    /* 🎥 Video Box */
-    .video-wrapper {
-        position: relative;
-        width: 100%;
-        padding-top: 56.25%;
-        border-radius: 16px;
-        overflow: hidden;
-        box-shadow: 0 8px 25px rgba(0,0,0,0.4);
-        margin-bottom: 1.5rem;
-    }
-
-    iframe {
-        position: absolute;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        border: none;
-        border-radius: 16px;
-    }
-
-    .locked-video {
-        background: rgba(0, 0, 0, 0.5);
-        border: 1px solid rgba(255,216,77,0.3);
-        border-radius: 16px;
-        height: 200px;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        color: #fff;
-        font-size: 0.95rem;
-        font-weight: 500;
-        text-shadow: 0 2px 6px rgba(0,0,0,0.3);
-        margin-bottom: 1.5rem;
-    }
-
-    .locked-video i {
-        font-size: 1.2rem;
-        margin-right: 8px;
-        color: #f3bb1a;
-    }
-
-    .feedback-row {
-        margin-top: 1rem;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-size: 0.85rem;
-    }
-
-    .like-icon i {
-        color: #f3bb1a;
-        font-size: 1.2rem;
-        cursor: pointer;
-        transition: color 0.3s;
-    }
-
-    .like-icon i.filled {
-        color: #E91E63;
-    }
-
-    .rating-stars {
-        direction: rtl;
-        display: flex;
-        gap: 4px;
-    }
-
-    .rating-stars input { display: none; }
-    .rating-stars label {
-        font-size: 1.1rem;
-        color: #777;
-        cursor: pointer;
-        transition: color 0.3s;
-    }
-
-    .rating-stars input:checked ~ label,
-    .rating-stars label:hover,
-    .rating-stars label:hover ~ label {
-        color: #f3bb1a;
-    }
-
-    .speaker-section {
-        margin-top: 1.5rem;
-        text-align: left;
-    }
-
-    .speaker-card {
-        display: flex;
-        align-items: center;
-        background: rgba(255,255,255,0.08);
-        border: 1px solid rgba(255,255,255,0.2);
-        border-radius: 14px;
-        padding: 10px;
-        margin-bottom: 0.8rem;
-    }
-
-    .speaker-card img {
-        width: 70px;
-        height: 70px;
-        border-radius: 10px;
-        object-fit: cover;
-        margin-right: 10px;
-    }
-
-    .speaker-info h6 {
-        font-size: 0.95rem;
-        font-weight: 600;
-        color: #ffffff;
-        margin-bottom: 2px;
-    }
-
-    .speaker-info p {
-        font-size: 0.8rem;
-        margin: 0;
-        color: #ddd;
-    }
-
-    .session-overview {
-        background: rgba(255,255,255,0.08);
-        border-radius: 14px;
-        padding: 1rem;
-        margin-top: 1.5rem;
-        text-align: left;
-    }
-
-    .session-overview h6 {
-        color: #A70B91;
-        font-weight: 600;
-        margin-bottom: 8px;
-    }
-
-    .session-overview p {
-        font-size: 0.9rem;
-        color: #fff;
-        line-height: 1.5;
-    }
-
-    .btn-download {
-        display: inline-block;
-        margin-top: 1rem;
-        color: #fff;
-        border: none;
-        border-radius: 30px;
-        padding: 10px 10px;
-        font-weight: 600;
-        text-decoration: none;
-        font-size: 0.9rem;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-        transition: transform 0.2s ease;
-        width: 170px;
-    }
-
-    .btn-download:hover {
-        transform: scale(1.05);
-    }
-
-    @media (max-width: 480px) {
-        h4 { font-size: 1.2rem; }
-        .speaker-card img { width: 60px; height: 60px; }
-    }
-
-    /* ===========================================================
-       BOTTOM SLIDING CHAT DRAWER
-    =========================================================== */
-    .chat-drawer {
-        position: fixed;
-        bottom: -100%;
-        left: 0;
-        width: 100%;
-        height: 70%;
-        background: rgba(255,255,255,0.15);
-        backdrop-filter: blur(15px);
-        border-radius: 20px 20px 0 0;
-        box-shadow: 0 -4px 25px rgba(0,0,0,0.35);
-        transition: bottom 0.35s ease;
-        z-index: 999999;
-        display: flex;
-        flex-direction: column;
-        padding: 0;
-    }
-
-    .chat-drawer.active {
-        bottom: 0;
-    }
-
-    .chat-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,0.45);
-        z-index: 999998;
-        display: none;
-    }
-
-    .chat-overlay.active {
-        display: block;
-    }
-
-    /* ===========================================================
-       CHAT HEADER
-    =========================================================== */
-    .chat-header {
-        padding: 14px 18px;
-        background: rgba(0,0,0,0.25);
-        backdrop-filter: blur(8px);
-        color: #fff;
-        font-weight: 600;
-        font-size: 1rem;
-        border-radius: 20px 20px 0 0;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .chat-close-btn {
-        background: none;
-        border: none;
-        font-size: 26px;
-        color: #fff;
-        cursor: pointer;
-        margin-top: -4px;
-    }
-
-    /* ===========================================================
-       OPTION A – MINIMAL GLASS CHAT UI
-    =========================================================== */
-    /* ===========================================================
-       PREMIUM CHAT BUBBLES (Mobile Native)
-    =========================================================== */
-
-    .chat-bubble-wrapper {
-        display: flex;
-        align-items: flex-end;
-        margin-bottom: 14px;
-    }
-
-    .chat-bubble-wrapper.me {
-        justify-content: flex-end;
-    }
-
-    .chat-bubble-wrapper.them {
-        justify-content: flex-start;
-    }
-
-    .chat-avatar {
-        width: 34px;
-        height: 34px;
-        border-radius: 50%;
-        object-fit: cover;
-        margin-right: 8px;
-        border: 2px solid rgba(255,255,255,0.4);
-    }
-
-    .chat-bubble-wrapper.me .chat-avatar {
-        display: none;
-    }
-
-    .chat-bubble {
-        position: relative;
-        padding: 10px 14px;
-        border-radius: 16px;
-        max-width: 78%;
-        line-height: 1.45;
-    }
-
-    .chat-bubble.me {
-        background: linear-gradient(135deg, #A70B91, #d215bf);
-        color: #fff;
-        border-bottom-right-radius: 4px;
-    }
-
-    .chat-bubble.them {
-        background: rgba(255,255,255,0.90);
-        color: #222;
-        border-bottom-left-radius: 4px;
-    }
-
-    /* Name above bubble */
-    .chat-name {
-        font-size: 0.72rem;
-        font-weight: 700;
-        margin-bottom: 4px;
-        opacity: 0.9;
-        color: #ffe7fb;
-    }
-
-    /* Incoming show name in theme color */
-    .chat-bubble-wrapper.them .chat-name {
-        color: #A70B91;
-    }
-
-    /* Time styling */
-    .chat-time {
-        font-size: 0.70rem;
-        margin-top: 6px;
-        opacity: 0.7;
-        text-align: right;
-    }
-
-    .chat-drawer {
-        position: fixed;
-        bottom: -100%;
-        left: 0;
-        width: 100%;
-        height: 72%;
-        background: rgba(25, 0, 20, 0.55);
-        backdrop-filter: blur(22px) saturate(180%);
-        border-radius: 22px 22px 0 0;
-        box-shadow: 0 -4px 28px rgba(0,0,0,0.4);
-        transition: bottom 0.32s cubic-bezier(0.24,0.61,0.35,1);
-        z-index: 999999;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .chat-header {
-        padding: 16px 20px;
-        background: rgba(255,255,255,0.10);
-        backdrop-filter: blur(10px);
-        color: #fff;
-        font-weight: 600;
-        font-size: 1rem;
-        border-radius: 22px 22px 0 0;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        letter-spacing: .3px;
-    }
-
-    .chat-close-btn {
-        background: rgba(255,255,255,0.18);
-        border: none;
-        font-size: 22px;
-        padding: 4px 10px;
-        border-radius: 12px;
-        color: #fff;
-        cursor: pointer;
-    }
-
-    .chat-input-row {
-        background: rgba(255,255,255,0.08);
-        backdrop-filter: blur(10px);
-        padding: 10px 12px;
-        border-radius: 16px;
-        display: flex;
-        gap: 8px;
-        margin-top: 12px;
-        align-items: center;
-    }
-
-    .chat-input {
-        flex: 1;
-        border-radius: 14px;
-        border: 1px solid rgba(255,255,255,0.25);
-        padding: 12px;
-        background: rgba(255,255,255,0.18);
-        color: #fff;
-        height: 48px;
-        max-height: 130px;
-    }
-
-    .chat-send-btn {
-        background: linear-gradient(135deg, #A70B91, #d215bf);
-        border-radius: 14px;
-        border: none;
-        padding: 12px 16px;
-        color: #fff;
-        font-weight: 700;
-        font-size: .9rem;
-        display: flex;
-        align-items: center;
-    }
-
-    /* FIX SCROLLING — FORCE CHAT AREA TO BE SCROLLABLE */
-    .chat-glass {
-        flex: 1;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden; /* IMPORTANT */
-    }
-
-    .chat-messages {
-        flex: 1;
-        overflow-y: auto !important;
-        padding: 10px;
-        min-height: 0; /* CRITICAL FIX */
-    }
-
-    .chat-messages::-webkit-scrollbar {
-        width: 5px;
-    }
-    .chat-messages::-webkit-scrollbar-track {
-        background: rgba(255,255,255,0.1);
-    }
-    .chat-messages::-webkit-scrollbar-thumb {
-        background: rgba(255,255,255,0.35);
-        border-radius: 20px;
-    }
-
-    .chat-bubble-wrapper.pending .chat-bubble { opacity: 0.7; filter: blur(0.1px); }
-    .chat-bubble-wrapper.failed .chat-bubble { border: 1px solid rgba(255,0,0,0.2); opacity: 0.7; }
-
-</style>
-
-<div class="overlay-gradient"></div>
-
-<div class="session-container">
-    <!-- 🏷️ Title + Date/Time -->
-    <h4><?php echo esc($event['sessions_name'] ?? 'Session'); ?></h4>
-
-    <?php if ($eventDate || $startTime): ?>
-        <div class="session-meta">
-            <?php if ($eventDate): ?><span><?php echo esc($eventDate); ?></span><?php endif; ?>
-            <?php if ($startTime && $endTime): ?><span><?php echo "{$startTime} - {$endTime} ({$timezone})"; ?></span><?php endif; ?>
-        </div>
+    <?php if (! $canAccess): ?>
+        <a class="m-btn m-btn--plain" href="<?= site_url('mobile/upgrade') ?>"><i class="fa fa-unlock-alt" aria-hidden="true"></i>Unlock this session</a>
     <?php endif; ?>
 
-    <!-- 🎥 Video -->
-    <?php if ($canAccess && !empty($videoSrc)): ?>
-        <div class="video-wrapper">
-            <iframe src="<?php echo esc($videoSrc); ?>"
-                    allow="autoplay; fullscreen; picture-in-picture"
-                    allowfullscreen></iframe>
-        </div>
-    <?php elseif (empty($videoSrc)): ?>
-        <div class="locked-video">
-            <i class="fa fa-info-circle"></i> This session does not have a video available yet.
-        </div>
-    <?php else: ?>
-        <div class="locked-video">
-            <i class="fa fa-lock"></i> Please upgrade your ticket to access this session.
-        </div>
-    <?php endif; ?>
-
-    <!-- 💬 Feedback & Like -->
-    <div class="feedback-row">
-        <div class="like-icon" id="likeSession">
-            <i class="fa fa-heart-o"></i> <span>Like</span>
-        </div>
-        <div class="rating-stars">
-            <?php for ($i = 5; $i >= 1; $i--): ?>
-                <input type="radio" id="star<?php echo $i; ?>" name="rating" value="<?php echo $i; ?>">
-                <label for="star<?php echo $i; ?>">★</label>
-            <?php endfor; ?>
+    <div class="m-session__tools">
+        <button class="m-like" type="button" id="likeSession" aria-pressed="false"><i class="fa fa-heart-o" aria-hidden="true"></i><span>Like Session</span></button>
+        <div class="m-rate">
+            <span>Rate</span>
+            <div class="m-stars" id="rateSession" role="radiogroup" aria-label="Rate this session">
+                <?php for ($i = 1; $i <= 5; $i++): ?><button type="button" role="radio" aria-checked="false" aria-label="<?= $i ?> star<?= $i === 1 ? '' : 's' ?>" data-star="<?= $i ?>">★</button><?php endfor; ?>
+            </div>
         </div>
     </div>
 
-    <!-- 👥 Speakers -->
-    <?php if (!empty($sessionSpeakers)): ?>
-        <div class="speaker-section">
-            <h6 style="color:#ffffff; margin-bottom:8px;">Speakers</h6>
+    <div class="m-seg m-seg--12" data-seg role="tablist">
+        <button type="button" role="tab" class="is-active" aria-selected="true" data-seg-target="sessChat">Live chat</button>
+        <button type="button" role="tab" aria-selected="false" data-seg-target="sessOverview">Overview</button>
+        <button type="button" role="tab" aria-selected="false" data-seg-target="sessSpeakers">Speakers</button>
+    </div>
+
+    <div class="m-card m-chat" id="sessChat">
+        <div class="m-chat__head"><b>Live chat</b><span class="m-chat__online" id="chatCount">LIVE</span></div>
+        <div class="m-chat__list" id="chat-messages"><span class="m-chat__empty" id="chatEmpty">Start the conversation.</span></div>
+        <form class="m-chat__form" id="chatForm" autocomplete="off">
+            <input class="m-input" id="chatInput" placeholder="Type a message..." maxlength="2000" aria-label="Chat message">
+            <button class="m-chat__send" type="submit">Send</button>
+        </form>
+    </div>
+
+    <div class="m-card m-panel" id="sessOverview" hidden>
+        <span class="m-label m-label--wide">Session overview</span>
+        <p><?= nl2br(esc(trim((string) ($event['description'] ?? '')) !== '' ? $event['description'] : 'No description available.')) ?></p>
+        <?php if (!empty($event['workbook'])): ?>
+            <a class="m-btn-ghost m-btn-ghost--38" href="<?= base_url('uploads/workbooks/' . rawurlencode($event['workbook'])) ?>" download><i class="fa fa-download" aria-hidden="true"></i>Download Workbook</a>
+        <?php endif; ?>
+    </div>
+
+    <div class="m-card m-panel m-panel--14" id="sessSpeakers" hidden>
+        <span class="m-label m-label--wide">Speakers</span>
+        <?php if ($sessionSpeakers): ?>
             <?php foreach ($sessionSpeakers as $speaker): ?>
-                <div class="speaker-card">
-                    <img src="<?php echo base_url('uploads/speakers/' . ($speaker['speaker_photo'] ?? '')); ?>"
-                         onerror="this.src='<?php echo asset_url('images/user.png'); ?>';"
-                         alt="<?php echo esc($speaker['speaker_name']); ?>">
-                    <div class="speaker-info">
-                        <h6><?php echo esc($speaker['speaker_name']); ?></h6>
-                        <p><?php echo esc(($speaker['speaker_title'] ?? '') . ', ' . ($speaker['speaker_company'] ?? '')); ?></p>
-                    </div>
+                <?php $role = trim(($speaker['speaker_title'] ?? '') . (!empty($speaker['speaker_company']) ? ', ' . $speaker['speaker_company'] : ''), ', '); ?>
+                <div class="m-person">
+                    <img src="<?= !empty($speaker['speaker_photo']) ? base_url('uploads/speakers/' . rawurlencode($speaker['speaker_photo'])) : mobile_asset_url('images/user.png') ?>" alt="" onerror="this.onerror=null;this.src='<?= mobile_asset_url('images/user.png') ?>'">
+                    <div><b><?= esc($speaker['speaker_name']) ?></b><span><?= esc($role) ?></span></div>
                 </div>
             <?php endforeach; ?>
-        </div>
-    <?php endif; ?>
-
-    <!-- 📝 Session Overview -->
-    <div class="session-overview">
-        <h6>Overview</h6>
-        <p><?php echo nl2br(esc($event['description'] ?? 'No description available.')); ?></p>
-
-        <?php if (!empty($event['workbook'])): ?>
-            <a href="<?php echo base_url('uploads/workbooks/' . $event['workbook']); ?>" download class="btn-download epr-btn-four">
-                Download Workbook
-            </a>
+        <?php else: ?>
+            <div class="m-person"><img src="<?= mobile_asset_url('images/user.png') ?>" alt=""><div><b>Speakers TBA</b><span></span></div></div>
         <?php endif; ?>
-        <button class="btn-download epr-btn-four" onclick="openChatDrawer()">
-            Live Chat
-        </button>
     </div>
 </div>
 
-<!-- ===========================================================
-     SLIDING CHAT DRAWER (BOTTOM SHEET)
-=========================================================== -->
-<div id="chatDrawer" class="chat-drawer">
-
-    <div class="chat-header">
-        <span>Live Chat</span>
-        <button class="chat-close-btn" onclick="closeChatDrawer()">×</button>
-    </div>
-
-    <!-- OPTION A — Minimal Glass Chat -->
-    <div id="chat-container" class="chat-glass">
-        <div id="chat-messages" class="chat-messages"></div>
-
-        <div class="chat-input-row">
-            <textarea id="chatInput" class="chat-input" placeholder="Type a message..."></textarea>
-            <button class="chat-send-btn" onclick="sendMessage()">Send</button>
-        </div>
-    </div>
-
-</div>
-
-<!-- Overlay -->
-<div id="chatOverlay" class="chat-overlay" onclick="closeChatDrawer()"></div>
-
-<script>
-    function openChatDrawer() {
-        document.getElementById("chatDrawer").classList.add("active");
-        document.getElementById("chatOverlay").classList.add("active");
-    }
-
-    function closeChatDrawer() {
-        document.getElementById("chatDrawer").classList.remove("active");
-        document.getElementById("chatOverlay").classList.remove("active");
-    }
-</script>
-
-<!-- Emoji picker (module) and Tribute CSS/JS — include once on page -->
-<script type="module" src="https://unpkg.com/emoji-picker-element@latest/index.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tributejs@5.1.3/dist/tribute.css">
 <script src="https://cdn.jsdelivr.net/npm/tributejs@5.1.3/dist/tribute.min.js"></script>
-
 <script>
-    /*
-      Mobile Chat — standalone, uses your routes:
-       - POST <?php echo base_url('api/chat/send/'); ?>{sessionId}
-   - GET  <?php echo base_url('api/attendees/all'); ?>
-   - GET  <?php echo base_url('api/users/'); ?>{id}
+document.addEventListener('DOMContentLoaded', function () {
+    var sessionId = <?= $sessionId ?>;
+    var attendeeId = <?= json_encode((string) session('attendee_id')) ?>;
+    var api = document.body.getAttribute('data-api');
 
-  Drop this script into mobile/session_detail.php (replace the previous mobile chat JS).
-*/
+    /* Like + rating are kept on this device, as on the previous mobile build. */
+    var stateKey = 'epr-mobile-session:' + sessionId;
+    var state = {};
+    try { state = JSON.parse(localStorage.getItem(stateKey)) || {}; } catch (e) { state = {}; }
+    function save() { try { localStorage.setItem(stateKey, JSON.stringify(state)); } catch (e) { /* ignore */ } }
 
-    (async function MobileChatInit() {
-        // ---------- Config (server-side values injected via PHP) ----------
-        const sessionId = "<?php echo $event['sessions_id']; ?>";
-        const attendeeId = "<?php echo session('attendee_id'); ?>";
-        const API_KEY = "<?php echo env('api.securityKey'); ?>"; // used for your CI4 endpoints (if required)
+    var like = document.getElementById('likeSession');
+    function paintLike() {
+        like.classList.toggle('is-on', !!state.liked);
+        like.setAttribute('aria-pressed', state.liked ? 'true' : 'false');
+        like.querySelector('i').className = 'fa ' + (state.liked ? 'fa-heart' : 'fa-heart-o');
+        like.querySelector('span').textContent = state.liked ? 'Liked' : 'Like Session';
+    }
+    like.addEventListener('click', function () { state.liked = !state.liked; save(); paintLike(); });
 
-        const SEND_ENDPOINT      = "<?php echo base_url('api/chat/send/'); ?>" + sessionId;        // POST
-        const HISTORY_ENDPOINT   = "<?php echo base_url('api/chat/'); ?>" + sessionId;             // GET
-        const ATTENDEES_ENDPOINT = "<?php echo base_url('api/attendees/all'); ?>";               // GET
-        const USERS_ENDPOINT     = "<?php echo base_url('api/users/'); ?>";                     // GET + id
-
-        // ---------- DOM ----------
-        const chatBox   = document.getElementById("chat-messages");
-        const chatInput = document.getElementById("chatInput");
-        if (!chatBox || !chatInput) {
-            console.warn("MobileChat: chat DOM elements not found (chat-messages or chatInput). Aborting.");
-            return;
-        }
-
-        // ---------- State ----------
-        const profileCache = {}; // id -> {firstname, lastname, profile_picture}
-        const seenMessageIds = new Set(); // avoid duplicate rendering when realtime + history both send same msg
-
-        // ---------- Helpers ----------
-        function scrollChatDown() {
-            try { chatBox.scrollTop = chatBox.scrollHeight; } catch(e){}
-        }
-
-        function escapeHtml(s) {
-            if (s === undefined || s === null) return "";
-            return String(s)
-                .replace(/&/g,'&amp;')
-                .replace(/</g,'&lt;')
-                .replace(/>/g,'&gt;')
-                .replace(/"/g,'&quot;')
-                .replace(/'/g,'&#039;')
-                .replace(/\n/g, '<br>');
-        }
-
-        // sanitize but allow <a> (mentions) — we use placeholder markers to safely re-insert allowed mention HTML
-        function sanitizeAllowLinks(str) {
-            if (!str) return "";
-            // pull mention HTML markers like [[MENTION:...]] out before escaping
-            const placeholders = [];
-            const markerRegex = /\[\[MENTION:(.*?)\]\]/g;
-            str = str.replace(markerRegex, (m, inner) => {
-                placeholders.push(inner);
-                return `[[MENTION_PLACEHOLDER_${placeholders.length-1}]]`;
-            });
-
-            let escaped = escapeHtml(str);
-
-            // restore mention HTML (we trust our mention HTML generator, not external input)
-            placeholders.forEach((html, i) => {
-                escaped = escaped.replace(`[[MENTION_PLACEHOLDER_${i}]]`, html);
-            });
-
-            return escaped;
-        }
-
-        // Replace tokens @{user:ID} -> mention HTML (wrapped in marker so sanitizer will restore)
-        function replaceTokensWithNames(message) {
-            if (!message) return message;
-            return message.replace(/@\{user:(\d+)\}/g, (m, id) => {
-                const u = profileCache[id];
-                if (!u) return "@Unknown";
-                const fullname = `${u.firstname || ''} ${u.lastname || ''}`.trim();
-                const profileUrl = "/attendees/profile/" + id;
-                // wrap in marker so sanitizeAllowLinks can re-insert safely
-                return `[[MENTION:<a href="${profileUrl}" class="mention-link" style="color:#ff4eb8;font-weight:600;text-decoration:none">@${fullname}</a>]]`;
-            });
-        }
-
-        // Convert raw "@Full Name" occurrences into mention HTML directly (for when Tribute inserts display name)
-        function replaceRawMentions(message) {
-            if (!message) return message;
-            for (const id in profileCache) {
-                const u = profileCache[id];
-                if (!u) continue;
-                const fullname = `${u.firstname} ${u.lastname}`.trim();
-                if (!fullname) continue;
-                const escaped = fullname.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
-                const regex = new RegExp("@" + escaped, "g"); // case-sensitive to match what user selected; can use 'i' if you want
-                const profileUrl = "/attendees/profile/" + id;
-                message = message.replace(regex,
-                    `[[MENTION:<a href="${profileUrl}" class="mention-link" style="color:#ff4eb8;font-weight:600;text-decoration:none">@${fullname}</a>]]`
-                );
-            }
-            return message;
-        }
-
-        // Ensure profile is loaded (populates profileCache)
-        async function getUserProfile(userId) {
-            if (profileCache[userId]) return profileCache[userId];
-            try {
-                const res = await fetch(USERS_ENDPOINT + userId, {
-                    headers: { "X-API-KEY": API_KEY },
-                    credentials: "include"
-                });
-                const j = await res.json();
-                if (j && j.status === "success" && j.data) {
-                    profileCache[userId] = j.data;
-                    return j.data;
-                }
-            } catch (err) {
-                console.warn("getUserProfile error", err);
-            }
-            // fallback
-            profileCache[userId] = { firstname: "User", lastname: userId, profile_picture: "" };
-            return profileCache[userId];
-        }
-
-        // Render a message; will replace tokens and raw mentions, sanitize and add to DOM
-        async function renderMessage(msg) {
-            if (!msg || !('id' in msg)) {
-                // some messages may come without id (edge); allow rendering but no dedupe
-            } else {
-                if (seenMessageIds.has(String(msg.id))) return; // already rendered
-                seenMessageIds.add(String(msg.id));
-            }
-
-            const user = await getUserProfile(msg.attendee_id);
-            const fullname = `${user.firstname || ''} ${user.lastname || ''}`.trim();
-            const avatar = user.profile_picture ? "<?php echo base_url('uploads/profile_pictures'); ?>/" + user.profile_picture : "<?php echo asset_url('images/user.png'); ?>";
-            const isMe = String(msg.attendee_id) === String(attendeeId);
-
-            // 1. replace raw @Name -> mention HTML markers
-            let content = replaceRawMentions(msg.message || "");
-
-            // 2. replace token @{user:ID} -> mention HTML markers
-            content = replaceTokensWithNames(content);
-
-            // 3. sanitize but preserve mention HTML
-            content = sanitizeAllowLinks(content);
-
-            const bubble = `
-      <div class="chat-bubble-wrapper ${isMe ? 'me' : 'them'}" data-msgid="${msg.id ?? ''}">
-        ${!isMe ? `<img src="${avatar}" class="chat-avatar" onerror="this.src='<?php echo asset_url('images/user.png'); ?>'">` : ''}
-        <div class="chat-bubble ${isMe ? 'me' : 'them'}">
-          <div class="chat-name">${escapeHtml(fullname)}</div>
-          <div class="chat-text">${content}</div>
-          <div class="chat-time">${new Date(msg.created_at || Date.now()).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</div>
-        </div>
-      </div>
-    `;
-            chatBox.insertAdjacentHTML('beforeend', bubble);
-            scrollChatDown();
-        }
-
-        // ---------- Load history through the portal API
-        async function loadChatHistory() {
-            try {
-                const res = await fetch(HISTORY_ENDPOINT, {
-                    headers: { "X-API-KEY": API_KEY },
-                    credentials: "include"
-                });
-                const payload = await res.json();
-                const msgs = Array.isArray(payload?.data) ? payload.data : [];
-                if (!Array.isArray(msgs)) return;
-                for (const m of msgs) await renderMessage(m);
-            } catch (err) {
-                console.warn("loadChatHistory error", err);
-            }
-        }
-
-        // ---------- Mentions (load attendee list) ----------
-        async function initMentions() {
-            try {
-                const res = await fetch(ATTENDEES_ENDPOINT, {
-                    headers: { "X-API-KEY": API_KEY },
-                    credentials: "include"
-                });
-                const json = await res.json();
-                if (!json || !Array.isArray(json.data) && !Array.isArray(json)) {
-                    // older controllers sometimes return array directly
-                    const dataArray = Array.isArray(json.data) ? json.data : (Array.isArray(json) ? json : []);
-                    if (!dataArray.length) return;
-                    populateMentions(dataArray);
-                    return;
-                }
-                const list = Array.isArray(json.data) ? json.data : json;
-                populateMentions(list);
-            } catch (err) {
-                console.warn("initMentions failed", err);
-            }
-
-            function populateMentions(list) {
-                // Fill cache + tribute values
-                const values = list.map(a => {
-                    const id = String(a.id);
-                    const fullname = `${a.firstname || ''} ${a.lastname || ''}`.trim();
-                    profileCache[id] = {
-                        firstname: a.firstname || '',
-                        lastname: a.lastname || '',
-                        profile_picture: a.profile_picture || ''
-                    };
-                    return { key: fullname, id: id };
-                });
-
-                // Tribute — insert display name when selected
-                const tribute = new Tribute({
-                    trigger: "@",
-                    lookup: "key",
-                    values: values,
-                    selectTemplate: item => "@" + item.original.key,
-                    menuItemTemplate: item => item.string
-                });
-                tribute.attach(chatInput);
-
-                console.log("Mentions initialized (mobile):", values.length, "users");
-            }
-        }
-
-        // ---------- Send message ----------
-        async function sendMessage() {
-            const raw = chatInput.value.trim();
-            if (!raw) return;
-
-            // convert displayed @Full Name -> @{user:ID} using profileCache
-            let final = raw;
-            for (const id in profileCache) {
-                const u = profileCache[id];
-                if (!u) continue;
-                const fullname = `${u.firstname} ${u.lastname}`.trim();
-                if (!fullname) continue;
-                const escaped = fullname.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
-                const regex = new RegExp("@" + escaped, "g"); // match the display name
-                final = final.replace(regex, `@{user:${id}}`);
-            }
-
-            try {
-                const res = await fetch(SEND_ENDPOINT, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "X-API-KEY": API_KEY
-                    },
-                    credentials: "include",
-                    body: JSON.stringify({
-                        attendee_id: attendeeId,
-                        message: final
-                    })
-                });
-
-                // log result for easier debugging (you can remove this later)
-                try {
-                    const j = await res.clone().json();
-                    console.log("send() response:", res.status, j);
-                } catch (e) {
-                    console.log("send() raw status:", res.status);
-                }
-                // NOTE: we don't optimistic-render — we rely on realtime event to deliver the final message
-                chatInput.value = "";
-                loadChatHistory();
-            } catch (err) {
-                console.warn("sendMessage error", err);
-            }
-        }
-        window.sendMessage = sendMessage; // keep compatibility with button onclick
-
-        // send on Enter (mobile still allows)
-        chatInput.addEventListener("keydown", (e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-            }
+    var stars = Array.prototype.slice.call(document.querySelectorAll('#rateSession [data-star]'));
+    function paintStars() {
+        stars.forEach(function (star) {
+            var on = Number(star.getAttribute('data-star')) <= (state.rating || 0);
+            star.classList.toggle('is-on', on);
+            star.setAttribute('aria-checked', Number(star.getAttribute('data-star')) === (state.rating || 0) ? 'true' : 'false');
         });
+    }
+    stars.forEach(function (star) {
+        star.addEventListener('click', function () {
+            state.rating = Number(star.getAttribute('data-star')); save(); paintStars();
+            EPR.toast('Thanks for rating this session ' + state.rating + '/5.');
+        });
+    });
+    paintLike(); paintStars();
 
-        // ---------- Emoji picker (emoji-picker-element) ----------
-        function initEmoji() {
-            try {
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.className = 'btn btn-sm';
-                btn.style.marginLeft = '8px';
-                btn.innerText = "😊";
+    /* Live chat */
+    var box = document.getElementById('chat-messages');
+    var input = document.getElementById('chatInput');
+    var form = document.getElementById('chatForm');
+    var count = document.getElementById('chatCount');
+    var seen = {}, people = {}, names = {};
 
-                // place button next to textarea (chatInput.parentElement expected)
-                chatInput.parentElement.appendChild(btn);
+    function escapeHtml(value) {
+        return String(value == null ? '' : value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+    }
+    function formatMessage(text) {
+        return escapeHtml(text).replace(/@\{user:(\d+)\}/g, function (match, id) {
+            return '<a>@' + escapeHtml(names[id] || 'Attendee') + '</a>';
+        }).replace(/\n/g, '<br>');
+    }
+    function render(message) {
+        if (message.id != null) { if (seen[message.id]) return; seen[message.id] = 1; }
+        var empty = document.getElementById('chatEmpty'); if (empty) empty.remove();
+        var mine = String(message.attendee_id) === attendeeId;
+        people[message.attendee_id] = 1;
+        var row = document.createElement('div');
+        row.className = 'm-chat__row' + (mine ? ' is-mine' : '');
+        row.innerHTML = '<div class="m-chat__bubble"><strong>' + escapeHtml(message.attendee_name || names[message.attendee_id] || 'Attendee') + '</strong><br>' + formatMessage(message.message) + '</div>';
+        box.appendChild(row);
+        box.scrollTop = box.scrollHeight;
+        var total = Object.keys(people).length;
+        count.textContent = total + ' CHATTING';
+    }
+    function load() {
+        return fetch(api + '/chat/' + sessionId, { credentials: 'same-origin' })
+            .then(function (res) { return res.json(); })
+            .then(function (payload) { (Array.isArray(payload && payload.data) ? payload.data : []).forEach(render); })
+            .catch(function () { /* keep the last rendered state */ });
+    }
+    function tokenise(text) {
+        Object.keys(names).sort(function (a, b) { return names[b].length - names[a].length; }).forEach(function (id) {
+            if (!names[id]) return;
+            text = text.split('@' + names[id]).join('@{user:' + id + '}');
+        });
+        return text;
+    }
+    form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        var text = input.value.trim();
+        if (!text) return;
+        input.value = '';
+        EPR.post(api + '/chat/send/' + sessionId, { attendee_id: attendeeId, message: tokenise(text) }, true).then(function (res) {
+            if (!res.ok) { EPR.toast((res.body && res.body.messages && res.body.messages.error) || 'Unable to send your message.', true); input.value = text; return; }
+            load();
+        }).catch(function () { EPR.toast('Unable to send your message.', true); input.value = text; });
+    });
 
-                const picker = document.createElement('emoji-picker');
-                picker.style.position = 'absolute';
-                picker.style.zIndex = '99999';
-                picker.style.display = 'none';
-                chatInput.parentElement.appendChild(picker);
-
-                btn.addEventListener('click', () => {
-                    picker.style.display = picker.style.display === 'none' ? 'block' : 'none';
-                });
-
-                picker.addEventListener('emoji-click', (ev) => {
-                    const emoji = ev.detail.unicode;
-                    const start = chatInput.selectionStart;
-                    const end = chatInput.selectionEnd;
-                    chatInput.value = chatInput.value.slice(0, start) + emoji + chatInput.value.slice(end);
-                    chatInput.selectionStart = chatInput.selectionEnd = start + emoji.length;
-                    picker.style.display = 'none';
-                    chatInput.focus();
-                });
-            } catch (err) {
-                console.warn("initEmoji failed", err);
+    fetch(api + '/attendees/all', { credentials: 'same-origin' })
+        .then(function (res) { return res.json(); })
+        .then(function (json) {
+            var list = Array.isArray(json && json.data) ? json.data : (Array.isArray(json) ? json : []);
+            var values = [];
+            list.forEach(function (person) {
+                var name = ((person.firstname || '') + ' ' + (person.lastname || '')).trim();
+                if (!name) return;
+                names[String(person.id)] = name;
+                values.push({ key: name, id: String(person.id) });
+            });
+            if (window.Tribute && values.length) {
+                new Tribute({ trigger: '@', lookup: 'key', values: values, selectTemplate: function (item) { return '@' + item.original.key; }, menuItemTemplate: function (item) { return item.string; } }).attach(input);
             }
-        }
+        })
+        .catch(function () { /* mentions are optional */ })
+        .then(load)
+        .then(function () { window.setInterval(function () { if (!document.hidden) load(); }, 3000); });
 
-        // ---------- Realtime updates ----------
-        function initRealtime() {
-            window.setInterval(loadChatHistory, 3000);
-        }
-
-        // ---------- Init sequence (mentions first to populate cache) ----------
-        await initMentions();     // preload profileCache so replacements can work
-        await loadChatHistory();  // load existing messages
-        initEmoji();              // emoji button and picker
-        initRealtime();           // realtime subscription
-        scrollChatDown();
-
-        console.log("Mobile chat initialized (session:", sessionId, ")");
-    })();
+    document.addEventListener('seg:change', function (event) { if (event.detail === 'sessChat') box.scrollTop = box.scrollHeight; });
+});
 </script>
 
-
-<?php echo module_view('MobileApp', 'includes/footer'); ?>
+<?= module_view('MobileApp', 'includes/footer') ?>

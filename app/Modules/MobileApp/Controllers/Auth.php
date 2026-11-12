@@ -17,7 +17,7 @@ class Auth extends BaseController
     public function login()
     {
         if (session()->get('user_id')) {
-            return redirect()->to(site_url('mobile/home'));
+            return redirect()->to(site_url('mobile/welcome'));
         }
 
         return module_view('MobileApp', 'login');
@@ -48,7 +48,7 @@ class Auth extends BaseController
 
         // 🔹 Fetch attendee info (optional but strongly recommended)
         $attendee = $attendeeModel
-            ->select('firstname, lastname, profile_picture')
+            ->select('firstname, lastname, profile_picture, country')
             ->where('attendee_id', $user['id'])
             ->first();
 
@@ -66,6 +66,7 @@ class Auth extends BaseController
                 ? trim($attendee['firstname'] . ' ' . $attendee['lastname'])
                 : '',
             'profile_picture' => $attendee['profile_picture'] ?? null,
+            'reg_country' => $attendee['country'] ?? '',
         ];
 
         session()->set($sessionData);
@@ -74,7 +75,7 @@ class Auth extends BaseController
         $userModel->update($user['id'], ['last_login_at' => date('Y-m-d H:i:s')]);
 
         // 🔹 Redirect
-        return redirect()->to(site_url('mobile/home'));
+        return redirect()->to(site_url('mobile/welcome'));
     }
 
     public function logout()
