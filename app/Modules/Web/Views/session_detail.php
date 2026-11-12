@@ -20,6 +20,7 @@ $start = !empty($event['start_time']) ? (new DateTime($event['event_date'] . ' '
 $end = !empty($event['end_time']) ? (new DateTime($event['event_date'] . ' ' . $event['end_time'], new DateTimeZone('UTC')))->format('g:i A') : '11:00 AM';
 $chatSessionId = (int) ($event['sessions_id'] ?? 0);
 $chatAttendeeId = (int) session('attendee_id');
+$onlineAttendeeCount = (int) ($online_attendee_count ?? 0);
 $leadSpeaker = $sessionSpeakers[0] ?? [];
 $leadSpeakerName = $leadSpeaker['speaker_name'] ?? 'Kemi Bello';
 $leadSpeakerRole = trim((string) ($leadSpeaker['speaker_title'] ?? 'Founder & CEO, Brightspark'));
@@ -38,7 +39,7 @@ $leadSpeakerPhoto = !empty($leadSpeaker['speaker_photo'])
             <span style="font-size:28px;font-weight:600;letter-spacing:-.02em;line-height:1.15;text-wrap:pretty"><?php echo esc($title); ?></span>
             <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;font-size:13px;color:rgba(255,255,255,.75)">
                 <span class="rc-mono" data-local-session-time data-event-date="<?php echo esc($event['event_date'] ?? '', 'attr'); ?>" data-start-time="<?php echo esc($event['start_time'] ?? '', 'attr'); ?>" data-end-time="<?php echo esc($event['end_time'] ?? '', 'attr'); ?>" style="font-size:12px"><span data-local-session-range><?php echo esc($start); ?> – <?php echo esc($end); ?></span> · <span data-local-session-zone>GMT</span></span>
-                <span style="display:flex;align-items:center;gap:6px"><i class="fa fa-eye" aria-hidden="true"></i>1,284 watching</span>
+                <span style="display:flex;align-items:center;gap:6px"><i class="fa fa-eye" aria-hidden="true"></i><span data-online-attendee-count><?php echo number_format($onlineAttendeeCount); ?></span> online now</span>
             </div>
         </div>
 
@@ -119,7 +120,7 @@ $leadSpeakerPhoto = !empty($leadSpeaker['speaker_photo'])
     <aside class="rc-panel" style="min-height:0;display:flex;flex-direction:column;overflow:hidden">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid rgba(255,255,255,.08)">
             <span style="font-size:16px;font-weight:600">Live chat</span>
-            <span class="rc-mono" style="display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.12em;color:rgba(255,255,255,.7)"><span style="width:7px;height:7px;border-radius:50%;background:#efb11e;box-shadow:0 0 8px #efb11e"></span>1,284 ONLINE</span>
+            <span class="rc-mono" style="display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.12em;color:rgba(255,255,255,.7)"><span style="width:7px;height:7px;border-radius:50%;background:#efb11e;box-shadow:0 0 8px #efb11e"></span><span data-online-attendee-count><?php echo number_format($onlineAttendeeCount); ?></span> ONLINE</span>
         </div>
         <div id="chat-messages" style="flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:16px;display:flex;flex-direction:column;gap:12px">
             <span id="chat-empty" style="margin:auto;color:rgba(255,255,255,.58);font-size:13px">No messages yet. Start the conversation.</span>
@@ -158,8 +159,23 @@ document.addEventListener("DOMContentLoaded", () => {
     const currentAttendeeName = <?php echo json_encode(session('firstname') ?: 'You'); ?>;
     const historyUrl = <?php echo json_encode(base_url('api/chat/' . $chatSessionId)); ?>;
     const sendUrl = <?php echo json_encode(base_url('api/chat/send/' . $chatSessionId)); ?>;
+    const onlineCountUrl = <?php echo json_encode(base_url('attendees/sessions/' . $chatSessionId . '/online')); ?>;
     const renderedMessageIds = new Set();
     let latestMessageId = 0;
+
+    function refreshOnlineCount() {
+        fetch(onlineCountUrl, {credentials: "same-origin"})
+            .then(response => response.ok ? response.json() : null)
+            .then(data => {
+                if (!data || !Number.isFinite(Number(data.count))) {
+                    return;
+                }
+                document.querySelectorAll("[data-online-attendee-count]").forEach(element => {
+                    element.textContent = Number(data.count).toLocaleString();
+                });
+            })
+            .catch(() => {});
+    }
 
     sessionPlay?.addEventListener("click", function() {
         const src = sessionVideo?.dataset.videoSrc || "";
@@ -173,6 +189,9 @@ document.addEventListener("DOMContentLoaded", () => {
         iframe.style.cssText = "position:absolute;inset:0;z-index:4;width:100%;height:100%;border:0";
         sessionVideo.appendChild(iframe);
     });
+
+    refreshOnlineCount();
+    window.setInterval(refreshOnlineCount, 20000);
 
     function appendMessage(message) {
         const messageId = Number(message.id || 0);

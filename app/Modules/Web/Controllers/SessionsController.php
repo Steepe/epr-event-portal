@@ -62,6 +62,7 @@ class SessionsController extends BaseController
                 'session'    => $sessionData,
                 'speakers'   => $speakers,
                 'sponsors'   => $sponsors,
+                'online_attendee_count' => $this->onlineAttendeeCount($db),
                 'timezone'   => $session->get('user_timezone') ?? 'Africa/Lagos',
                 'plan'       => $session->get('plan') ?? 1,
                 'page_title' => $sessionData['sessions_name'] ?? 'Session Details'
@@ -74,5 +75,34 @@ class SessionsController extends BaseController
             return redirect()->to(base_url('attendees/agenda'))
                 ->with('error', 'Unable to load this session.');
         }
+    }
+
+    public function onlineCount(int $sessionId)
+    {
+        if (! session('logged_in')) {
+            return $this->response->setStatusCode(401)->setJSON(['message' => 'Please log in.']);
+        }
+
+        return $this->response->setJSON([
+            'count' => $this->onlineAttendeeCount(db_connect()),
+        ]);
+    }
+
+    private function onlineAttendeeCount($db): int
+    {
+        if ($db->tableExists('tbl_portal_user_presence')) {
+            return (int) $db->table('tbl_portal_user_presence')
+                ->where('last_seen_at >= DATE_SUB(NOW(), INTERVAL 2 MINUTE)', null, false)
+                ->countAllResults();
+        }
+
+        if ($db->tableExists('tbl_user_status')) {
+            return (int) $db->table('tbl_user_status')
+                ->where('is_online', 1)
+                ->where('last_seen >= DATE_SUB(NOW(), INTERVAL 5 MINUTE)', null, false)
+                ->countAllResults();
+        }
+
+        return 0;
     }
 }
