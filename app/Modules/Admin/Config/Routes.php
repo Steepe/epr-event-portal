@@ -127,6 +127,15 @@ $routes->group('admin', ['namespace' => 'App\Modules\Admin\Controllers'], functi
         $routes->post('messages/send', 'MessagesController::send');
         $routes->get('messages/(:num)', 'MessagesController::view/$1');
 
+        // Country communities and manager messages
+        $routes->get('communities', 'CommunitiesController::index');
+        $routes->post('communities/store', 'CommunitiesController::store');
+        $routes->post('communities/(:num)/update', 'CommunitiesController::update/$1');
+        $routes->post('communities/(:num)/delete', 'CommunitiesController::delete/$1');
+        $routes->get('communities/chats', 'CommunitiesController::chats');
+        $routes->get('communities/(:num)/chats/(:num)', 'CommunitiesController::chatMessages/$1/$2');
+        $routes->post('communities/(:num)/chats/(:num)', 'CommunitiesController::sendChat/$1/$2');
+
         // Payments / reports
         $routes->get('payments', 'PaymentsController::index');
         $routes->get('audit-logs', 'AuditLogsController::index');

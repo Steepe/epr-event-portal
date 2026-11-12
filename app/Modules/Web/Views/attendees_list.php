@@ -5,6 +5,7 @@ echo module_view('Web', 'includes/topbar');
 $tabs = [
     ['ATTENDEES', base_url('attendees/attendees'), true],
     ['SPEAKERS', base_url('attendees/speakers'), false],
+    ['COMMUNITIES', base_url('attendees/communities'), false],
 ];
 
 $searchValue = (string) service('request')->getGet('attendee_name');

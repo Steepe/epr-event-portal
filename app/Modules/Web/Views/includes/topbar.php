@@ -35,7 +35,7 @@ if ($currentUserId > 0) {
 $navKey = $current;
 if ($current === 'sessions') {
     $navKey = 'agenda';
-} elseif (in_array($current, ['networking_center', 'attendees', 'speakers'], true)) {
+} elseif (in_array($current, ['networking_center', 'attendees', 'speakers', 'communities'], true)) {
     $navKey = 'networking_center';
 } elseif ($current === 'emergence_booth') {
     $navKey = 'emergence_booth';
@@ -47,6 +47,7 @@ $showNav = in_array($current, [
     'networking_center',
     'attendees',
     'speakers',
+    'communities',
     'exhibitors',
     'sponsors',
     'emergence_booth',
@@ -60,6 +61,7 @@ $showNavLogo = in_array($current, [
     'networking_center',
     'attendees',
     'speakers',
+    'communities',
     'exhibitors',
     'sponsors',
     'emergence_booth',
