@@ -6,7 +6,9 @@
     --m-pink: #d8198e;
     --m-purple: #9d0f82;
     --m-grad: linear-gradient(90deg, #7d0686, #bd159e 50%, #7c0585);
-    --m-panel: rgba(34, 16, 38, .72);
+    --m-panel: rgba(34, 16, 38, .5);
+    --m-bar: rgba(34, 16, 38, .72);
+    --m-blur: 5px;
     --m-line: rgba(255, 255, 255, .10);
     --m-mono: 'JetBrains Mono', monospace;
     --m-col: 430px;
@@ -45,7 +47,9 @@ body.m-app.is-locked { overflow: hidden; }
 .m-app [hidden] { display: none !important; }
 .m-app :focus-visible { outline: 2px solid var(--m-gold); outline-offset: 2px; }
 
-/* ---------- Stage background ---------- */
+/* ---------- Stage background ----------
+   The artwork is drawn by the desktop portal's accelerate-background.js, which
+   adds a .rc-bg-canvas to this element. The gradient shows until it starts. */
 .m-bg {
     position: fixed;
     z-index: -1;
@@ -56,18 +60,7 @@ body.m-app.is-locked { overflow: hidden; }
     pointer-events: none;
     background: radial-gradient(ellipse 90% 80% at 45% 55%, #62365c 0%, #422846 48%, #261528 100%);
 }
-.m-bg::before {
-    position: absolute; inset: 0; content: '';
-    background: radial-gradient(circle at 15% 12%, rgba(239, 177, 30, .16), transparent 30%), radial-gradient(circle at 88% 22%, rgba(216, 25, 142, .22), transparent 34%);
-}
-.m-bg canvas { position: absolute; inset: 0; width: 100%; height: 100%; filter: saturate(1.2); }
-.m-bg::after {
-    position: absolute; inset: 0; content: '';
-    background-image: linear-gradient(rgba(255, 255, 255, .035) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, .025) 1px, transparent 1px);
-    background-size: 42px 42px;
-    -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, .75), transparent 76%);
-    mask-image: linear-gradient(to bottom, rgba(0, 0, 0, .75), transparent 76%);
-}
+.m-bg .rc-bg-canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; filter: saturate(1.35) brightness(1.16); }
 
 /* ---------- Shell ---------- */
 .m-shell {
@@ -100,7 +93,7 @@ body.m-app.is-locked { overflow: hidden; }
     -webkit-backdrop-filter: blur(14px);
     backdrop-filter: blur(14px);
 }
-.m-shell--tabbed .m-topbar { background: var(--m-panel); }
+.m-shell--tabbed .m-topbar { background: var(--m-bar); }
 .m-shell--tabbed .m-topbar::after {
     position: absolute; right: 0; bottom: 0; left: 0; height: 2px; content: '';
     background: linear-gradient(90deg, #9d0f82, #d8198e 60%, #efb11e);
@@ -172,7 +165,7 @@ body.m-app.is-locked { overflow: hidden; }
 
 .m-card {
     border: 1px solid var(--m-line); border-radius: 16px; background: var(--m-panel);
-    -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(var(--m-blur)); backdrop-filter: blur(var(--m-blur));
 }
 .m-card--20 { border-radius: 20px; }
 .m-card--clip { overflow: hidden; }
@@ -221,7 +214,7 @@ body.m-app.is-locked { overflow: hidden; }
 .m-field { position: relative; display: flex; }
 .m-field > i { position: absolute; top: 50%; left: 16px; transform: translateY(-50%); color: rgba(255, 255, 255, .6); }
 .m-field > .m-input { flex: 1; padding-left: 42px; }
-.m-search { height: 44px; border-color: rgba(255, 255, 255, .25); border-radius: 12px; background: #1d0a21; font-size: 14px; }
+.m-search { height: 44px; border-color: rgba(255, 255, 255, .25); border-radius: 12px; background: rgba(29, 10, 33, .6); font-size: 14px; }
 
 /* segmented pills */
 .m-seg { display: flex; padding: 4px; gap: 4px; border: 1px solid var(--m-line); border-radius: 999px; background: var(--m-panel); }
@@ -232,7 +225,7 @@ body.m-app.is-locked { overflow: hidden; }
 .m-app .m-seg > a { color: rgba(255, 255, 255, .78); }
 .m-seg > .is-active, .m-app .m-seg > a.is-active { background: var(--m-grad); color: #fff; }
 .m-seg--12 > * { font-size: 12px; }
-.m-seg--days { padding: 5px; gap: 6px; border-color: rgba(255, 255, 255, .12); background: rgba(22, 8, 26, .6); overflow-x: auto; scrollbar-width: none; }
+.m-seg--days { padding: 5px; gap: 6px; border-color: rgba(255, 255, 255, .12); background: rgba(22, 8, 26, .45); overflow-x: auto; scrollbar-width: none; }
 .m-seg--days::-webkit-scrollbar { display: none; }
 .m-seg--days > * { min-width: max-content; padding: 9px 12px; color: rgba(255, 255, 255, .75); font-weight: 500; letter-spacing: 0; }
 
@@ -308,7 +301,8 @@ body.m-app.is-locked { overflow: hidden; }
 .m-start__grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
 .m-app .m-start__card {
     position: relative; display: flex; height: 168px; padding: 18px; flex-direction: column; justify-content: space-between;
-    border: 1px solid rgba(255, 255, 255, .16); border-radius: 24px; background: rgba(22, 8, 26, .86); color: #fff;
+    border: 1px solid rgba(255, 255, 255, .16); border-radius: 24px; background: rgba(22, 8, 26, .6); color: #fff;
+    -webkit-backdrop-filter: blur(var(--m-blur)); backdrop-filter: blur(var(--m-blur));
 }
 .m-start__card:hover { border-color: rgba(239, 177, 30, .7); }
 .m-start__icons { display: flex; }
@@ -709,8 +703,6 @@ body.m-app.is-locked { overflow: hidden; }
 .m-me__field { display: flex; min-width: 0; flex-direction: column; gap: 6px; }
 .m-me__field small { color: rgba(255, 255, 255, .55); font-family: var(--m-mono); font-size: 10px; letter-spacing: .18em; text-transform: uppercase; }
 .m-me__field span { overflow: hidden; font-size: 14px; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
-.m-me__explore { display: grid; gap: 12px; }
-.m-me__explore > .m-eyebrow { padding: 0 4px; }
 .m-app .m-me__link { display: flex; padding: 14px 16px; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255, 255, 255, .07); color: #fff; }
 .m-me__link:hover { background: rgba(157, 15, 130, .16); }
 .m-me__link > i:first-child { width: 18px; color: var(--m-gold); }

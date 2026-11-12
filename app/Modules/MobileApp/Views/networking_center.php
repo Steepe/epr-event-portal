@@ -1,4 +1,4 @@
-<?= module_view('MobileApp', 'includes/header', ['shell' => 'tabbed', 'back' => false, 'activeTab' => 'network', 'title' => 'Networking Center']) ?>
+<?= module_view('MobileApp', 'includes/header', ['shell' => 'tabbed', 'back' => false, 'activeTab' => 'network', 'title' => 'Networking Center', 'screenLabel' => 'Networking Center']) ?>
 <?php
 $isSpeakers  = ($activeTab ?? 'attendees') === 'speakers';
 

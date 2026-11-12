@@ -5,7 +5,7 @@ $conferenceId    = (int) ($event['conference_id'] ?? session('live-conference-id
 $isLiveConf      = ($conference['status'] ?? 'live') === 'live';
 $agendaUrl       = $isLiveConf ? site_url('mobile/agenda/' . $conferenceId) : site_url('mobile/pastConference/' . $conferenceId);
 
-echo module_view('MobileApp', 'includes/header', ['shell' => 'tabbed', 'back' => $agendaUrl, 'activeTab' => $isLiveConf ? 'agenda' : 'me', 'title' => $event['sessions_name'] ?? 'Session']);
+echo module_view('MobileApp', 'includes/header', ['shell' => 'tabbed', 'back' => $agendaUrl, 'activeTab' => $isLiveConf ? 'agenda' : 'explore', 'title' => $event['sessions_name'] ?? 'Session', 'screenLabel' => 'Live Session']);
 
 $utc       = new DateTimeZone('UTC');
 $hasTimes  = !empty($event['event_date']) && !empty($event['start_time']) && !empty($event['end_time']);

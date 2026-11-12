@@ -1,4 +1,4 @@
-<?= module_view('MobileApp', 'includes/header', ['shell' => 'plain', 'back' => site_url('mobile/welcome'), 'activeTab' => '', 'title' => 'Welcome']) ?>
+<?= module_view('MobileApp', 'includes/header', ['shell' => 'plain', 'back' => site_url('mobile/welcome'), 'activeTab' => '', 'title' => 'Welcome', 'screenLabel' => 'Home']) ?>
 <?php
 $conferenceTitle = trim((string) ($conference['title'] ?? 'Accelerate')) ?: 'Accelerate';
 $conferenceYear  = (string) ($conference['year'] ?? date('Y'));

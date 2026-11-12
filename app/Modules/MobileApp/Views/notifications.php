@@ -1,4 +1,4 @@
-<?= module_view('MobileApp', 'includes/header', ['shell' => 'tabbed', 'back' => site_url('mobile/profile'), 'activeTab' => 'me', 'title' => 'Notifications']) ?>
+<?= module_view('MobileApp', 'includes/header', ['shell' => 'tabbed', 'back' => site_url('mobile/explore'), 'activeTab' => 'explore', 'title' => 'Notifications', 'screenLabel' => 'Notifications']) ?>
 <?php
 $notifications = $notifications ?? [];
 $unreadCount   = count(array_filter($notifications, static fn (array $item): bool => $item['unread']));

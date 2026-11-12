@@ -6,7 +6,8 @@
  *            'plain'  – transparent top bar, no tabs (start, welcome)
  *            'tabbed' – top bar + bottom tab bar (everything else)
  * $back      true or a fallback URL to show the back arrow
- * $activeTab lobby | agenda | network | exhibitors | me
+ * $activeTab lobby | agenda | network | booth | explore ('' for the profile, which is opened from the avatar)
+ * $screenLabel optional desktop screen name for the background artwork (defaults to $title)
  */
 $shell     = $shell ?? 'tabbed';
 $back      = $back ?? false;
@@ -21,6 +22,9 @@ $mobileUnread = $shell === 'bare' ? 0 : \App\Modules\MobileApp\Libraries\MobileN
 $mobileFlash     = session()->getFlashdata('error') ?: session()->getFlashdata('success');
 $mobileFlashType = session()->getFlashdata('error') ? 'error' : 'success';
 $mobileBackUrl   = is_string($back) ? $back : site_url('mobile/lobby');
+
+// The shared background script picks its artwork from this label (archive and webinar screens use the aurora variant).
+$mobileScreen = (string) ($screenLabel ?? ($title ?? ''));
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -38,6 +42,7 @@ $mobileBackUrl   = is_string($back) ? $back : site_url('mobile/lobby');
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?= mobile_asset_url('font-awesome/css/font-awesome.min.css') ?>">
     <link rel="stylesheet" href="<?= mobile_asset_url('css/mobile.css') ?>?v=<?= @filemtime(FCPATH . 'assets/css/mobile.css') ?: 1 ?>">
+    <script defer src="<?= mobile_asset_url('js/accelerate-background.js') ?>?v=<?= @filemtime(FCPATH . 'assets/js/accelerate-background.js') ?: 1 ?>"></script>
     <script>
         var _paq = window._paq = window._paq || [];
         _paq.push(['trackPageView']);
@@ -53,7 +58,7 @@ $mobileBackUrl   = is_string($back) ? $back : site_url('mobile/lobby');
     </script>
 </head>
 <body class="m-app" data-user="<?= $mobileUserId ?>" data-api="<?= esc(rtrim(site_url('api'), '/'), 'attr') ?>"<?php if ($mobileFlash): ?> data-flash="<?= esc($mobileFlash, 'attr') ?>" data-flash-type="<?= $mobileFlashType ?>"<?php endif; ?>>
-<div class="m-bg" aria-hidden="true"><canvas id="mStage"></canvas></div>
+<div class="m-bg rc-stage" aria-hidden="true"><i data-screen-label="<?= esc($mobileScreen, 'attr') ?>" hidden></i></div>
 <div class="m-shell m-shell--<?= esc($shell, 'attr') ?>">
 <?php if ($shell !== 'bare'): ?>
     <header class="m-topbar">

@@ -7,8 +7,8 @@ $mobileTabs     = [
     ['lobby', 'Lobby', 'fa-th-large', site_url('mobile/lobby')],
     ['agenda', 'Agenda', 'fa-calendar', $mobileAgendaId ? site_url('mobile/agenda/' . $mobileAgendaId) : site_url('mobile/home')],
     ['network', 'Network', 'fa-users', site_url('mobile/networking-center')],
-    ['exhibitors', 'Booths', 'fa-building', site_url('mobile/exhibitors')],
-    ['me', 'Me', 'fa-user', site_url('mobile/profile')],
+    ['booth', 'Booth', 'fa-building', site_url('mobile/emergence-booth')],
+    ['explore', 'Explore', 'fa-compass', site_url('mobile/explore')],
 ];
 $mobileNotifs = $shell === 'bare' ? [] : \App\Modules\MobileApp\Libraries\MobileNotifications::all();
 $mobileUnread = count(array_filter($mobileNotifs, static fn (array $item): bool => $item['unread']));

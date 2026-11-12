@@ -1,4 +1,4 @@
-<?= module_view('MobileApp', 'includes/header', ['shell' => 'tabbed', 'back' => true, 'activeTab' => 'lobby', 'title' => 'Emergence Booth']) ?>
+<?= module_view('MobileApp', 'includes/header', ['shell' => 'tabbed', 'back' => false, 'activeTab' => 'booth', 'title' => 'Emergence Booth', 'screenLabel' => 'Emergence Booth']) ?>
 <?php
 $members    = $members ?? [];
 $programmes = $programmes ?? [];

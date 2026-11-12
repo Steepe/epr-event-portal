@@ -1,4 +1,4 @@
-<?= module_view('MobileApp', 'includes/header', ['shell' => 'tabbed', 'back' => site_url('mobile/profile'), 'activeTab' => 'me', 'title' => 'Earn Points']) ?>
+<?= module_view('MobileApp', 'includes/header', ['shell' => 'tabbed', 'back' => site_url('mobile/explore'), 'activeTab' => 'explore', 'title' => 'Earn Points', 'screenLabel' => 'Earn Points']) ?>
 
 <div class="m-screen">
     <div class="m-head">

@@ -1,4 +1,4 @@
-<?= module_view('MobileApp', 'includes/header', ['shell' => 'plain', 'back' => false, 'activeTab' => '', 'title' => 'Start']) ?>
+<?= module_view('MobileApp', 'includes/header', ['shell' => 'plain', 'back' => false, 'activeTab' => '', 'title' => 'Start', 'screenLabel' => 'Landing']) ?>
 <?php
 $firstName      = trim((string) session('firstname'));
 $conferenceYear = (string) ($conference['year'] ?? date('Y'));

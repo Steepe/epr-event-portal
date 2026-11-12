@@ -41,14 +41,8 @@ class Profile extends BaseController
                 ->with('error', 'Profile not found.');
         }
 
-        $user = $this->db->table('tbl_users')
-            ->where('id', $attendeeId)
-            ->get()
-            ->getRowArray();
-
         return module_view('MobileApp', 'profile', [
-            'profile' => $profile,
-            'premium' => (int) ($user['premium_access'] ?? 0),
+            'profile' => $profile
         ]);
     }
 

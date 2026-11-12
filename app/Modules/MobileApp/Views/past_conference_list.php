@@ -1,4 +1,4 @@
-<?= module_view('MobileApp', 'includes/header', ['shell' => 'tabbed', 'back' => site_url('mobile/past-conferences'), 'activeTab' => 'me', 'title' => $conference['title'] ?? 'Past Conference']) ?>
+<?= module_view('MobileApp', 'includes/header', ['shell' => 'tabbed', 'back' => site_url('mobile/past-conferences'), 'activeTab' => 'explore', 'title' => $conference['title'] ?? 'Past Conference', 'screenLabel' => 'Past Conference Agenda']) ?>
 <?php
 $sessionsByDate = $sessionsByDate ?? [];
 $isPremium      = (int) ($premium ?? 0) === 1;

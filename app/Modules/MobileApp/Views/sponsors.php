@@ -1,4 +1,4 @@
-<?= module_view('MobileApp', 'includes/header', ['shell' => 'tabbed', 'back' => true, 'activeTab' => 'lobby', 'title' => 'Sponsors']) ?>
+<?= module_view('MobileApp', 'includes/header', ['shell' => 'tabbed', 'back' => true, 'activeTab' => 'lobby', 'title' => 'Sponsors', 'screenLabel' => 'Sponsors']) ?>
 <?php
 $tiers = [];
 foreach (($sponsors ?? []) as $sponsor) {

@@ -1,4 +1,4 @@
-<?= module_view('MobileApp', 'includes/header', ['shell' => 'tabbed', 'back' => site_url('mobile/profile'), 'activeTab' => 'me', 'title' => 'Upgrade']) ?>
+<?= module_view('MobileApp', 'includes/header', ['shell' => 'tabbed', 'back' => site_url('mobile/explore'), 'activeTab' => 'explore', 'title' => 'Upgrade', 'screenLabel' => 'Upgrade']) ?>
 <?php
 $countries = $countries ?? [];
 $isPremium = (int) ($premium ?? 0) === 1;
@@ -6,7 +6,7 @@ $isPremium = (int) ($premium ?? 0) === 1;
 
 <div class="m-screen">
     <div class="m-head">
-        <a class="m-backlink" href="<?= site_url('mobile/profile') ?>" data-back="<?= site_url('mobile/profile') ?>"><i class="fa fa-long-arrow-left" aria-hidden="true"></i>BACK</a>
+        <a class="m-backlink" href="<?= site_url('mobile/explore') ?>" data-back="<?= site_url('mobile/explore') ?>"><i class="fa fa-long-arrow-left" aria-hidden="true"></i>BACK</a>
         <span class="m-kicker">Accelerate 2026</span>
         <h1 class="m-title m-title--28">Upgrade to Premium Access</h1>
         <span class="m-sub">Unlock all paid sessions across the platform.</span>

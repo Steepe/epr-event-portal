@@ -1,11 +1,10 @@
-<?= module_view('MobileApp', 'includes/header', ['shell' => 'tabbed', 'back' => false, 'activeTab' => 'me', 'title' => 'Profile']) ?>
+<?= module_view('MobileApp', 'includes/header', ['shell' => 'tabbed', 'back' => true, 'activeTab' => '', 'title' => 'Profile', 'screenLabel' => 'Profile']) ?>
 <?php
 $profile  = $profile ?? [];
 $name     = trim(($profile['firstname'] ?? '') . ' ' . ($profile['lastname'] ?? '')) ?: 'Attendee';
 $photo    = !empty($profile['profile_picture']) ? '/uploads/attendee_pictures/' . rawurlencode($profile['profile_picture']) : mobile_asset_url('images/user.png');
 $role     = implode(', ', array_filter([trim((string) ($profile['position'] ?? '')), trim((string) ($profile['company'] ?? ''))])) ?: 'Conference attendee';
 $location = implode(', ', array_filter([trim((string) ($profile['city'] ?? '')), trim((string) ($profile['country'] ?? ''))])) ?: 'Conference portal';
-$isPremium = (int) ($premium ?? 0) === 1;
 
 $socialBase = ['linkedin' => 'https://www.linkedin.com/in/', 'twitter' => 'https://x.com/', 'facebook' => 'https://www.facebook.com/', 'instagram' => 'https://www.instagram.com/'];
 $socialIcon = ['linkedin' => 'linkedin.svg', 'twitter' => 'x.svg', 'facebook' => 'facebook.svg', 'instagram' => 'instagram.svg'];
@@ -23,16 +22,6 @@ $fields = [
     ['City', 'city'], ['State', 'state'], ['Company', 'company'], ['Position', 'position'],
 ];
 $editFields = ['firstname', 'lastname', 'telephone', 'country', 'city', 'state', 'company', 'position', 'facebook', 'twitter', 'instagram', 'linkedin'];
-$explore    = [
-    ['fa-bell', 'Notifications', 'mobile/notifications'],
-    ['fa-star', 'Earn Points', 'mobile/points'],
-    ['fa-eye', 'Envision', 'mobile/envision'],
-    ['fa-history', 'Past Conferences', 'mobile/past-conferences'],
-    ['fa-video-camera', 'Webinars', 'mobile/webinars'],
-    ['fa-diamond', 'Sponsors', 'mobile/sponsors'],
-    ['fa-microphone', 'Emergence Booth', 'mobile/emergence-booth'],
-    ['fa-unlock-alt', $isPremium ? 'Premium Access · Active' : 'Upgrade to Premium', 'mobile/upgrade'],
-];
 ?>
 
 <div class="m-me">
@@ -59,15 +48,6 @@ $explore    = [
             <?php endforeach; ?>
         </div>
     </section>
-
-    <div class="m-me__explore">
-        <span class="m-eyebrow">Explore</span>
-        <div class="m-card m-card--clip">
-            <?php foreach ($explore as [$icon, $label, $route]): ?>
-                <a class="m-me__link" href="<?= site_url($route) ?>"><i class="fa <?= $icon ?>" aria-hidden="true"></i><span><?= esc($label) ?></span><i class="fa fa-angle-right" aria-hidden="true"></i></a>
-            <?php endforeach; ?>
-        </div>
-    </div>
 
     <a class="m-me__logout" href="<?= site_url('mobile/logout') ?>"><i class="fa fa-sign-out" aria-hidden="true"></i>Logout</a>
 </div>

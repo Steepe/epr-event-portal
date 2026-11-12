@@ -1,86 +1,11 @@
-/* EPR Mobile — shared behaviour: stage background, bottom sheets, toasts, segmented pills, notifications. */
+/* EPR Mobile — shared behaviour: bottom sheets, toasts, segmented pills, notifications, local session times.
+   The stage background is drawn by accelerate-background.js, shared with the desktop portal. */
 (function () {
     'use strict';
 
     var EPR = window.EPR = window.EPR || {};
     var $ = function (sel, root) { return (root || document).querySelector(sel); };
     var $$ = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
-
-    /* ---------- Stage background (same network animation as the design) ---------- */
-    function startBackground(cv) {
-        if (!cv || !cv.getContext) return;
-        var ctx = cv.getContext('2d');
-        var reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        var k = reduced ? 0.3 : 1, TAU = Math.PI * 2;
-        var G = '239,177,30', V = '189,92,224';
-        var BASE_W = 390, BASE_H = 844, W = BASE_W, H = BASE_H;
-        var baseNodes = [[60, 190], [300, 150], [210, 330], [70, 470], [330, 520], [180, 660], [300, 760], [60, 740]];
-        var links = [[0, 1], [0, 2], [1, 2], [2, 3], [2, 4], [3, 5], [4, 5], [5, 6], [5, 7], [1, 4]];
-        var nodes = [], edges = [], bok = [];
-
-        function layout() {
-            var rect = cv.getBoundingClientRect();
-            var dpr = Math.min(2, window.devicePixelRatio || 1);
-            W = Math.max(1, rect.width); H = Math.max(1, rect.height);
-            cv.width = W * dpr; cv.height = H * dpr;
-            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-            nodes = baseNodes.map(function (n) { return [n[0] * W / BASE_W, n[1] * H / BASE_H]; });
-            edges = links.map(function (l, i) {
-                var A = nodes[l[0]], B = nodes[l[1]], dx = B[0] - A[0], dy = B[1] - A[1], d = Math.hypot(dx, dy) || 1;
-                var C = [(A[0] + B[0]) / 2 - dy / d * d * 0.18, (A[1] + B[1]) / 2 + dx / d * d * 0.18];
-                return { A: A, B: B, C: C, rgb: i % 3 ? G : V };
-            });
-            if (!bok.length) {
-                for (var i = 0; i < 16; i++) {
-                    bok.push({ x: Math.random() * W, y: Math.random() * H, r: 2 + Math.random() * 5, vy: 4 + Math.random() * 7, ph: Math.random() * TAU, c: Math.random() < 0.5 ? G : V, a: 0.06 + Math.random() * 0.12 });
-                }
-            }
-        }
-        function at(e, t) { var u = 1 - t; return [u * u * e.A[0] + 2 * u * t * e.C[0] + t * t * e.B[0], u * u * e.A[1] + 2 * u * t * e.C[1] + t * t * e.B[1]]; }
-        function glow(x, y, r, rgb, a) {
-            var g = ctx.createRadialGradient(x, y, 0, x, y, r);
-            g.addColorStop(0, 'rgba(' + rgb + ',' + a + ')'); g.addColorStop(1, 'rgba(' + rgb + ',0)');
-            ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2);
-        }
-
-        var pulses = [], ripples = [], next = 0.5, T = 0, last = performance.now(), raf = 0;
-        function frame(now) {
-            var dt = Math.min(0.05, (now - last) / 1000) * k; last = now; T += dt;
-            ctx.clearRect(0, 0, W, H);
-            ctx.lineWidth = 1;
-            edges.forEach(function (e) { ctx.strokeStyle = 'rgba(' + e.rgb + ',0.09)'; ctx.beginPath(); ctx.moveTo(e.A[0], e.A[1]); ctx.quadraticCurveTo(e.C[0], e.C[1], e.B[0], e.B[1]); ctx.stroke(); });
-            ctx.globalCompositeOperation = 'lighter';
-            nodes.forEach(function (n, i) { var v = 0.5 + 0.5 * Math.sin(T * 0.9 + i * 1.7); glow(n[0], n[1], 10 + v * 6, G, 0.08 + v * 0.12); ctx.fillStyle = 'rgba(255,232,196,' + (0.35 + v * 0.4) + ')'; ctx.fillRect(n[0] - 1, n[1] - 1, 2, 2); });
-            next -= dt;
-            if (next <= 0 && pulses.length < 3) { pulses.push({ e: edges[Math.floor(Math.random() * edges.length)], t: 0, dir: Math.random() < 0.5 ? 1 : -1, sp: 0.22 + Math.random() * 0.12 }); next = 1.4 + Math.random() * 1.6; }
-            var i, j;
-            for (i = pulses.length - 1; i >= 0; i--) {
-                var p = pulses[i]; p.t += dt * p.sp;
-                if (p.t >= 1) { var n = p.dir > 0 ? p.e.B : p.e.A; ripples.push({ x: n[0], y: n[1], t: 0, rgb: p.e.rgb }); pulses.splice(i, 1); continue; }
-                for (j = 0; j < 10; j++) {
-                    var tt = Math.max(0, p.t - j * 0.018); if (p.dir < 0) tt = 1 - tt;
-                    var q = at(p.e, tt); ctx.globalAlpha = (1 - j / 10) * 0.7;
-                    ctx.beginPath(); ctx.arc(q[0], q[1], 2.2 - j * 0.18, 0, TAU); ctx.fillStyle = 'rgb(' + p.e.rgb + ')'; ctx.fill();
-                }
-                ctx.globalAlpha = 1; var h = at(p.e, p.dir > 0 ? p.t : 1 - p.t); glow(h[0], h[1], 16, p.e.rgb, 0.4);
-            }
-            for (i = ripples.length - 1; i >= 0; i--) {
-                var r = ripples[i]; r.t += dt; if (r.t > 1.4) { ripples.splice(i, 1); continue; }
-                var f = r.t / 1.4; ctx.strokeStyle = 'rgba(' + r.rgb + ',' + ((1 - f) * 0.45) + ')'; ctx.beginPath(); ctx.arc(r.x, r.y, 3 + f * 20, 0, TAU); ctx.stroke();
-            }
-            bok.forEach(function (b) { b.y -= b.vy * dt; if (b.y < -10) { b.y = H + 10; b.x = Math.random() * W; } ctx.globalAlpha = b.a * (0.7 + 0.3 * Math.sin(T * 0.5 + b.ph)); glow(b.x + Math.sin(T * 0.3 + b.ph) * 8, b.y, b.r * 2, b.c, 0.5); });
-            ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
-            raf = requestAnimationFrame(frame);
-        }
-
-        layout();
-        window.addEventListener('resize', layout);
-        document.addEventListener('visibilitychange', function () {
-            cancelAnimationFrame(raf);
-            if (!document.hidden) { last = performance.now(); raf = requestAnimationFrame(frame); }
-        });
-        raf = requestAnimationFrame(frame);
-    }
 
     /* ---------- Toast ---------- */
     var toastTimer = 0;
@@ -281,8 +206,6 @@
 
     /* ---------- Boot ---------- */
     document.addEventListener('DOMContentLoaded', function () {
-        startBackground($('#mStage'));
-
         document.addEventListener('click', function (event) {
             var opener = event.target.closest('[data-open-sheet]');
             if (opener) { event.preventDefault(); EPR.openSheet(opener.getAttribute('data-open-sheet')); return; }

@@ -1,4 +1,4 @@
-<?= module_view('MobileApp', 'includes/header', ['shell' => 'tabbed', 'back' => site_url('mobile/welcome'), 'activeTab' => 'me', 'title' => 'Webinars']) ?>
+<?= module_view('MobileApp', 'includes/header', ['shell' => 'tabbed', 'back' => site_url('mobile/welcome'), 'activeTab' => 'explore', 'title' => 'Webinars', 'screenLabel' => 'Webinars']) ?>
 <?php $timezone = $timezone ?? 'Africa/Lagos'; ?>
 
 <div class="m-screen">

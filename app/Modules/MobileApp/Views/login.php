@@ -1,4 +1,4 @@
-<?= module_view('MobileApp', 'includes/header', ['shell' => 'bare', 'back' => false, 'activeTab' => '', 'title' => 'Login']) ?>
+<?= module_view('MobileApp', 'includes/header', ['shell' => 'bare', 'back' => false, 'activeTab' => '', 'title' => 'Login', 'screenLabel' => 'Login']) ?>
 
 <div class="m-auth">
     <img class="m-auth__logo" src="<?= mobile_asset_url('images/eventslogo.png') ?>" alt="EPR Events">

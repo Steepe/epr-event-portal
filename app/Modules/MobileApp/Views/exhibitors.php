@@ -1,4 +1,4 @@
-<?= module_view('MobileApp', 'includes/header', ['shell' => 'tabbed', 'back' => false, 'activeTab' => 'exhibitors', 'title' => 'Exhibitors']) ?>
+<?= module_view('MobileApp', 'includes/header', ['shell' => 'tabbed', 'back' => site_url('mobile/explore'), 'activeTab' => 'explore', 'title' => 'Exhibitors', 'screenLabel' => 'Exhibitors']) ?>
 <?php $exhibitors = $exhibitors ?? []; $fallbackLogo = mobile_asset_url('images/eventslogo.png'); ?>
 
 <div class="m-screen">

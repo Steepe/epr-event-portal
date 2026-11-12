@@ -1,4 +1,4 @@
-<?= module_view('MobileApp', 'includes/header', ['shell' => 'tabbed', 'back' => false, 'activeTab' => 'agenda', 'title' => 'Agenda']) ?>
+<?= module_view('MobileApp', 'includes/header', ['shell' => 'tabbed', 'back' => false, 'activeTab' => 'agenda', 'title' => 'Agenda', 'screenLabel' => 'Agenda']) ?>
 <?php
 $sessionsByDate = [];
 foreach (($sessions ?? []) as $item) {

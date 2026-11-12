@@ -37,6 +37,19 @@ class NetworkingCenter extends BaseController
         }
         unset($attendee);
 
+        // A–Z by first name then last name, ignoring case and stray spaces; unnamed attendees go last.
+        $sortKey = static fn (array $row): string => mb_strtolower(trim(trim((string) ($row['firstname'] ?? '')) . ' ' . trim((string) ($row['lastname'] ?? ''))));
+        usort($attendees, static function (array $a, array $b) use ($sortKey): int {
+            $nameA = $sortKey($a);
+            $nameB = $sortKey($b);
+
+            if (($nameA === '') !== ($nameB === '')) {
+                return $nameA === '' ? 1 : -1;
+            }
+
+            return strnatcmp($nameA, $nameB) ?: ((int) $a['attendee_id'] <=> (int) $b['attendee_id']);
+        });
+
         return module_view('MobileApp', 'networking_center', [
             'activeTab' => $tab,
             'attendees' => $attendees,

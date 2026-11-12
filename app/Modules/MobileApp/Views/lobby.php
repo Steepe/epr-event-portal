@@ -1,4 +1,4 @@
-<?= module_view('MobileApp', 'includes/header', ['shell' => 'tabbed', 'back' => false, 'activeTab' => 'lobby', 'title' => 'Lobby']) ?>
+<?= module_view('MobileApp', 'includes/header', ['shell' => 'tabbed', 'back' => false, 'activeTab' => 'lobby', 'title' => 'Lobby', 'screenLabel' => 'Lobby']) ?>
 <?php
 $agendaUrl      = !empty($conferenceId) ? site_url('mobile/agenda/' . $conferenceId) : site_url('mobile/home');
 $conferenceYear = (string) ($conference['year'] ?? date('Y'));

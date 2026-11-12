@@ -1,8 +1,8 @@
-<?= module_view('MobileApp', 'includes/header', ['shell' => 'tabbed', 'back' => site_url('mobile/profile'), 'activeTab' => 'me', 'title' => 'Envision']) ?>
+<?= module_view('MobileApp', 'includes/header', ['shell' => 'tabbed', 'back' => site_url('mobile/explore'), 'activeTab' => 'explore', 'title' => 'Envision', 'screenLabel' => 'Envision']) ?>
 
 <div class="m-screen">
     <div class="m-head">
-        <a class="m-backlink" href="<?= site_url('mobile/profile') ?>" data-back="<?= site_url('mobile/profile') ?>"><i class="fa fa-long-arrow-left" aria-hidden="true"></i>BACK</a>
+        <a class="m-backlink" href="<?= site_url('mobile/explore') ?>" data-back="<?= site_url('mobile/explore') ?>"><i class="fa fa-long-arrow-left" aria-hidden="true"></i>BACK</a>
         <span class="m-kicker">Accelerate Practice</span>
         <h1 class="m-title m-title--28">Vision Birthing Exercise</h1>
         <span class="m-sub">A guided video exercise for clarifying execution goals.</span>

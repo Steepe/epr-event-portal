@@ -1,4 +1,4 @@
-<?= module_view('MobileApp', 'includes/header', ['shell' => 'bare', 'back' => false, 'activeTab' => '', 'title' => 'Register']) ?>
+<?= module_view('MobileApp', 'includes/header', ['shell' => 'bare', 'back' => false, 'activeTab' => '', 'title' => 'Register', 'screenLabel' => 'Register']) ?>
 
 <div class="m-register">
     <img class="m-register__logo" src="<?= mobile_asset_url('images/eventslogo.png') ?>" alt="EPR Events">

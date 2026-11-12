@@ -1,4 +1,4 @@
-<?= module_view('MobileApp', 'includes/header', ['shell' => 'tabbed', 'back' => site_url('mobile/welcome'), 'activeTab' => 'me', 'title' => 'Past Conferences']) ?>
+<?= module_view('MobileApp', 'includes/header', ['shell' => 'tabbed', 'back' => site_url('mobile/welcome'), 'activeTab' => 'explore', 'title' => 'Past Conferences', 'screenLabel' => 'Past Conferences']) ?>
 
 <div class="m-past">
     <a class="m-backlink" href="<?= site_url('mobile/welcome') ?>" data-back="<?= site_url('mobile/welcome') ?>"><i class="fa fa-long-arrow-left" aria-hidden="true"></i>BACK</a>

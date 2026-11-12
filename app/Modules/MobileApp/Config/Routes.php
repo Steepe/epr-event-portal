@@ -60,6 +60,7 @@ $routes->group('mobile', ['namespace' => 'App\Modules\MobileApp\Controllers'], [
     $routes->get('emergence-booth/chat/(:num)', '\App\Modules\Web\Controllers\EmergenceBoothController::chatMessages/$1');
     $routes->post('emergence-booth/chat/(:num)', '\App\Modules\Web\Controllers\EmergenceBoothController::sendChat/$1');
 
+    $routes->get('explore', 'Explore::index');
     $routes->get('notifications', 'Notifications::index');
     $routes->get('upgrade', 'Upgrade::index');
 
