@@ -25,6 +25,10 @@ $routes->group('mobile', ['namespace' => 'App\Modules\MobileApp\Controllers'], s
     $routes->get('forgot-password', 'Auth::forgotPassword');
     $routes->get('reset-password', 'Auth::resetPassword');
     $routes->get('reset-password/(:any)', 'Auth::resetPassword/$1');
+
+    // Where the payment gateways send phones back to
+    $routes->get('payment/success', 'PaymentResult::success');
+    $routes->get('payment/cancelled', 'PaymentResult::cancelled');
 });
 
 

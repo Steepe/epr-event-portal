@@ -33,6 +33,7 @@ class Filters extends BaseFilters
         'adminAudit' => \App\Filters\AdminAudit::class,
         'role' => \App\Filters\RoleFilter::class,
         'mobileauth' => \App\Filters\MobileAuthFilter::class,
+        'mobileredirect' => \App\Filters\MobileRedirect::class,
         'PremiumAccess' => \App\Filters\PremiumAccess::class,
         ];
 
@@ -58,5 +59,7 @@ class Filters extends BaseFilters
     // ✅ Apply your unified API filter to all /api/* routes
     public array $filters = [
         'apiauth' => ['before' => ['api/*']],
+        // Phones opening a desktop attendee page are sent to the matching mobile screen.
+        'mobileredirect' => ['before' => ['attendees/*']],
     ];
 }

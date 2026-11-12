@@ -664,7 +664,7 @@ body.m-app.is-locked { overflow: hidden; }
 .m-checkout__icon.is-warn { background: rgba(239, 177, 30, .14); color: var(--m-gold); }
 .m-checkout__title { font-size: 24px; font-weight: 600; }
 .m-checkout p { max-width: 300px; color: rgba(255, 255, 255, .72); font-size: 13px; line-height: 1.6; }
-.m-checkout__receipt { color: var(--m-gold); font-family: var(--m-mono); font-size: 11px; letter-spacing: .14em; }
+.m-checkout__receipt { color: var(--m-gold); font-family: var(--m-mono); font-size: 11px; letter-spacing: .14em; overflow-wrap: anywhere; }
 .m-checkout .m-btn { margin-top: 8px; }
 
 /* ---------- Points / envision ---------- */
