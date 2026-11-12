@@ -1,6 +1,9 @@
 <?= module_view('MobileApp', 'includes/header', ['shell' => 'tabbed', 'back' => false, 'activeTab' => 'network', 'title' => 'Networking Center', 'screenLabel' => 'Networking Center']) ?>
 <?php
-$isSpeakers  = ($activeTab ?? 'attendees') === 'speakers';
+$netTab       = in_array($activeTab ?? '', ['speakers', 'communities'], true) ? $activeTab : 'attendees';
+$communities  = $communities ?? [];
+$placeholders = ['attendees' => 'Search attendees or companies', 'speakers' => 'Search speakers', 'communities' => 'Search countries or managers'];
+$initialsOf   = static fn (string $name): string => implode('', array_map(static fn ($part) => mb_strtoupper(mb_substr($part, 0, 1)), array_slice(array_values(array_filter(preg_split('/\s+/', trim($name)) ?: [])), 0, 2)));
 
 // Attendees are sent as compact rows and drawn in batches on the device, so a large
 // attendee list does not turn into a multi-megabyte page.
@@ -26,26 +29,27 @@ foreach (($attendees ?? []) as $person) {
         <h1 class="m-title m-title--30">Networking Center</h1>
     </div>
 
-    <div class="m-seg" role="tablist" id="netTabs">
-        <button type="button" role="tab" class="<?= $isSpeakers ? '' : 'is-active' ?>" aria-selected="<?= $isSpeakers ? 'false' : 'true' ?>" data-net-tab="attendees">ATTENDEES</button>
-        <button type="button" role="tab" class="<?= $isSpeakers ? 'is-active' : '' ?>" aria-selected="<?= $isSpeakers ? 'true' : 'false' ?>" data-net-tab="speakers">SPEAKERS</button>
+    <div class="m-seg m-seg--12" role="tablist" id="netTabs">
+        <?php foreach (['attendees' => 'ATTENDEES', 'speakers' => 'SPEAKERS', 'communities' => 'COMMUNITIES'] as $key => $label): ?>
+            <button type="button" role="tab" class="<?= $netTab === $key ? 'is-active' : '' ?>" aria-selected="<?= $netTab === $key ? 'true' : 'false' ?>" data-net-tab="<?= $key ?>"><?= $label ?></button>
+        <?php endforeach; ?>
     </div>
 
-    <div class="m-field">
+    <div class="m-field" id="netSearchField">
         <i class="fa fa-search" aria-hidden="true"></i>
-        <input class="m-input m-search" id="netSearch" type="search" placeholder="<?= $isSpeakers ? 'Search speakers' : 'Search attendees or companies' ?>" aria-label="Search">
+        <input class="m-input m-search" id="netSearch" type="search" placeholder="<?= esc($placeholders[$netTab], 'attr') ?>" aria-label="Search">
     </div>
 
-    <div class="m-chips" id="netFilters"<?= $isSpeakers ? ' hidden' : '' ?>>
+    <div class="m-chips" id="netFilters"<?= $netTab === 'attendees' ? '' : ' hidden' ?>>
         <button class="m-chip is-active" type="button" data-net-filter="all">All</button>
         <button class="m-chip" type="button" data-net-filter="online">Online now</button>
         <button class="m-chip" type="button" data-net-filter="pending">Requested</button>
     </div>
 
-    <div class="m-stack" id="netAttendees" style="gap:16px"<?= $isSpeakers ? ' hidden' : '' ?>></div>
+    <div class="m-stack" id="netAttendees" style="gap:16px"<?= $netTab === 'attendees' ? '' : ' hidden' ?>></div>
     <div id="netMore" aria-hidden="true" style="height:1px"></div>
 
-    <div class="m-stack" id="netSpeakers" style="gap:16px"<?= $isSpeakers ? '' : ' hidden' ?>>
+    <div class="m-stack" id="netSpeakers" style="gap:16px"<?= $netTab === 'speakers' ? '' : ' hidden' ?>>
         <?php foreach (($speakers ?? []) as $speaker): ?>
             <?php
             $title    = trim(($speaker['speaker_title'] ?? '') . (!empty($speaker['speaker_company']) ? ', ' . $speaker['speaker_company'] : ''), ', ');
@@ -63,8 +67,71 @@ foreach (($attendees ?? []) as $person) {
         <?php endforeach; ?>
     </div>
 
+    <div class="m-stack" id="netCommunities" style="gap:16px"<?= $netTab === 'communities' ? '' : ' hidden' ?>>
+        <?php if (! ($communitiesReady ?? false)): ?>
+            <div class="m-card m-info m-info--20"><b>Communities are being prepared.</b><span>Please check back shortly.</span></div>
+        <?php elseif (! $communities): ?>
+            <div class="m-card m-info m-info--20"><b>Country communities are coming soon.</b><span>EPR Country Managers will appear here as each community opens.</span></div>
+        <?php else: ?>
+            <span class="m-sub">Find your country community, message its EPR Country Manager and join the conversation.</span>
+        <?php endif; ?>
+        <?php foreach ($communities as $community): ?>
+            <?php
+            $country      = trim((string) $community['country']);
+            $managerName  = trim((string) ($community['manager_name'] ?? '')) ?: 'EPR Country Manager';
+            $managerTitle = trim((string) ($community['manager_title'] ?? '')) ?: 'EPR Country Manager';
+            $managerPhoto = !empty($community['manager_photo']) ? base_url(ltrim((string) $community['manager_photo'], '/')) : '';
+            $joinLink     = preg_match('#^https?://#i', (string) ($community['whatsapp_url'] ?? '')) ? (string) $community['whatsapp_url'] : '';
+            $joinQr       = !empty($community['whatsapp_qr_path']) ? base_url(ltrim((string) $community['whatsapp_qr_path'], '/')) : '';
+            $unread       = (int) ($community['unread'] ?? 0);
+            ?>
+            <article class="m-card m-card--20 m-community" data-community="<?= (int) $community['community_id'] ?>"
+                     data-country="<?= esc($country, 'attr') ?>" data-manager="<?= esc($managerName, 'attr') ?>"
+                     data-search="<?= esc(mb_strtolower($country . ' ' . $managerName), 'attr') ?>">
+                <div class="m-community__top">
+                    <span class="m-community__country"><i class="fa fa-map-marker" aria-hidden="true"></i><?= esc($country) ?></span>
+                    <?php if (!empty($community['is_home'])): ?><span class="m-pillcount">YOUR COUNTRY</span><?php endif; ?>
+                </div>
+                <div class="m-community__manager">
+                    <span class="m-avatar m-community__photo"><?php if ($managerPhoto !== ''): ?><img src="<?= esc($managerPhoto, 'attr') ?>" alt="<?= esc($managerName, 'attr') ?>" loading="lazy" data-initials="<?= esc($initialsOf($managerName), 'attr') ?>" onerror="this.replaceWith(document.createTextNode(this.dataset.initials))"><?php else: ?><?= esc($initialsOf($managerName)) ?><?php endif; ?></span>
+                    <div class="m-attendee__id"><b><?= esc($managerName) ?></b><span><?= esc($managerTitle) ?></span></div>
+                </div>
+                <div class="m-community__actions">
+                    <button class="m-connect" type="button" data-community-chat><i class="fa fa-comment" aria-hidden="true"></i><span>Chat with manager</span><?php if ($unread > 0): ?><em class="m-community__unread" aria-label="<?= $unread ?> unread"><?= $unread ?></em><?php endif; ?></button>
+                    <?php if ($joinLink !== ''): ?>
+                        <a class="m-connect m-connect--join" href="<?= esc($joinLink, 'attr') ?>" target="_blank" rel="noopener"><i class="fa fa-whatsapp" aria-hidden="true"></i><span>Join community</span></a>
+                    <?php elseif ($joinQr !== ''): ?>
+                        <button class="m-connect m-connect--join" type="button" data-community-qr="<?= esc($joinQr, 'attr') ?>"><i class="fa fa-qrcode" aria-hidden="true"></i><span>Join community</span></button>
+                    <?php endif; ?>
+                </div>
+            </article>
+        <?php endforeach; ?>
+    </div>
+
     <div class="m-empty" id="netEmpty" hidden>No matches. Try a different name.</div>
 </div>
+
+<aside class="m-sheet" data-sheet="communityChat" role="dialog" aria-modal="true" aria-label="Chat with Country Manager" hidden>
+    <div class="m-sheet__grip"></div>
+    <div class="m-memberchat">
+        <header class="m-memberchat__head"><b id="communityChatName">Chat with Country Manager</b><button class="m-x" type="button" data-close-sheet aria-label="Close chat">×</button></header>
+        <div class="m-memberchat__list" id="communityChatList"></div>
+        <form class="m-memberchat__form" id="communityChatForm" autocomplete="off">
+            <input class="m-input" id="communityChatInput" maxlength="2000" placeholder="Type a message…" aria-label="Message">
+            <button type="submit">Send</button>
+        </form>
+    </div>
+</aside>
+
+<aside class="m-sheet" data-sheet="communityJoin" role="dialog" aria-modal="true" aria-label="Join community" hidden>
+    <div class="m-sheet__grip"></div>
+    <div class="m-sheet__bar"><b id="communityJoinTitle">Join community</b><button class="m-x" type="button" data-close-sheet aria-label="Close">×</button></div>
+    <div class="m-sheet__pad m-community__join">
+        <img id="communityJoinQr" src="" alt="WhatsApp community QR code">
+        <span class="m-sub">Scan this code with WhatsApp to join. If WhatsApp is on this phone, save the code and scan it from another screen, or ask the Country Manager for the link.</span>
+        <a class="m-btn m-btn--46" id="communityJoinSave" href="#" download><i class="fa fa-download" aria-hidden="true"></i>Save QR code</a>
+    </div>
+</aside>
 
 <aside class="m-sheet" data-sheet="person" role="dialog" aria-modal="true" aria-label="Attendee profile" hidden>
     <div class="m-sheet__grip"></div>
@@ -115,10 +182,12 @@ document.addEventListener('DOMContentLoaded', function () {
     var q = function (sel, root) { return (root || document).querySelector(sel); };
     var all = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
 
-    var tab = <?= json_encode($isSpeakers ? 'speakers' : 'attendees') ?>, filter = 'all';
+    var tab = <?= json_encode($netTab) ?>, filter = 'all';
+    var placeholders = <?= json_encode($placeholders) ?>;
     var search = q('#netSearch'), empty = q('#netEmpty');
     var attendeeList = q('#netAttendees'), speakerList = q('#netSpeakers'), filters = q('#netFilters');
     var speakers = all('[data-speaker]');
+    var communityList = q('#netCommunities'), communities = all('[data-community]');
     var tones = ['#9d0f82', '#742c76', '#d8198e'];
     var labels = { none: ['', 'fa-user-plus', 'Connect'], incoming: ['', 'fa-user-plus', 'Accept'], pending: ['is-pending', 'fa-clock-o', 'Pending'], connected: ['is-connected', 'fa-check', 'Connected'] };
     var people = <?= json_encode($attendeeRows, JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE) ?>.map(function (row, index) {
@@ -176,7 +245,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function apply() {
         var term = search.value.trim().toLowerCase(), visible = 0;
-        attendeeList.hidden = tab !== 'attendees'; speakerList.hidden = tab !== 'speakers'; filters.hidden = tab !== 'attendees';
+        attendeeList.hidden = tab !== 'attendees'; speakerList.hidden = tab !== 'speakers'; communityList.hidden = tab !== 'communities'; filters.hidden = tab !== 'attendees';
+        // With no communities to search, the tab shows its own notice instead of the search box.
+        q('#netSearchField').hidden = tab === 'communities' && !communities.length;
         if (tab === 'attendees') {
             matches = people.filter(function (person) {
                 return (filter === 'all' || (filter === 'online' && person.online === '1') || (filter === 'pending' && person.state === 'pending'))
@@ -185,7 +256,8 @@ document.addEventListener('DOMContentLoaded', function () {
             attendeeList.textContent = ''; shown = 0; more();
             visible = matches.length;
         } else {
-            speakers.forEach(function (card) { var show = !term || card.dataset.search.indexOf(term) !== -1; card.hidden = !show; if (show) visible++; });
+            (tab === 'speakers' ? speakers : communities).forEach(function (card) { var show = !term || card.dataset.search.indexOf(term) !== -1; card.hidden = !show; if (show) visible++; });
+            if (tab === 'communities' && !communities.length) visible = 1;
         }
         empty.hidden = visible > 0;
     }
@@ -193,7 +265,7 @@ document.addEventListener('DOMContentLoaded', function () {
     all('[data-net-tab]').forEach(function (button) {
         button.addEventListener('click', function () {
             tab = button.dataset.netTab; search.value = '';
-            search.placeholder = tab === 'attendees' ? 'Search attendees or companies' : 'Search speakers';
+            search.placeholder = placeholders[tab];
             all('[data-net-tab]').forEach(function (b) { b.classList.toggle('is-active', b === button); b.setAttribute('aria-selected', b === button ? 'true' : 'false'); });
             apply();
         });
@@ -275,7 +347,59 @@ document.addEventListener('DOMContentLoaded', function () {
         }).then(function () { button.disabled = false; });
     });
 
+    /* Communities: chat with the Country Manager, join on WhatsApp */
+    var chatUrl = <?= json_encode(site_url('mobile/communities/chat')) ?> + '/';
+    var chatList = q('#communityChatList'), chatInput = q('#communityChatInput');
+    var communityId = null, chatPoller = 0, chatSignature = '';
+    function renderChat(rows) {
+        var next = JSON.stringify(rows);
+        if (next === chatSignature) return;
+        chatSignature = next;
+        chatList.textContent = '';
+        if (!rows.length) chatList.appendChild(el('span', 'm-chat__empty', 'Send a message to start the conversation. Replies appear here.'));
+        rows.forEach(function (row) { chatList.appendChild(el('div', 'm-memberchat__msg' + (row.sender_type === 'attendee' ? ' is-mine' : ''), row.message)); });
+        chatList.scrollTop = chatList.scrollHeight;
+    }
+    function loadChat() {
+        if (!communityId || document.hidden) return;
+        var id = communityId;
+        fetch(chatUrl + id, { credentials: 'same-origin', headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(function (res) { if (!res.ok) throw new Error(); return res.json(); })
+            .then(function (data) { if (id === communityId) renderChat(data.data || []); })
+            .catch(function () { /* keep the last messages on screen */ });
+    }
+    q('.m-sheet[data-sheet="communityChat"]').addEventListener('sheet:close', function () { clearInterval(chatPoller); communityId = null; });
+    q('#communityChatForm').addEventListener('submit', function (event) {
+        event.preventDefault();
+        var message = chatInput.value.trim();
+        if (!message || !communityId) return;
+        chatInput.value = '';
+        EPR.post(chatUrl + communityId, { message: message }).then(function (res) {
+            if (!res.ok || !res.body || res.body.status !== 'success') { EPR.toast((res.body && res.body.message) || 'Unable to send your message.', true); chatInput.value = message; return; }
+            chatSignature = ''; loadChat();
+        }).catch(function () { EPR.toast('Unable to send your message.', true); chatInput.value = message; });
+    });
+
     document.addEventListener('click', function (event) {
+        var chatButton = event.target.closest('[data-community-chat]');
+        if (chatButton) {
+            var community = chatButton.closest('[data-community]');
+            communityId = community.dataset.community; chatSignature = '';
+            q('#communityChatName').textContent = 'Chat with ' + community.dataset.manager;
+            chatList.textContent = ''; chatInput.value = '';
+            var badge = q('.m-community__unread', chatButton); if (badge) badge.remove();
+            EPR.openSheet('communityChat');
+            loadChat(); clearInterval(chatPoller); chatPoller = setInterval(loadChat, 3000);
+            return;
+        }
+        var qrButton = event.target.closest('[data-community-qr]');
+        if (qrButton) {
+            var qrUrl = qrButton.getAttribute('data-community-qr');
+            q('#communityJoinTitle').textContent = 'Join ' + qrButton.closest('[data-community]').dataset.country + ' community';
+            q('#communityJoinQr').src = qrUrl; q('#communityJoinSave').href = qrUrl;
+            EPR.openSheet('communityJoin');
+            return;
+        }
         var card = event.target.closest('[data-person]');
         if (card) {
             if (event.target.closest('[data-person-view]')) { fillPerson(card); EPR.openSheet('person'); }

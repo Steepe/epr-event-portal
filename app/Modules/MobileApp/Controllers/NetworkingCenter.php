@@ -23,7 +23,8 @@ class NetworkingCenter extends BaseController
         }
 
         $userId = (int) session('user_id');
-        $tab    = $this->request->getGet('tab') === 'speakers' ? 'speakers' : 'attendees';
+        $tab    = (string) $this->request->getGet('tab');
+        $tab    = in_array($tab, ['speakers', 'communities'], true) ? $tab : 'attendees';
 
         $attendees = (new AttendeeModel())->getAttendees($userId);
         $speakers  = (new SpeakersModel())->getAllSpeakers();
@@ -54,7 +55,71 @@ class NetworkingCenter extends BaseController
             'activeTab' => $tab,
             'attendees' => $attendees,
             'speakers'  => $speakers,
-        ]);
+        ] + $this->communities());
+    }
+
+    /**
+     * mobile/communities opens the Networking Center on its Communities tab.
+     */
+    public function communitiesTab()
+    {
+        return redirect()->to(site_url('mobile/networking-center?tab=communities'));
+    }
+
+    /**
+     * Country communities for the Communities tab: each active country with its manager,
+     * its WhatsApp link or QR code, and how many manager replies this attendee has not read.
+     * The attendee's own country is listed first.
+     *
+     * @return array{communitiesReady: bool, communities: list<array<string, mixed>>}
+     */
+    private function communities(): array
+    {
+        try {
+            $db = db_connect();
+
+            if (! $db->tableExists('tbl_country_communities') || ! $db->tableExists('tbl_country_community_messages')) {
+                return ['communitiesReady' => false, 'communities' => []];
+            }
+
+            $communities = $db->table('tbl_country_communities c')
+                ->select('c.community_id, c.country, c.manager_title, c.manager_photo, c.whatsapp_url, c.whatsapp_qr_path, a.name AS manager_name')
+                ->join('tbl_admins a', 'a.id = c.manager_admin_id', 'left')
+                ->where('c.is_active', 1)
+                ->orderBy('c.sort_order')
+                ->orderBy('c.country')
+                ->get()->getResultArray();
+
+            // Same attendee id the chat endpoints store messages under.
+            $attendeeId = (int) (session('attendee_id') ?: session('user_id'));
+            $unread     = [];
+            $rows       = $db->table('tbl_country_community_messages')
+                ->select('community_id, COUNT(*) AS total')
+                ->where('attendee_id', $attendeeId)
+                ->where('sender_type', 'admin')
+                ->where('read_at IS NULL', null, false)
+                ->groupBy('community_id')
+                ->get()->getResultArray();
+            foreach ($rows as $row) {
+                $unread[(int) $row['community_id']] = (int) $row['total'];
+            }
+
+            $home = mb_strtolower(trim((string) session('reg_country')));
+            foreach ($communities as &$community) {
+                $community['unread']  = $unread[(int) $community['community_id']] ?? 0;
+                $community['is_home'] = $home !== '' && mb_strtolower(trim((string) $community['country'])) === $home;
+            }
+            unset($community);
+
+            // Stable: keeps the admin's display order within each group.
+            usort($communities, static fn (array $a, array $b): int => (int) $b['is_home'] <=> (int) $a['is_home']);
+
+            return ['communitiesReady' => true, 'communities' => $communities];
+        } catch (\Throwable $e) {
+            log_message('error', '[Mobile NetworkingCenter] ' . $e->getMessage());
+
+            return ['communitiesReady' => false, 'communities' => []];
+        }
     }
 
     /**

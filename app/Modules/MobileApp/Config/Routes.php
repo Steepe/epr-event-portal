@@ -32,7 +32,8 @@ $routes->group('mobile', ['namespace' => 'App\Modules\MobileApp\Controllers'], s
 });
 
 
-$routes->group('mobile', ['namespace' => 'App\Modules\MobileApp\Controllers'], ['filter' => 'mobileauth'], function ($routes) {
+// The filter has to sit in the same options array as the namespace: a second array is ignored.
+$routes->group('mobile', ['namespace' => 'App\Modules\MobileApp\Controllers', 'filter' => 'mobileauth'], function ($routes) {
     $routes->get('welcome', 'Welcome::index');
     $routes->get('home', 'Home::index');
     $routes->get('lobby', 'Lobby::index');
@@ -46,6 +47,11 @@ $routes->group('mobile', ['namespace' => 'App\Modules\MobileApp\Controllers'], [
     $routes->get('pastConference/session/(:num)', 'PastConference::viewSession/$1');
 
     $routes->get('networking-center', 'NetworkingCenter::index');
+
+    // Country communities live in the Networking Center; manager chat reuses the desktop portal handlers
+    $routes->get('communities', 'NetworkingCenter::communitiesTab');
+    $routes->get('communities/chat/(:num)', '\App\Modules\Web\Controllers\CommunityController::chatMessages/$1');
+    $routes->post('communities/chat/(:num)', '\App\Modules\Web\Controllers\CommunityController::sendChat/$1');
 
     $routes->get('attendees', 'Attendees::index');
     $routes->get('speakers', 'SpeakersController::index');

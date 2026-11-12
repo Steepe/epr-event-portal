@@ -29,6 +29,7 @@ class MobileRedirect implements FilterInterface
         'attendees/networking_center'  => 'mobile/networking-center',
         'attendees/attendees'          => 'mobile/networking-center',
         'attendees/speakers'           => 'mobile/networking-center?tab=speakers',
+        'attendees/communities'        => 'mobile/networking-center?tab=communities',
         'attendees/sponsors'           => 'mobile/sponsors',
         'attendees/exhibitors'         => 'mobile/exhibitors',
         'attendees/emergence_booth'    => 'mobile/emergence-booth',

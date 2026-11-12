@@ -159,7 +159,7 @@ class CommunitiesController extends BaseController
         if ($country === '' || mb_strlen($country) > 120 || ! $managerId) {
             return redirect()->back()->withInput()->with('error', 'Choose a country and its active Country Manager.');
         }
-        if ($whatsappUrl !== '' && ! filter_var($whatsappUrl, FILTER_VALIDATE_URL)) {
+        if ($whatsappUrl !== '' && (! filter_var($whatsappUrl, FILTER_VALIDATE_URL) || ! preg_match('#^https?://#i', $whatsappUrl))) {
             return redirect()->back()->withInput()->with('error', 'Enter a valid WhatsApp community link.');
         }
         if (! $db->table('tbl_admins')->where('id', $managerId)->where('status', 'active')->countAllResults()) {

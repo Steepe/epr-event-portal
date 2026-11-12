@@ -5,7 +5,7 @@ namespace App\Modules\MobileApp\Libraries;
 /**
  * Notifications shown in the mobile bell sheet and on the notifications screen.
  * Mirrors the sources used by the desktop portal: pending connection requests
- * and admin portal messages.
+ * and admin portal messages, plus unread replies from Country Managers.
  */
 class MobileNotifications
 {
@@ -67,6 +67,31 @@ class MobileNotifications
                 foreach ($messages as $message) {
                     $body    = trim(preg_replace('/\s+/', ' ', strip_tags((string) ($message['body'] ?? ''))) ?? '');
                     $items[] = self::item('msg-' . (int) $message['delivery_id'], 'Messages', empty($message['read_at']), (string) ($message['subject'] ?: 'Message from EPR Global'), $body, $message['created_at'] ?? null);
+                }
+            }
+
+            // Replies from a Country Manager that have not been opened yet, newest per community.
+            if ($db->tableExists('tbl_country_communities') && $db->tableExists('tbl_country_community_messages')) {
+                $replies = $db->table('tbl_country_community_messages m')
+                    ->select('m.community_message_id, m.community_id, m.message, m.created_at, c.country')
+                    ->join('tbl_country_communities c', 'c.community_id = m.community_id', 'inner')
+                    ->where('m.attendee_id', $userId)
+                    ->where('m.sender_type', 'admin')
+                    ->where('m.read_at IS NULL', null, false)
+                    ->where('c.is_active', 1)
+                    ->orderBy('m.community_message_id', 'DESC')
+                    ->limit(50)
+                    ->get()
+                    ->getResultArray();
+
+                $seen = [];
+                foreach ($replies as $reply) {
+                    if (isset($seen[$reply['community_id']])) {
+                        continue;
+                    }
+                    $seen[$reply['community_id']] = true;
+                    $body    = trim(preg_replace('/\s+/', ' ', (string) $reply['message']) ?? '');
+                    $items[] = self::item('community-' . (int) $reply['community_message_id'], 'Messages', true, 'Reply from your ' . $reply['country'] . ' Country Manager', $body . ' — open Communities in the Networking Center to reply.', $reply['created_at'] ?? null);
                 }
             }
         } catch (\Throwable $e) {

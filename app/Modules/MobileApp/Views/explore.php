@@ -3,6 +3,7 @@
 $isPremium = (int) ($premium ?? 0) === 1;
 $explore   = [
     ['fa-bell', 'Notifications', 'mobile/notifications'],
+    ['fa-globe', 'Communities', 'mobile/networking-center?tab=communities'],
     ['fa-star', 'Earn Points', 'mobile/points'],
     ['fa-eye', 'Envision', 'mobile/envision'],
     ['fa-history', 'Past Conferences', 'mobile/past-conferences'],

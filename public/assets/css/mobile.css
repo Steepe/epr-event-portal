@@ -474,6 +474,20 @@ body.m-app.is-locked { overflow: hidden; }
 .m-connect.is-connected { border-color: rgba(74, 222, 128, .5); background: transparent; color: #4ade80; }
 .m-iconbtn { display: inline-flex; width: 40px; height: 40px; padding: 0; flex: none; align-items: center; justify-content: center; border: 1px solid rgba(255, 255, 255, .30); border-radius: 12px; background: transparent; color: #fff; font-size: 16px; }
 .m-iconbtn:hover { border-color: var(--m-gold); color: var(--m-gold); }
+
+/* country communities (Networking Center) */
+.m-community { display: flex; padding: 16px; flex-direction: column; gap: 14px; }
+.m-community__top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.m-community__country { display: inline-flex; min-width: 0; align-items: center; gap: 8px; color: var(--m-gold); font-family: var(--m-mono); font-size: 12px; letter-spacing: .16em; text-transform: uppercase; }
+.m-community__manager { display: flex; align-items: center; gap: 14px; }
+.m-community__photo { width: 64px; height: 64px; border: 2px solid rgba(239, 177, 30, .38); font-size: 20px; }
+.m-community__actions { display: flex; flex-direction: column; gap: 10px; }
+.m-community__actions .m-connect { position: relative; width: 100%; flex: none; }
+.m-app a.m-connect { color: #fff; }
+.m-connect--join { border-color: rgba(37, 211, 102, .55); background: rgba(37, 211, 102, .18); }
+.m-community__unread { position: absolute; top: -7px; right: -5px; display: inline-flex; min-width: 20px; height: 20px; padding: 0 5px; align-items: center; justify-content: center; border: 2px solid #1d0b20; border-radius: 999px; background: var(--m-gold); color: #1d0b20; font-size: 11px; font-style: normal; font-weight: 700; }
+.m-community__join { align-items: center; text-align: center; }
+.m-community__join img { width: min(240px, 100%); padding: 10px; border-radius: 14px; background: #fff; }
 .m-speaker { display: flex; padding: 16px; align-items: center; gap: 14px; }
 .m-speaker > img { width: 60px; height: 60px; flex: none; border: 3px solid rgba(239, 177, 30, .38); border-radius: 50%; object-fit: cover; }
 .m-speaker > div { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: 2px; }
