@@ -193,7 +193,7 @@ document.addEventListener("DOMContentLoaded", () => {
             .catch(() => {});
     }
 
-    sessionPlay?.addEventListener("click", function() {
+    function startSessionVideo() {
         const zoomJoinUrl = sessionVideo?.dataset.zoomJoinUrl || "";
         const src = sessionVideo?.dataset.videoSrc || "";
         if ((!src && !zoomJoinUrl) || sessionVideo.querySelector("iframe")) {
@@ -207,7 +207,18 @@ document.addEventListener("DOMContentLoaded", () => {
         iframe.allowFullscreen = true;
         iframe.style.cssText = "position:absolute;inset:0;z-index:4;width:100%;height:100%;border:0";
         sessionVideo.appendChild(iframe);
-    });
+    }
+
+    sessionPlay?.addEventListener("click", startSessionVideo);
+
+    // Livepush sessions are broadcasts, so place the player in the page as soon
+    // as it loads. The previous click-only behaviour left attendees looking at a
+    // static session card until they discovered the play icon. Zoom is excluded:
+    // joining it can trigger camera/microphone permissions and should remain an
+    // intentional attendee action.
+    if (sessionVideo?.dataset.videoSrc && !sessionVideo.dataset.zoomJoinUrl) {
+        startSessionVideo();
+    }
 
     refreshOnlineCount();
     window.setInterval(refreshOnlineCount, 20000);
