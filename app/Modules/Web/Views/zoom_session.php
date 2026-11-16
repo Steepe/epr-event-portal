@@ -47,6 +47,10 @@
             ZoomMtg.init({
               leaveUrl,
               patchJsMedia: true,
+              // The portal provides the session chat alongside the video.
+              // Keep Zoom's separate in-meeting chat hidden to avoid splitting
+              // the audience conversation between two places.
+              isSupportChat: false,
               success: () => ZoomMtg.join({
                 sdkKey: config.sdkKey,
                 signature: config.signature,

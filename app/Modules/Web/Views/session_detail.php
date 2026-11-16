@@ -211,12 +211,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     sessionPlay?.addEventListener("click", startSessionVideo);
 
-    // Livepush sessions are broadcasts, so place the player in the page as soon
-    // as it loads. The previous click-only behaviour left attendees looking at a
-    // static session card until they discovered the play icon. Zoom is excluded:
-    // joining it can trigger camera/microphone permissions and should remain an
-    // intentional attendee action.
-    if (sessionVideo?.dataset.videoSrc && !sessionVideo.dataset.zoomJoinUrl) {
+    // Put both broadcast and Zoom players into the page as soon as it loads.
+    // Zoom still presents its own Join flow, where attendees can explicitly
+    // grant microphone/camera permissions, but they no longer need to discover
+    // the portal's separate play button first.
+    if (sessionVideo?.dataset.videoSrc || sessionVideo?.dataset.zoomJoinUrl) {
         startSessionVideo();
     }
 
