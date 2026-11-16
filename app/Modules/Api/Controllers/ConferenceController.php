@@ -92,6 +92,8 @@ class ConferenceController extends ResourceController
         $sessions = $sessionModel
             ->where('conference_id', $live['conference_id'])
             ->orderBy('event_date', 'ASC')
+            ->orderBy('start_time', 'ASC')
+            ->orderBy('sessions_id', 'ASC')
             ->findAll();
 
         return $this->respond([
@@ -108,6 +110,8 @@ class ConferenceController extends ResourceController
         $sessions = $sessionModel
             ->where('conference_id', $conferenceId)
             ->orderBy('event_date', 'ASC')
+            ->orderBy('start_time', 'ASC')
+            ->orderBy('sessions_id', 'ASC')
             ->findAll();
 
         if (empty($sessions)) {

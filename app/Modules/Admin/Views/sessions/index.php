@@ -57,6 +57,9 @@ $this->section('content');
             <span class="px-2 py-1 rounded bg-gray-700">
               <?php echo ($session['access_level'] == 1) ? 'Free' : 'Paid'; ?>
             </span>
+            <span class="px-2 py-1 rounded bg-gray-700">
+              <?php echo (($session['stream_provider'] ?? 'livepush') === 'zoom') ? 'Zoom interactive' : 'Livepush broadcast'; ?>
+            </span>
 
             <?php if (!empty($session['tags'])):
               $tags = explode(',', $session['tags']); ?>
@@ -77,11 +80,13 @@ $this->section('content');
             </div>
           <?php endif; ?>
 
-          <?php if (!empty($session['vimeo_id'])): ?>
+          <?php if (($session['stream_provider'] ?? 'livepush') === 'zoom'): ?>
+            <p class="mt-3 text-sm text-gray-400">Zoom meeting <?php echo esc($session['zoom_meeting_number'] ?? ''); ?></p>
+          <?php elseif (!empty($session['livepush_id'])): ?>
             <div class="mt-3">
               <button type="button"
                       class="text-blue-400 text-sm underline hover:text-blue-300"
-                      onclick='openLivepushPreview(<?php echo json_encode($session['vimeo_id']); ?>)'>
+                      onclick='openLivepushPreview(<?php echo json_encode($session['livepush_id']); ?>)'>
                 Preview Live Stream
               </button>
             </div>

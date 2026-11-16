@@ -82,12 +82,47 @@ $this->section('content');
                 class="w-full p-2 rounded bg-gray-900 border border-gray-700 text-gray-200 focus:ring-blue-500 focus:border-blue-500"></textarea>
     </div>
 
-    <div>
-      <label class="block text-sm text-gray-400 mb-2">Livepush Video ID</label>
-      <input type="text" name="livepush_id" pattern="[A-Za-z0-9_-]+"
-             class="w-full p-2 rounded bg-gray-900 border border-gray-700 text-gray-200 focus:ring-blue-500 focus:border-blue-500"
-             placeholder="e.g., emMVd4NBsIW87CXc">
-      <p class="mt-1 text-xs text-gray-500">Paste only the ID after <code class="text-gray-400">/live/</code>, not the full iframe code.</p>
+    <div class="rounded border border-gray-700 bg-gray-900/50 p-4" data-stream-provider-form>
+      <label class="block text-sm text-gray-300 mb-3">Session delivery</label>
+      <div class="flex flex-wrap gap-5 text-sm text-gray-200">
+        <label class="inline-flex items-center gap-2 cursor-pointer">
+          <input type="radio" name="stream_provider" value="livepush" checked data-stream-provider-choice>
+          Livepush broadcast
+        </label>
+        <label class="inline-flex items-center gap-2 cursor-pointer">
+          <input type="radio" name="stream_provider" value="zoom" data-stream-provider-choice>
+          Zoom interactive session
+        </label>
+      </div>
+
+      <div class="mt-4" data-stream-fields="livepush">
+        <label class="block text-sm text-gray-400 mb-2">Livepush Video ID</label>
+        <input type="text" name="livepush_id" pattern="[A-Za-z0-9_-]+"
+               class="w-full p-2 rounded bg-gray-900 border border-gray-700 text-gray-200 focus:ring-blue-500 focus:border-blue-500"
+               placeholder="e.g., emMVd4NBsIW87CXc">
+        <p class="mt-1 text-xs text-gray-500">Paste only the ID after <code class="text-gray-400">/live/</code>, not the full iframe code.</p>
+      </div>
+
+      <div class="mt-4" data-stream-fields="zoom" hidden>
+        <div class="grid md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm text-gray-400 mb-2">Zoom meeting or webinar number</label>
+            <input type="text" name="zoom_meeting_number" inputmode="numeric" pattern="[0-9 ]{9,20}"
+                   class="w-full p-2 rounded bg-gray-900 border border-gray-700 text-gray-200 focus:ring-blue-500 focus:border-blue-500"
+                   placeholder="e.g., 123 4567 8901" data-zoom-meeting-number>
+          </div>
+          <div>
+            <label class="block text-sm text-gray-400 mb-2">Zoom passcode <span class="text-gray-500">(if set in Zoom)</span></label>
+            <input type="text" name="zoom_passcode" maxlength="255"
+                   class="w-full p-2 rounded bg-gray-900 border border-gray-700 text-gray-200 focus:ring-blue-500 focus:border-blue-500">
+          </div>
+        </div>
+        <label class="mt-3 inline-flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
+          <input type="checkbox" name="zoom_is_webinar" value="1" class="rounded border-gray-600 bg-gray-800 text-blue-600 focus:ring-blue-500">
+          This is a Zoom webinar
+        </label>
+        <p class="mt-2 text-xs text-gray-500">The meeting number and passcode are released only to logged-in attendees who can access this portal session.</p>
+      </div>
     </div>
 
     <div>
@@ -141,5 +176,22 @@ $this->section('content');
     </div>
   </form>
 </div>
+
+<script>
+  document.querySelectorAll('[data-stream-provider-form]').forEach(form => {
+    const choices = form.querySelectorAll('[data-stream-provider-choice]');
+    const livepush = form.querySelector('[data-stream-fields="livepush"]');
+    const zoom = form.querySelector('[data-stream-fields="zoom"]');
+    const zoomNumber = form.querySelector('[data-zoom-meeting-number]');
+    const sync = () => {
+      const provider = form.querySelector('[data-stream-provider-choice]:checked')?.value || 'livepush';
+      livepush.hidden = provider !== 'livepush';
+      zoom.hidden = provider !== 'zoom';
+      zoomNumber.required = provider === 'zoom';
+    };
+    choices.forEach(choice => choice.addEventListener('change', sync));
+    sync();
+  });
+</script>
 
 <?php $this->endSection(); ?>

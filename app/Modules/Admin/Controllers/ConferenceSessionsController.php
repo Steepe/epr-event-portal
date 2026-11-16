@@ -50,6 +50,8 @@ class ConferenceSessionsController extends BaseController
         $sessions = $this->sessionModel
             ->where('conference_id', $conference_id)
             ->orderBy('event_date', 'ASC')
+            ->orderBy('start_time', 'ASC')
+            ->orderBy('sessions_id', 'ASC')
             ->findAll();
 
         echo module_view('Admin', 'sessions/index', [
@@ -106,6 +108,11 @@ class ConferenceSessionsController extends BaseController
             $workbookPath = 'uploads/workbooks/' . $newName;
         }
 
+        $streamData = $this->streamData();
+        if ($streamData === null) {
+            return redirect()->back()->withInput()->with('error', 'Enter a valid Zoom meeting number for a Zoom session.');
+        }
+
         // Insert session
         $data = [
             'conference_id' => $conference_id,
@@ -115,9 +122,7 @@ class ConferenceSessionsController extends BaseController
             'end_time'      => $this->request->getPost('end_time'),
             'access_level'  => $this->request->getPost('access_level'),
             'description'   => $this->request->getPost('description'),
-            // The existing column is retained for backwards-compatible storage;
-            // new live-session values are Livepush video IDs, not Vimeo IDs.
-            'vimeo_id'      => $this->normaliseLivepushId($this->request->getPost('livepush_id')),
+            ...$streamData,
             'workbook'      => $workbookPath,
             'tags'          => $this->request->getPost('tags'),
         ];
@@ -207,6 +212,11 @@ class ConferenceSessionsController extends BaseController
             $workbookPath = 'uploads/workbooks/' . $newName;
         }
 
+        $streamData = $this->streamData();
+        if ($streamData === null) {
+            return redirect()->back()->withInput()->with('error', 'Enter a valid Zoom meeting number for a Zoom session.');
+        }
+
         $data = [
             'sessions_name' => $this->request->getPost('sessions_name'),
             'event_date'    => $this->request->getPost('event_date'),
@@ -214,9 +224,7 @@ class ConferenceSessionsController extends BaseController
             'end_time'      => $this->request->getPost('end_time'),
             'access_level'  => $this->request->getPost('access_level'),
             'description'   => $this->request->getPost('description'),
-            // The existing column is retained for backwards-compatible storage;
-            // new live-session values are Livepush video IDs, not Vimeo IDs.
-            'vimeo_id'      => $this->normaliseLivepushId($this->request->getPost('livepush_id')),
+            ...$streamData,
             'workbook'      => $workbookPath,
             'tags'          => $this->request->getPost('tags'),
         ];
@@ -278,5 +286,36 @@ class ConferenceSessionsController extends BaseController
         }
 
         return preg_match('/^[A-Za-z0-9_-]+$/', $value) ? $value : '';
+    }
+
+    /**
+     * Maps the selected delivery method to the dedicated live-session columns.
+     */
+    private function streamData(): ?array
+    {
+        $provider = $this->request->getPost('stream_provider') === 'zoom' ? 'zoom' : 'livepush';
+
+        if ($provider === 'livepush') {
+            return [
+                'livepush_id'         => $this->normaliseLivepushId($this->request->getPost('livepush_id')),
+                'stream_provider'      => 'livepush',
+                'zoom_meeting_number'  => null,
+                'zoom_passcode'        => null,
+                'zoom_is_webinar'      => 0,
+            ];
+        }
+
+        $meetingNumber = preg_replace('/\D+/', '', (string) $this->request->getPost('zoom_meeting_number'));
+        if (! is_string($meetingNumber) || ! preg_match('/^\d{9,16}$/', $meetingNumber)) {
+            return null;
+        }
+
+        return [
+            'livepush_id'         => '',
+            'stream_provider'      => 'zoom',
+            'zoom_meeting_number'  => $meetingNumber,
+            'zoom_passcode'        => mb_substr(trim((string) $this->request->getPost('zoom_passcode')), 0, 255),
+            'zoom_is_webinar'      => $this->request->getPost('zoom_is_webinar') ? 1 : 0,
+        ];
     }
 }

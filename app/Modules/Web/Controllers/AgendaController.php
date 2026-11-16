@@ -57,7 +57,7 @@ class AgendaController extends BaseController
                         'end_time'      => $row['end_time'],
                         'access_level'  => $row['access_level'],
                         'description'   => $row['description'],
-                        'vimeo_id'      => $row['vimeo_id'],
+                        'livepush_id'   => $row['livepush_id'] ?? null,
                         'workbook'      => $row['workbook'],
                         'tags'          => $row['tags'],
                         'speakers'      => [],

@@ -18,6 +18,7 @@ class TblConferenceSessionsModel extends Model
     protected array $allowedFields = [
         'conference_id', 'sessions_name', 'event_date', 'start_time', 'end_time',
         'access_level', 'description', 'is_zoom', 'zoom_link', 'vimeo_id',
+        'livepush_id', 'stream_provider', 'zoom_meeting_number', 'zoom_passcode', 'zoom_is_webinar',
         'workbook', 'tags', 'tags_meta'
     ];
 
@@ -31,7 +32,9 @@ class TblConferenceSessionsModel extends Model
         $builder->join('tbl_session_speakers as sp', 'sp.sessions_id = s.sessions_id', 'left');
         $builder->join('tbl_session_sponsors as sr', 'sr.sessions_id = s.sessions_id', 'left');
         $builder->where('s.conference_id', $conferenceId);
-        $builder->orderBy('s.event_date, s.start_time', 'ASC');
+        $builder->orderBy('s.event_date', 'ASC');
+        $builder->orderBy('s.start_time', 'ASC');
+        $builder->orderBy('s.sessions_id', 'ASC');
         $query = $builder->get();
 
         $result = [];
@@ -49,6 +52,8 @@ class TblConferenceSessionsModel extends Model
                     'is_zoom' => $row['is_zoom'],
                     'zoom_link' => $row['zoom_link'],
                     'vimeo_id' => $row['vimeo_id'],
+                    'livepush_id' => $row['livepush_id'] ?? null,
+                    'stream_provider' => $row['stream_provider'] ?? 'livepush',
                     'workbook' => $row['workbook'],
                     'tags' => $row['tags'],
                     'tags_meta' => $row['tags_meta'],

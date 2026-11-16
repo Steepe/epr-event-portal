@@ -6,12 +6,23 @@ $event = $session ?? [];
 $sessionSpeakers = $speakers ?? [];
 $sessionSponsor = $sponsors[0] ?? null;
 $canAccess = (session('plan') ?? 1) >= ($event['access_level'] ?? 1);
-$livepushId = trim($event['vimeo_id'] ?? '');
+$streamProvider = ($event['stream_provider'] ?? 'livepush') === 'zoom' ? 'zoom' : 'livepush';
+$livepushId = trim($event['livepush_id'] ?? '');
 $videoSrc = '';
+$zoomJoinUrl = '';
+$zoomMeetingReady = false;
 
-if (preg_match('/^[A-Za-z0-9_-]+$/', $livepushId)) {
+if ($streamProvider === 'livepush' && preg_match('/^[A-Za-z0-9_-]+$/', $livepushId)) {
     // Keep the provider URL in one place; only the Livepush video ID comes from admin.
     $videoSrc = 'https://watch.livepush.io/live/' . rawurlencode($livepushId);
+}
+
+if ($streamProvider === 'zoom' && preg_match('/^\d{9,16}$/', (string) ($event['zoom_meeting_number'] ?? ''))) {
+    $zoomMeetingReady = true;
+}
+
+if ($streamProvider === 'zoom' && $canAccess && $zoomMeetingReady) {
+    $zoomJoinUrl = base_url('attendees/sessions/' . (int) ($event['sessions_id'] ?? 0) . '/zoom');
 }
 
 $title = $event['sessions_name'] ?? 'Designing Systems That Outlast Motivation';
@@ -43,10 +54,15 @@ $leadSpeakerPhoto = !empty($leadSpeaker['speaker_photo'])
             </div>
         </div>
 
-        <div data-session-video data-video-src="<?php echo esc($canAccess ? $videoSrc : '', 'attr'); ?>" style="position:relative;width:100%;box-sizing:border-box;aspect-ratio:16/9;flex:none;border-radius:16px;overflow:hidden;background:radial-gradient(circle at 50% 42%,#5a1f5f 0%,#2a0f2e 48%,#12050f 100%);border:1px solid rgba(255,255,255,.12)">
+        <div data-session-video data-video-src="<?php echo esc($canAccess ? $videoSrc : '', 'attr'); ?>" data-zoom-join-url="<?php echo esc($zoomJoinUrl, 'attr'); ?>" style="position:relative;width:100%;box-sizing:border-box;aspect-ratio:16/9;flex:none;border-radius:16px;overflow:hidden;background:radial-gradient(circle at 50% 42%,#5a1f5f 0%,#2a0f2e 48%,#12050f 100%);border:1px solid rgba(255,255,255,.12)">
             <img src="<?php echo $leadSpeakerPhoto; ?>" alt="<?php echo esc($leadSpeakerName); ?>" style="position:absolute;left:50%;top:36%;transform:translate(-50%,-50%);height:40%;aspect-ratio:1;border-radius:50%;object-fit:cover;box-shadow:0 0 80px rgba(216,25,142,.45)">
+            <?php if ($streamProvider === 'zoom' && ! $zoomMeetingReady): ?>
+                <div style="position:absolute;inset:0;z-index:3;display:grid;place-items:center;padding:24px;text-align:center;background:rgba(18,5,15,.6)">
+                    <span style="max-width:330px;font-size:14px;line-height:1.55;color:rgba(255,255,255,.9)">This interactive Zoom session has not been configured yet.</span>
+                </div>
+            <?php endif; ?>
             <div style="position:absolute;top:16px;left:16px;display:flex;gap:8px;align-items:center">
-                <span style="display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.16em;padding:5px 10px;border-radius:6px;background:#d8198e"><span style="width:6px;height:6px;border-radius:50%;background:#fff"></span>LIVE</span>
+                <span style="display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.16em;padding:5px 10px;border-radius:6px;background:#d8198e"><span style="width:6px;height:6px;border-radius:50%;background:#fff"></span><?php echo $streamProvider === 'zoom' ? 'ZOOM LIVE' : 'LIVE'; ?></span>
                 <span class="rc-mono" style="font-size:11px;letter-spacing:.1em;padding:5px 10px;border-radius:6px;background:rgba(0,0,0,.45)">23:41</span>
             </div>
             <div style="position:absolute;left:16px;bottom:52px;max-width:calc(100% - 32px);box-sizing:border-box;display:flex;align-items:baseline;gap:8px;padding:6px 12px;border-radius:8px;background:rgba(18,5,15,.72);white-space:nowrap;overflow:hidden">
@@ -54,7 +70,7 @@ $leadSpeakerPhoto = !empty($leadSpeaker['speaker_photo'])
                 <span style="font-size:12px;color:rgba(255,255,255,.75);overflow:hidden;text-overflow:ellipsis"><?php echo esc($leadSpeakerRole); ?></span>
             </div>
             <div data-session-video-controls style="position:absolute;left:0;right:0;bottom:0;padding:28px 18px 14px;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.72));display:flex;align-items:center;gap:16px;font-size:16px">
-                <button type="button" data-session-video-play aria-label="<?php echo $canAccess ? 'Play session' : 'Session locked'; ?>" style="width:16px;padding:0;border:0;background:transparent;color:#fff;cursor:<?php echo $canAccess ? 'pointer' : 'default'; ?>"><i class="fa <?php echo $canAccess ? 'fa-play' : 'fa-lock'; ?>" aria-hidden="true"></i></button>
+                <button type="button" data-session-video-play aria-label="<?php echo $canAccess ? ($streamProvider === 'zoom' ? 'Join interactive Zoom session' : 'Play session') : 'Session locked'; ?>" style="width:16px;padding:0;border:0;background:transparent;color:#fff;cursor:<?php echo $canAccess ? 'pointer' : 'default'; ?>"><i class="fa <?php echo $canAccess ? 'fa-play' : 'fa-lock'; ?>" aria-hidden="true"></i></button>
                 <i class="fa fa-volume-up" aria-hidden="true"></i>
                 <div style="flex:1;height:4px;border-radius:4px;background:rgba(255,255,255,.2);position:relative">
                     <div style="position:absolute;inset:0;border-radius:4px;background:#d8198e"></div>
@@ -178,13 +194,16 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     sessionPlay?.addEventListener("click", function() {
+        const zoomJoinUrl = sessionVideo?.dataset.zoomJoinUrl || "";
         const src = sessionVideo?.dataset.videoSrc || "";
-        if (!src || sessionVideo.querySelector("iframe")) {
+        if ((!src && !zoomJoinUrl) || sessionVideo.querySelector("iframe")) {
             return;
         }
         const iframe = document.createElement("iframe");
-        iframe.src = src + (src.includes("?") ? "&" : "?") + "autoplay=1";
-        iframe.allow = "autoplay; fullscreen; picture-in-picture";
+        iframe.src = zoomJoinUrl || (src + (src.includes("?") ? "&" : "?") + "autoplay=1");
+        iframe.allow = zoomJoinUrl
+            ? "camera; microphone; display-capture; fullscreen; autoplay; clipboard-write"
+            : "autoplay; fullscreen; picture-in-picture";
         iframe.allowFullscreen = true;
         iframe.style.cssText = "position:absolute;inset:0;z-index:4;width:100%;height:100%;border:0";
         sessionVideo.appendChild(iframe);

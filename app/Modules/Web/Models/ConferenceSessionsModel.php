@@ -18,6 +18,7 @@ class ConferenceSessionsModel extends Model
     protected array $allowedFields = [
         'conference_id', 'sessions_name', 'event_date',
         'start_time', 'end_time', 'access_level',
-        'description', 'vimeo_id', 'workbook', 'tags'
+        'description', 'livepush_id', 'stream_provider', 'zoom_meeting_number',
+        'zoom_passcode', 'zoom_is_webinar', 'workbook', 'tags'
     ];
 }

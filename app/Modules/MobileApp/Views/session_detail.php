@@ -16,17 +16,18 @@ $isLiveNow = $start && $end && $now >= $start && $now < $end;
 $dateLong  = !empty($event['event_date']) ? date('F j, Y', strtotime($event['event_date'])) : '';
 
 $canAccess = (int) ($event['access_level'] ?? 1) !== 2 || (int) ($premium ?? 0) === 1;
-$videoId   = trim((string) ($event['vimeo_id'] ?? ''));
+$livepushId = trim((string) ($event['livepush_id'] ?? ''));
+$vimeoId    = trim((string) ($event['vimeo_id'] ?? ''));
 $videoSrc  = '';
-if ($videoId !== '') {
-    if ($isLiveConf && preg_match('/^[A-Za-z0-9_-]+$/', $videoId)) {
-        $videoSrc = 'https://watch.livepush.io/live/' . rawurlencode($videoId);
-    } elseif (ctype_digit($videoId)) {
-        $videoSrc = 'https://player.vimeo.com/video/' . $videoId;
-    } elseif (str_contains($videoId, 'event')) {
-        $videoSrc = 'https://vimeo.com/' . $videoId . '/embed';
+if ($isLiveConf && preg_match('/^[A-Za-z0-9_-]+$/', $livepushId)) {
+    $videoSrc = 'https://watch.livepush.io/live/' . rawurlencode($livepushId);
+} elseif (! $isLiveConf && $vimeoId !== '') {
+    if (ctype_digit($vimeoId)) {
+        $videoSrc = 'https://player.vimeo.com/video/' . $vimeoId;
+    } elseif (str_contains($vimeoId, 'event')) {
+        $videoSrc = 'https://vimeo.com/' . $vimeoId . '/embed';
     } else {
-        $videoSrc = 'https://vimeo.com/event/' . rawurlencode($videoId) . '/embed';
+        $videoSrc = 'https://vimeo.com/event/' . rawurlencode($vimeoId) . '/embed';
     }
 }
 
