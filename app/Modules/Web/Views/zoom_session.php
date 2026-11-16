@@ -47,6 +47,10 @@
             ZoomMtg.init({
               leaveUrl,
               patchJsMedia: true,
+              // Prefer gallery view for supported devices. Zoom falls back to
+              // speaker view when the screen or participant/video count cannot
+              // support a gallery layout.
+              defaultView: 'gallery',
               // The portal provides the session chat alongside the video.
               // Keep Zoom's separate in-meeting chat hidden to avoid splitting
               // the audience conversation between two places.

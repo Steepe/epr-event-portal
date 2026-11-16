@@ -24,8 +24,26 @@ class ZoomSessionController extends BaseController
             'configured'   => $configured,
             'sdkVersion'   => $sdkVersion,
             'signatureUrl' => base_url('attendees/sessions/' . $sessionId . '/zoom/signature'),
-            'leaveUrl'     => base_url('attendees/sessions/' . $sessionId),
+            'leaveUrl'     => base_url('attendees/sessions/' . $sessionId . '/zoom/left'),
             'sessionName'  => $session['sessions_name'] ?? 'Zoom session',
+        ]);
+    }
+
+    /**
+     * Lightweight destination for the Meeting SDK after an attendee leaves.
+     * This page stays inside the video iframe, preventing the full portal from
+     * being rendered recursively inside the session player.
+     */
+    public function left(int $sessionId)
+    {
+        $session = $this->authorisedZoomSession($sessionId);
+        if ($session === null) {
+            return $this->response->setStatusCode(403)->setBody('You do not have access to this session.');
+        }
+
+        return view('App\Modules\Web\Views\zoom_session_left', [
+            'sessionName' => $session['sessions_name'] ?? 'Zoom session',
+            'rejoinUrl'   => base_url('attendees/sessions/' . $sessionId . '/zoom'),
         ]);
     }
 

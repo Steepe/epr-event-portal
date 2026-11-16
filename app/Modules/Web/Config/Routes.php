@@ -52,6 +52,7 @@ $routes->group('attendees', ['namespace' => 'App\Modules\Web\Controllers', 'filt
     $routes->get('sessions/(:num)', 'SessionsController::view/$1'); // 👈 single session page
     $routes->get('sessions/(:num)/online', 'SessionsController::onlineCount/$1');
     $routes->get('sessions/(:num)/zoom', 'ZoomSessionController::join/$1');
+    $routes->get('sessions/(:num)/zoom/left', 'ZoomSessionController::left/$1');
     $routes->get('sessions/(:num)/zoom/signature', 'ZoomSessionController::signature/$1');
 
     $routes->get('networking_center', 'NetworkingCenterController::index');
