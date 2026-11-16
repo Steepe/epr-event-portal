@@ -67,6 +67,7 @@ $routes->group('mobile', ['namespace' => 'App\Modules\MobileApp\Controllers', 'f
     $routes->post('emergence/sendSupportEmail', 'EmergenceBoothController::sendSupportEmail');
     // Booth callback + team chat reuse the desktop portal handlers
     $routes->post('emergence-booth/callback', '\App\Modules\Web\Controllers\EmergenceBoothController::callback');
+    $routes->post('emergence-booth/programmes/(:num)/waitlist', '\App\Modules\Web\Controllers\EmergenceBoothController::joinProgrammeWaitlist/$1');
     $routes->get('emergence-booth/chat/(:num)', '\App\Modules\Web\Controllers\EmergenceBoothController::chatMessages/$1');
     $routes->post('emergence-booth/chat/(:num)', '\App\Modules\Web\Controllers\EmergenceBoothController::sendChat/$1');
 

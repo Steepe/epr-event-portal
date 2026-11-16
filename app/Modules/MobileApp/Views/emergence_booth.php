@@ -48,10 +48,17 @@ $topics     = ['Programmes', 'Partnership', 'Speaking', 'Media'];
             <span class="m-label" style="padding:0 4px">PROGRAMMES</span>
             <?php foreach ($programmes as $programme): ?>
                 <article class="m-card m-card--20 m-programme">
+                    <?php if (! empty($programme['flyer_path'])): ?>
+                        <img src="<?= base_url(ltrim((string) $programme['flyer_path'], '/')) ?>" alt="<?= esc($programme['flyer_name'] ?: $programme['title'], 'attr') ?>" style="width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:10px;margin-bottom:12px">
+                    <?php else: ?>
                     <span class="m-programme__icon"><i class="fa <?= esc($programme['icon'] ?: 'fa-rocket', 'attr') ?>" aria-hidden="true"></i></span>
+                    <?php endif; ?>
                     <span class="m-programme__label"><?= esc($programme['label']) ?></span>
                     <h3><?= esc($programme['title']) ?></h3>
                     <p><?= esc($programme['description']) ?></p>
+                    <?php if (! empty($programme['waitlist_enabled'])): ?>
+                        <button class="m-btn m-btn--46" type="button" data-programme-waitlist="<?= (int) $programme['programme_id'] ?>" <?= ! empty($programme['is_waitlisted']) ? 'disabled' : '' ?> style="margin-top:8px;opacity:<?= ! empty($programme['is_waitlisted']) ? '.72' : '1' ?>"><i class="fa <?= ! empty($programme['is_waitlisted']) ? 'fa-check' : 'fa-bell-o' ?>" aria-hidden="true"></i><span><?= ! empty($programme['is_waitlisted']) ? 'You are on the waitlist' : 'Join the waitlist' ?></span></button>
+                    <?php endif; ?>
                 </article>
             <?php endforeach; ?>
             <?php if (! $programmes): ?>
@@ -104,6 +111,7 @@ $topics     = ['Programmes', 'Partnership', 'Speaking', 'Media'];
 document.addEventListener('DOMContentLoaded', function () {
     var chatUrl = <?= json_encode(site_url('mobile/emergence-booth/chat')) ?> + '/';
     var callbackUrl = <?= json_encode(site_url('mobile/emergence-booth/callback')) ?>;
+    var programmeWaitlistUrl = <?= json_encode(site_url('mobile/emergence-booth/programmes/')) ?>;
     var sheet = document.querySelector('.m-sheet[data-sheet="memberChat"]');
     var list = document.getElementById('memberChatList');
     var input = document.getElementById('memberChatInput');
@@ -144,6 +152,19 @@ document.addEventListener('DOMContentLoaded', function () {
         if (topic) {
             Array.prototype.forEach.call(document.querySelectorAll('[data-topic]'), function (item) { item.classList.toggle('is-active', item === topic); });
             document.getElementById('callbackStatus').hidden = true;
+        }
+        var waitlistButton = event.target.closest('[data-programme-waitlist]');
+        if (waitlistButton && !waitlistButton.disabled) {
+            var programmeId = waitlistButton.getAttribute('data-programme-waitlist');
+            waitlistButton.disabled = true;
+            EPR.post(programmeWaitlistUrl + programmeId + '/waitlist', {}).then(function (res) {
+                if (!res.ok || !res.body || (res.body.status !== 'success' && res.body.status !== 'already_joined')) throw new Error((res.body && res.body.message) || '');
+                waitlistButton.innerHTML = '<i class="fa fa-check" aria-hidden="true"></i><span>You are on the waitlist</span>';
+                waitlistButton.style.opacity = '.72';
+            }).catch(function (error) {
+                waitlistButton.disabled = false;
+                EPR.toast(error.message || 'Unable to join the waitlist.', true);
+            });
         }
     });
     sheet.addEventListener('sheet:close', function () { clearInterval(poller); memberId = null; });

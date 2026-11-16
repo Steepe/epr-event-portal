@@ -16,6 +16,7 @@ class EmergenceBoothController extends BaseController
         'tbl_emergence_booth_resources',
         'tbl_emergence_booth_callback_requests',
         'tbl_emergence_booth_messages',
+        'tbl_emergence_booth_programme_waitlists',
     ];
 
     public function index()
@@ -26,13 +27,24 @@ class EmergenceBoothController extends BaseController
 
         $db = db_connect();
 
+        $programmes = $db->table('tbl_emergence_booth_programmes')->orderBy('sort_order')->orderBy('title')->get()->getResultArray();
+        $waitlistCounts = [];
+        foreach ($db->table('tbl_emergence_booth_programme_waitlists')->select('programme_id, COUNT(*) AS total')->groupBy('programme_id')->get()->getResultArray() as $count) {
+            $waitlistCounts[(int) $count['programme_id']] = (int) $count['total'];
+        }
+        foreach ($programmes as &$programme) {
+            $programme['waitlist_count'] = $waitlistCounts[(int) $programme['programme_id']] ?? 0;
+        }
+        unset($programme);
+
         return module_view('Admin', 'emergence_booth/index', [
             'ready' => true,
             'admins' => $db->table('tbl_admins')->where('status', 'active')->orderBy('name')->get()->getResultArray(),
             'members' => $this->members(),
-            'programmes' => $db->table('tbl_emergence_booth_programmes')->orderBy('sort_order')->orderBy('title')->get()->getResultArray(),
+            'programmes' => $programmes,
             'resources' => $db->table('tbl_emergence_booth_resources')->orderBy('sort_order')->orderBy('title')->get()->getResultArray(),
             'callbacks' => $this->callbacks(),
+            'programmeWaitlists' => $this->programmeWaitlists(),
             'videoUrl' => $this->setting('welcome_video_url'),
         ]);
     }
@@ -112,17 +124,50 @@ class EmergenceBoothController extends BaseController
             return redirect()->back()->with('error', 'Programme title is required.');
         }
 
+        $db = db_connect();
+        $existing = $id ? $db->table('tbl_emergence_booth_programmes')->where('programme_id', $id)->get()->getRowArray() : null;
+        $flyerPath = (string) ($existing['flyer_path'] ?? '');
+        $flyerName = (string) ($existing['flyer_name'] ?? '');
+        $flyer = $this->request->getFile('flyer');
+
+        if ($flyer && $flyer->getError() !== UPLOAD_ERR_NO_FILE) {
+            if (! $flyer->isValid() || $flyer->hasMoved()) {
+                return redirect()->back()->with('error', 'The programme flyer upload failed.');
+            }
+            if (! in_array(strtolower((string) $flyer->getExtension()), ['jpg', 'jpeg', 'png', 'webp'], true)) {
+                return redirect()->back()->with('error', 'Upload a JPG, PNG, or WebP programme flyer.');
+            }
+            if ($flyer->getSize() > 10 * 1024 * 1024) {
+                return redirect()->back()->with('error', 'Programme flyers must be 10 MB or smaller.');
+            }
+
+            $directory = FCPATH . 'uploads/emergence_programmes/';
+            if (! is_dir($directory) && ! mkdir($directory, 0755, true) && ! is_dir($directory)) {
+                return redirect()->back()->with('error', 'Unable to prepare the programme flyer upload folder.');
+            }
+            $newName = $flyer->getRandomName();
+            $flyer->move($directory, $newName);
+            if ($flyerPath !== '' && is_file(FCPATH . ltrim($flyerPath, '/'))) {
+                unlink(FCPATH . ltrim($flyerPath, '/'));
+            }
+            $flyerPath = 'uploads/emergence_programmes/' . $newName;
+            $flyerName = $flyer->getClientName();
+        }
+
         $data = [
             'title' => $title,
             'label' => $this->limitedPost('label', 255),
             'description' => $this->limitedPost('description', 5000),
             'icon' => $this->limitedPost('icon', 100) ?: 'fa-rocket',
+            'flyer_path' => $flyerPath ?: null,
+            'flyer_name' => $flyerName ?: null,
             'is_active' => $this->request->getPost('is_active') ? 1 : 0,
+            'waitlist_enabled' => $this->request->getPost('waitlist_enabled') ? 1 : 0,
             'sort_order' => (int) $this->request->getPost('sort_order'),
             'updated_at' => date('Y-m-d H:i:s'),
         ];
 
-        $table = db_connect()->table('tbl_emergence_booth_programmes');
+        $table = $db->table('tbl_emergence_booth_programmes');
         if ($id) {
             $table->where('programme_id', $id)->update($data);
         } else {
@@ -139,7 +184,16 @@ class EmergenceBoothController extends BaseController
             return $response;
         }
 
-        db_connect()->table('tbl_emergence_booth_programmes')->where('programme_id', $id)->delete();
+        $db = db_connect();
+        $programme = $db->table('tbl_emergence_booth_programmes')->where('programme_id', $id)->get()->getRowArray();
+        if ($programme && ! empty($programme['flyer_path'])) {
+            $path = FCPATH . ltrim((string) $programme['flyer_path'], '/');
+            if (is_file($path)) {
+                unlink($path);
+            }
+        }
+        $db->table('tbl_emergence_booth_programme_waitlists')->where('programme_id', $id)->delete();
+        $db->table('tbl_emergence_booth_programmes')->where('programme_id', $id)->delete();
         return redirect()->to(site_url('admin/emergence-booth'))->with('success', 'Programme deleted.');
     }
 
@@ -324,6 +378,17 @@ class EmergenceBoothController extends BaseController
             ->join('tbl_attendees a', 'a.attendee_id = r.attendee_id', 'left')
             ->join('tbl_users u', 'u.id = r.attendee_id', 'left')
             ->orderBy('r.created_at', 'DESC')
+            ->get()->getResultArray();
+    }
+
+    private function programmeWaitlists(): array
+    {
+        return db_connect()->table('tbl_emergence_booth_programme_waitlists w')
+            ->select('w.*, p.title AS programme_title, a.firstname, a.lastname, a.telephone, a.country, u.email')
+            ->join('tbl_emergence_booth_programmes p', 'p.programme_id = w.programme_id', 'left')
+            ->join('tbl_attendees a', 'a.attendee_id = w.attendee_id', 'left')
+            ->join('tbl_users u', 'u.id = w.attendee_id', 'left')
+            ->orderBy('w.created_at', 'DESC')
             ->get()->getResultArray();
     }
 

@@ -14,6 +14,12 @@ $this->section('content');
 <div class="max-w-4xl mx-auto bg-gray-800 border border-gray-700 rounded-lg p-8 shadow">
   <h1 class="text-2xl font-semibold text-gray-100 mb-6">Edit Speaker</h1>
 
+  <?php if (session()->getFlashdata('error')): ?>
+    <div class="mb-4 text-red-400 bg-gray-900 border border-red-700 p-3 rounded">
+      <?php echo esc(session()->getFlashdata('error')); ?>
+    </div>
+  <?php endif; ?>
+
   <form method="post" enctype="multipart/form-data"
         action="<?php echo site_url('admin/speakers/' . $speaker['speaker_id'] . '/update'); ?>"
         class="space-y-6">
@@ -59,7 +65,8 @@ $this->section('content');
           <img id="photoPreview" src="<?php echo base_url('uploads/speakers/' . $speaker['speaker_photo']); ?>"
                alt="Preview" class="object-cover w-full h-full">
         <?php else: ?>
-          <span class="text-gray-500 text-sm">No photo</span>
+          <img id="photoPreview" src="<?php echo base_url('assets/admin/img/placeholder-avatar.png'); ?>"
+               alt="Preview" class="object-cover w-full h-full opacity-60">
         <?php endif; ?>
       </div>
       <div>
@@ -67,6 +74,7 @@ $this->section('content');
         <input type="file" name="speaker_photo" accept="image/*"
                onchange="previewImage(event)"
                class="text-gray-300">
+        <p class="text-xs text-gray-500 mt-1">Accepted formats: JPG, PNG, WEBP. Max size: 2MB.</p>
       </div>
 
         <!-- ============================

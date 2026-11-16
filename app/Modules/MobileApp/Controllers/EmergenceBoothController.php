@@ -17,6 +17,7 @@ class EmergenceBoothController extends BaseController
         'tbl_emergence_booth_settings', 'tbl_emergence_booth_members', 'tbl_admin_presence',
         'tbl_emergence_booth_programmes', 'tbl_emergence_booth_resources',
         'tbl_emergence_booth_callback_requests', 'tbl_emergence_booth_messages',
+        'tbl_emergence_booth_programme_waitlists',
     ];
 
     /**
@@ -50,10 +51,27 @@ class EmergenceBoothController extends BaseController
 
         $video = $db->table('tbl_emergence_booth_settings')->where('setting_key', 'welcome_video_url')->get()->getRowArray();
 
+        $programmes = $db->table('tbl_emergence_booth_programmes')->where('is_active', 1)->orderBy('sort_order')->orderBy('title')->get()->getResultArray();
+        $attendeeId = (int) (session('attendee_id') ?: session('user_id'));
+        $waitlistedProgrammeIds = [];
+        if ($attendeeId > 0 && $programmes !== []) {
+            foreach ($db->table('tbl_emergence_booth_programme_waitlists')
+                ->select('programme_id')
+                ->where('attendee_id', $attendeeId)
+                ->whereIn('programme_id', array_map(static fn (array $programme): int => (int) $programme['programme_id'], $programmes))
+                ->get()->getResultArray() as $waitlist) {
+                $waitlistedProgrammeIds[(int) $waitlist['programme_id']] = true;
+            }
+        }
+        foreach ($programmes as &$programme) {
+            $programme['is_waitlisted'] = isset($waitlistedProgrammeIds[(int) $programme['programme_id']]);
+        }
+        unset($programme);
+
         return module_view('MobileApp', 'emergence_booth', [
             'ready'      => true,
             'members'    => $members,
-            'programmes' => $db->table('tbl_emergence_booth_programmes')->where('is_active', 1)->orderBy('sort_order')->orderBy('title')->get()->getResultArray(),
+            'programmes' => $programmes,
             'resources'  => $db->table('tbl_emergence_booth_resources')->where('is_active', 1)->orderBy('sort_order')->orderBy('title')->get()->getResultArray(),
             'videoUrl'   => (string) ($video['setting_value'] ?? ''),
         ]);
