@@ -74,7 +74,7 @@ $this->section('content');
         <input type="file" name="speaker_photo" accept="image/*"
                onchange="previewImage(event)"
                class="text-gray-300">
-        <p class="text-xs text-gray-500 mt-1">Accepted formats: JPG, PNG, WEBP. Max size: 2MB.</p>
+        <p class="text-xs text-gray-500 mt-1">Accepted formats: JPG, PNG, WEBP. Max size: 3MB.</p>
       </div>
 
         <!-- ============================

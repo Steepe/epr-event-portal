@@ -138,8 +138,8 @@ class SpeakersController extends BaseController
         if (! in_array(strtolower((string) $photo->getExtension()), ['jpg', 'jpeg', 'png', 'webp'], true)) {
             throw new \RuntimeException('Upload a JPG, PNG, or WebP speaker photo.');
         }
-        if ($photo->getSize() > 2 * 1024 * 1024) {
-            throw new \RuntimeException('Speaker photos must be 2 MB or smaller.');
+        if ($photo->getSize() > 3 * 1024 * 1024) {
+            throw new \RuntimeException('Speaker photos must be 3 MB or smaller.');
         }
 
         $directory = FCPATH . 'uploads/speakers/';
@@ -174,7 +174,7 @@ class SpeakersController extends BaseController
     private function uploadErrorMessage(int $error): string
     {
         return match ($error) {
-            UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => 'The speaker photo is too large. The maximum size is 2 MB.',
+            UPLOAD_ERR_INI_SIZE, UPLOAD_ERR_FORM_SIZE => 'The speaker photo is too large. The maximum size is 3 MB.',
             UPLOAD_ERR_PARTIAL => 'The speaker photo upload was incomplete. Please try again.',
             UPLOAD_ERR_NO_TMP_DIR => 'The server is missing its temporary upload folder.',
             UPLOAD_ERR_CANT_WRITE => 'The server could not write the speaker photo. Please check server permissions.',
