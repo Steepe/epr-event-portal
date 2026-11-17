@@ -13,7 +13,7 @@ trait AttendeeTrait
      */
     protected function getAttendeeData(): ?array
     {
-        $attendeeId = session('attendee_id');
+        $attendeeId = session('user_id') ?: session('attendee_id');
         if (!$attendeeId) return null;
 
         $userService = new UserService();
@@ -34,7 +34,7 @@ trait AttendeeTrait
      */
     protected function getAttendeeSessions(): array
     {
-        $attendeeId = session('attendee_id');
+        $attendeeId = session('user_id') ?: session('attendee_id');
         if (!$attendeeId) return [];
 
         $userService = new UserService();
@@ -46,7 +46,7 @@ trait AttendeeTrait
      */
     protected function getUnreadMessagesCount(): int
     {
-        $attendeeId = session('attendee_id');
+        $attendeeId = session('user_id') ?: session('attendee_id');
         if (!$attendeeId) return 0;
 
         $messageService = new MessageService();

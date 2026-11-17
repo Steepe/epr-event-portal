@@ -87,7 +87,11 @@ class LoginController extends ResourceController
             'role'        => $userArray['role'],
             'firstname'   => $attendeeArray['firstname'],
             'lastname'    => $attendeeArray['lastname'],
-            'attendee_id' => $attendeeArray['id'],     // PK of tbl_attendees
+            // Throughout the portal attendee_id means the account user ID,
+            // not the internal attendee-row ID. Storing the row number here
+            // could make an action belong to a different account.
+            'attendee_id' => $userArray['id'],
+            'attendee_row_id' => $attendeeArray['id'],
             'reg_country' => $attendeeArray['country'],
             'profile_pic' => $attendeeArray['profile_picture'],
         ]);

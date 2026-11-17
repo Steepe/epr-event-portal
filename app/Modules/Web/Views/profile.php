@@ -287,8 +287,7 @@ echo module_view('Web', 'includes/topbar');
         <div class="modal-close" onclick="closeEditModal()">×</div>
         <div class="modal-title">Edit Profile</div>
 
-        <form action="<?php echo base_url('attendees/profile/update'); ?>" method="post">
-            <input type="hidden" name="id" value="<?php echo $profile['id']; ?>">
+        <form action="<?php echo base_url('attendees/profile/update'); ?>" method="post" autocomplete="off">
 
             <div class="form-grid">
 

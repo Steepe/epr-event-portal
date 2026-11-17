@@ -19,13 +19,17 @@ class ChatController extends BaseController
 
     public function send($sessionId)
     {
-        $data = $this->request->getJSON(true);
+        $data = $this->request->getJSON(true) ?: [];
+        $attendeeId = (int) (session('user_id') ?: session('attendee_id'));
+        if ($attendeeId <= 0) {
+            return $this->failUnauthorized('Please sign in to use live chat.');
+        }
 
         $chat = new SupabaseChat();
         $response = $chat->insertMessage(
             $sessionId,
-            $data['attendee_id'],
-            $data['message']
+            $attendeeId,
+            (string) ($data['message'] ?? '')
         );
 
         return $this->respond([
