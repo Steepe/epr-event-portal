@@ -22,7 +22,7 @@ class ChatController extends BaseController
         $sessionId = (int) $sessionId;
         $data = $this->request->getJSON(true) ?: [];
         $message = trim((string) ($data['message'] ?? ''));
-        $attendeeId = (int) session('attendee_id');
+        $attendeeId = (int) (session('user_id') ?: session('attendee_id'));
 
         if ($sessionId <= 0 || $attendeeId <= 0) {
             return $this->failUnauthorized('Please log in to use live chat.');

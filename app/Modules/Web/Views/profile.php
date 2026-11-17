@@ -87,8 +87,7 @@ $socials = [
         <button type="button" id="closeEditProfile" class="rc-modal-close" data-rc-close-overlay style="position:absolute;top:14px;right:18px" aria-label="Close">&times;</button>
         <div style="font-size:22px;font-weight:700;color:#efb11e;text-align:center;margin-bottom:20px">Edit Profile</div>
 
-        <form id="ProfileUpdateForm" action="<?php echo base_url('attendees/profile/update'); ?>" method="post" enctype="multipart/form-data" style="display:grid;grid-template-columns:1fr 1fr;gap:16px 22px">
-            <input type="hidden" name="id" value="<?php echo esc($profile['id'] ?? ''); ?>">
+        <form id="ProfileUpdateForm" action="<?php echo base_url('attendees/profile/update'); ?>" method="post" enctype="multipart/form-data" autocomplete="off" style="display:grid;grid-template-columns:1fr 1fr;gap:16px 22px">
             <?php foreach (['firstname', 'lastname', 'telephone', 'country', 'city', 'state', 'company', 'position', 'facebook', 'twitter', 'instagram', 'linkedin'] as $field): ?>
                 <label style="display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:600;color:rgba(255,255,255,.8);text-transform:capitalize">
                     <?php echo esc(str_replace('_', ' ', $field)); ?>

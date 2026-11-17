@@ -61,7 +61,18 @@ class ProfileController extends BaseController
         }
 
         // IMPORTANT: Your new table uses `id` as PK, and `attendee_id` is FK to tbl_users.
-        $rowId = $this->request->getPost('id'); // change from attendee_id
+        // Do not trust an attendee row ID posted by the browser. Resolve the
+        // row from the signed-in account, preventing cross-account updates.
+        $userId = (int) ($session->get('user_id') ?: $session->get('attendee_id'));
+        $profile = $this->db->table('tbl_attendees')
+            ->select('id')
+            ->where('attendee_id', $userId)
+            ->get()
+            ->getRowArray();
+        if (! $profile) {
+            return redirect()->to(base_url('attendees/login'))
+                ->with('error', 'Your attendee profile could not be found. Please sign in again.');
+        }
 
         // Validation
         $validation = \Config\Services::validation();
@@ -99,7 +110,8 @@ class ProfileController extends BaseController
 
         // Update row using the actual PK "id"
         $this->db->table('tbl_attendees')
-            ->where('id', $rowId)
+            ->where('id', (int) $profile['id'])
+            ->where('attendee_id', $userId)
             ->update($data);
 
         // Sync session values

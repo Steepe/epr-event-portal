@@ -195,6 +195,8 @@ class EmergenceBoothController extends BaseController
 
     private function attendeeId(): int
     {
-        return (int) (session('attendee_id') ?: session('user_id'));
+        // user_id is the canonical account identifier. attendee_id remains as
+        // a legacy fallback for sessions created before this was standardised.
+        return (int) (session('user_id') ?: session('attendee_id'));
     }
 }
