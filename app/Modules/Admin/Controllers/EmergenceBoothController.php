@@ -46,6 +46,7 @@ class EmergenceBoothController extends BaseController
             'callbacks' => $this->callbacks(),
             'programmeWaitlists' => $this->programmeWaitlists(),
             'videoUrl' => $this->setting('welcome_video_url'),
+            'videoPlaylist' => $this->videoPlaylist(),
         ]);
     }
 
@@ -61,13 +62,37 @@ class EmergenceBoothController extends BaseController
         }
 
         try {
-            $url = (new BunnyStreamService())->uploadWelcomeVideo($file, 'Emergence Booth Welcome Video');
-            $this->saveSetting('welcome_video_url', $url);
+            $playlist = $this->videoPlaylist();
+            if (count($playlist) >= 4) {
+                return redirect()->back()->with('error', 'The booth playlist can contain up to four videos. Remove a video before adding another.');
+            }
+
+            $url = (new BunnyStreamService())->uploadWelcomeVideo($file, 'Emergence Booth Video ' . (count($playlist) + 1));
+            $playlist[] = $url;
+            $this->saveSetting('video_playlist', json_encode($playlist, JSON_UNESCAPED_SLASHES));
+            $this->saveSetting('welcome_video_url', $playlist[0]);
         } catch (\RuntimeException $exception) {
             return redirect()->back()->with('error', $exception->getMessage());
         }
 
-        return redirect()->to(site_url('admin/emergence-booth'))->with('success', 'Booth video uploaded to Bunny Stream.');
+        return redirect()->to(site_url('admin/emergence-booth'))->with('success', 'Booth video added to the Bunny Stream playlist.');
+    }
+
+    public function removeVideo(int $index)
+    {
+        if ($response = $this->notReadyResponse()) {
+            return $response;
+        }
+
+        $playlist = $this->videoPlaylist();
+        if (! array_key_exists($index, $playlist)) {
+            return redirect()->back()->with('error', 'That video is not in the booth playlist.');
+        }
+
+        array_splice($playlist, $index, 1);
+        $this->saveSetting('video_playlist', json_encode(array_values($playlist), JSON_UNESCAPED_SLASHES));
+        $this->saveSetting('welcome_video_url', $playlist[0] ?? '');
+        return redirect()->to(site_url('admin/emergence-booth'))->with('success', 'Booth video removed from the playlist.');
     }
 
     public function saveMember()
@@ -454,6 +479,20 @@ class EmergenceBoothController extends BaseController
     {
         $row = db_connect()->table('tbl_emergence_booth_settings')->where('setting_key', $key)->get()->getRowArray();
         return (string) ($row['setting_value'] ?? '');
+    }
+
+    private function videoPlaylist(): array
+    {
+        $decoded = json_decode($this->setting('video_playlist'), true);
+        $playlist = is_array($decoded) ? $decoded : [];
+        $playlist = array_values(array_filter($playlist, static fn ($url): bool => is_string($url) && filter_var($url, FILTER_VALIDATE_URL)));
+        if ($playlist === []) {
+            $legacy = $this->setting('welcome_video_url');
+            if ($legacy !== '' && filter_var($legacy, FILTER_VALIDATE_URL)) {
+                $playlist[] = $legacy;
+            }
+        }
+        return array_slice($playlist, 0, 4);
     }
 
     private function saveSetting(string $key, string $value): void

@@ -43,7 +43,7 @@ uksort($tiers, static function ($a, $b) use ($tierOrder) {
                     'glow' => '0 0 24px rgba(216,25,142,.35)',
                 ];
                 ?>
-                <section class="rc-sponsor-tier">
+                <section class="rc-sponsor-tier" aria-label="<?php echo esc($setting['label']); ?> sponsors">
                     <div class="rc-sponsor-label">
                         <span class="rc-mono" style="font-size:12px;letter-spacing:.22em;color:<?php echo esc($setting['color']); ?>"><?php echo esc($setting['label']); ?></span>
                         <span class="rc-mono" style="font-size:11px;color:rgba(255,255,255,.5)"><?php echo count($items); ?> PARTNERS</span>

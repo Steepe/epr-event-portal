@@ -57,6 +57,7 @@ class SpeakersController extends BaseController
             'speaker_company' => $this->request->getPost('speaker_company'),
             'bio'             => $this->request->getPost('bio'),
             'speaker_photo'   => $photoPath,
+            'linkedin_url'    => $this->request->getPost('linkedin_url'),
         ];
 
         $this->speakerModel->insert($data);
@@ -102,6 +103,7 @@ class SpeakersController extends BaseController
             'speaker_company' => $this->request->getPost('speaker_company'),
             'bio'             => $this->request->getPost('bio'),
             'speaker_photo'   => $photoPath,
+            'linkedin_url'    => $this->request->getPost('linkedin_url'),
         ];
 
         $this->speakerModel->update($id, $data);

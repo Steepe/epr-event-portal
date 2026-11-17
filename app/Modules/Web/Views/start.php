@@ -35,8 +35,7 @@ echo module_view('Web', 'includes/topbar');
        href="<?php echo base_url('attendees/past_conferences'); ?>"
        class="rc-start-module rc-start-module-side"
        style="left:<?php echo $pastModuleLeft; ?>;top:60%">
-        <span class="rc-start-module-num">MODULE 01</span>
-        <div style="display:flex">
+        <div style="display:flex;flex:1;align-items:center;justify-content:center">
             <img src="<?php echo asset_url('images/innovate-icon.png'); ?>" alt="" style="width:54px;height:54px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 3px #2c1830">
             <img src="<?php echo asset_url('images/dominate-icon.png'); ?>" alt="" style="width:54px;height:54px;border-radius:50%;object-fit:cover;margin-left:-14px;box-shadow:0 0 0 3px #2c1830">
             <img src="<?php echo asset_url('images/unleash-icon.png'); ?>" alt="" style="width:54px;height:54px;border-radius:50%;object-fit:cover;margin-left:-14px;box-shadow:0 0 0 3px #2c1830;background:#fff">
@@ -55,16 +54,10 @@ echo module_view('Web', 'includes/topbar');
            href="<?php echo base_url('attendees/home'); ?>"
            class="rc-start-module rc-start-module-core"
            style="left:50%;top:56%">
-            <div style="display:flex;justify-content:space-between;align-items:center;gap:12px">
-                <span class="rc-start-module-num" style="color:rgba(255,255,255,.7)">MODULE 02</span>
-                <span class="rc-start-live-badge">
-                    <span></span>LIVE NOW
-                </span>
-            </div>
-            <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;flex:1;align-items:center;justify-content:center;flex-direction:column;gap:8px">
                 <img src="<?php echo esc($liveIcon); ?>"
                      alt="<?php echo esc($live['title']); ?>"
-                     style="display:block;width:100%;max-width:300px;height:auto;max-height:120px;object-fit:contain;object-position:left center">
+                     style="display:block;width:100%;max-width:300px;height:auto;max-height:120px;object-fit:contain;object-position:center">
                 <span class="rc-mono" style="font-size:15px;letter-spacing:.24em;color:#efb11e"><?php echo esc($live['year'] ?? ''); ?></span>
             </div>
             <div style="display:flex;align-items:center;justify-content:space-between;font-size:14px;font-weight:600;letter-spacing:.08em;color:#fff">
@@ -81,8 +74,9 @@ echo module_view('Web', 'includes/topbar');
        href="<?php echo base_url('attendees/webinars'); ?>"
        class="rc-start-module rc-start-module-side"
        style="left:<?php echo $webinarModuleLeft; ?>;top:60%">
-        <span class="rc-start-module-num">MODULE 03</span>
-        <img src="<?php echo asset_url('images/webinars.png'); ?>" alt="EPR Global Webinars" style="width:64px;height:64px;object-fit:contain">
+        <div style="display:flex;flex:1;align-items:center;justify-content:center">
+            <img src="<?php echo asset_url('images/webinars.png'); ?>" alt="EPR Global Webinars" style="width:64px;height:64px;object-fit:contain">
+        </div>
         <div style="display:flex;align-items:center;justify-content:space-between;gap:14px">
             <span style="font-size:18px;font-weight:600;color:#fff">Webinars</span>
             <i class="fa fa-long-arrow-right" style="color:#efb11e" aria-hidden="true"></i>

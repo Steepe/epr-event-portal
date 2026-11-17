@@ -17,16 +17,21 @@ echo module_view('Web', 'includes/topbar');
                     <?php
                     $logo = !empty($ex['logo']) ? base_url('uploads/exhibitors_logos/' . $ex['logo']) : asset_url('images/eventslogo.png');
                     $bg = 'radial-gradient(circle at 50% 40%, #ffffff 0%, #d9d9d9 42%, #742c76 100%)';
+                    $videoUrl = !empty($ex['vimeo_id']) ? 'https://player.vimeo.com/video/' . rawurlencode((string) $ex['vimeo_id']) : '';
                     ?>
                     <article class="rc-booth-card">
                         <div style="position:relative;aspect-ratio:16/9;background:<?php echo $bg; ?>;display:flex;align-items:center;justify-content:center">
-                            <img src="<?php echo $logo; ?>" alt="<?php echo esc($ex['company_name']); ?>" style="max-width:52%;max-height:62%;object-fit:contain">
+                            <?php if ($videoUrl !== ''): ?>
+                                <iframe src="<?php echo esc($videoUrl, 'attr'); ?>?autoplay=1&amp;muted=1&amp;loop=1&amp;background=1&amp;dnt=1"
+                                        title="<?php echo esc($ex['company_name']); ?> video"
+                                        allow="autoplay; fullscreen; picture-in-picture"
+                                        style="position:absolute;inset:0;width:100%;height:100%;border:0;pointer-events:none"></iframe>
+                            <?php else: ?>
+                                <img src="<?php echo $logo; ?>" alt="<?php echo esc($ex['company_name']); ?>" style="max-width:52%;max-height:62%;object-fit:contain">
+                            <?php endif; ?>
                             <div style="position:absolute;top:0;left:0;right:0;padding:12px 18px;background:linear-gradient(90deg,rgba(0,0,0,.7),rgba(0,0,0,0))">
                                 <span style="font-size:15px;font-weight:500;letter-spacing:.02em;color:#fff"><?php echo esc($ex['company_name']); ?></span>
                             </div>
-                            <span style="position:absolute;left:14px;bottom:14px;display:flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.16em;padding:6px 10px;border-radius:999px;background:rgba(18,5,15,.78);color:#fff">
-                                <i class="fa fa-play" aria-hidden="true"></i>BOOTH VIDEO
-                            </span>
                         </div>
                         <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 22px">
                             <div style="display:flex;flex-direction:column;gap:3px;min-width:0">
@@ -46,7 +51,7 @@ echo module_view('Web', 'includes/topbar');
                                 <div class="modal-body" style="padding:28px">
                                     <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="position:absolute;top:12px;right:16px">&times;</button>
                                     <div style="display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:28px;align-items:center">
-                                        <div data-booth-video data-video-src="<?php echo !empty($ex['vimeo_id']) ? esc('https://player.vimeo.com/video/' . $ex['vimeo_id'], 'attr') : ''; ?>" style="position:relative;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:<?php echo $bg; ?>;display:flex;align-items:center;justify-content:center">
+                                        <div data-booth-video data-video-src="<?php echo esc($videoUrl, 'attr'); ?>" style="position:relative;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:<?php echo $bg; ?>;display:flex;align-items:center;justify-content:center">
                                             <img src="<?php echo $logo; ?>" alt="" style="max-width:50%;max-height:56%;object-fit:contain;opacity:.9">
                                             <button type="button" data-booth-video-play aria-label="Play booth video" style="position:absolute;width:64px;height:64px;padding:0 0 0 4px;box-sizing:border-box;border:0;border-radius:50%;background:linear-gradient(90deg,#7d0686,#bd159e 50%,#7c0585);color:#fff;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;box-shadow:0 0 30px rgba(216,25,142,.55)"><i class="fa fa-play" aria-hidden="true"></i></button>
                                         </div>
@@ -102,6 +107,11 @@ document.addEventListener("click", function(event) {
     iframe.allowFullscreen = true;
     iframe.style.cssText = "position:absolute;inset:0;z-index:2;width:100%;height:100%;border:0";
     player.appendChild(iframe);
+});
+document.addEventListener("hidden.bs.modal", function(event) {
+    event.target.querySelectorAll("[data-booth-video] iframe").forEach(function(iframe) {
+        iframe.remove();
+    });
 });
 </script>
 </body>

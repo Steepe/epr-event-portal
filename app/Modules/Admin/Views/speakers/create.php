@@ -50,6 +50,11 @@ $this->section('content');
         <input type="text" name="speaker_company"
                class="w-full p-2 rounded bg-gray-900 border border-gray-700 text-gray-200 focus:ring-blue-500 focus:border-blue-500">
       </div>
+      <div>
+        <label class="block text-sm text-gray-400 mb-2">LinkedIn URL</label>
+        <input type="url" name="linkedin_url" placeholder="https://www.linkedin.com/in/..."
+               class="w-full p-2 rounded bg-gray-900 border border-gray-700 text-gray-200 focus:ring-blue-500 focus:border-blue-500">
+      </div>
     </div>
 
     <div>
@@ -73,7 +78,8 @@ $this->section('content');
       </div>
     </div>
 
-    <div class="flex justify-end">
+    <div class="flex justify-end gap-3">
+      <a href="<?php echo site_url('admin/speakers'); ?>" class="px-6 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded">Cancel</a>
       <button type="submit"
               class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded">Save Speaker</button>
     </div>

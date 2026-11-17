@@ -71,7 +71,7 @@ $showNavLogo = in_array($current, [
 
 $navItems = [
     ['LOBBY', 'lobby', base_url('attendees/lobby')],
-    ['AGENDA', 'agenda', $agendaUrl],
+    ['LIVE CONFERENCE', 'agenda', $agendaUrl],
     ['NETWORKING CENTER', 'networking_center', base_url('attendees/networking_center')],
     ['EXHIBITORS', 'exhibitors', base_url('attendees/exhibitors')],
     ['SPONSORS', 'sponsors', base_url('attendees/sponsors')],

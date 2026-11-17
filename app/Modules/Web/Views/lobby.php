@@ -57,7 +57,7 @@ $ticketCurrency = $ticket_currency ?? 'USD';
     </a>
 
     <div class="rc-lobby-brand">
-        <span class="rc-kicker">Lobby &middot; Emergence 2026</span>
+        <span class="rc-kicker">Lobby &middot; Emergence Conference 2026</span>
         <img src="<?php echo asset_url('images/accelerate-logo-white.png'); ?>" alt="Accelerate: Building sustainable systems for execution">
     </div>
 

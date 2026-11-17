@@ -50,12 +50,13 @@ class EmergenceBoothController extends BaseController
         }
         unset($programme);
 
+        $videoPlaylist = $this->videoPlaylist();
         return module_view('Web', 'emergence_booth', [
             'ready' => true,
             'members' => $members,
             'programmes' => $programmes,
             'resources' => $db->table('tbl_emergence_booth_resources')->where('is_active', 1)->orderBy('sort_order')->orderBy('title')->get()->getResultArray(),
-            'videoUrl' => $this->setting('welcome_video_url'),
+            'videoPlaylist' => $videoPlaylist,
             'attendeeId' => $attendeeId,
         ]);
     }
@@ -175,6 +176,20 @@ class EmergenceBoothController extends BaseController
     {
         $row = db_connect()->table('tbl_emergence_booth_settings')->where('setting_key', $key)->get()->getRowArray();
         return (string) ($row['setting_value'] ?? '');
+    }
+
+    private function videoPlaylist(): array
+    {
+        $decoded = json_decode($this->setting('video_playlist'), true);
+        $playlist = is_array($decoded) ? $decoded : [];
+        $playlist = array_values(array_filter($playlist, static fn ($url): bool => is_string($url) && filter_var($url, FILTER_VALIDATE_URL)));
+        if ($playlist === []) {
+            $legacy = $this->setting('welcome_video_url');
+            if ($legacy !== '' && filter_var($legacy, FILTER_VALIDATE_URL)) {
+                $playlist[] = $legacy;
+            }
+        }
+        return array_slice($playlist, 0, 4);
     }
 
     private function isReady(): bool

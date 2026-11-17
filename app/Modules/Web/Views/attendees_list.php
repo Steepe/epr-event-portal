@@ -11,7 +11,7 @@ $tabs = [
 $searchValue = (string) service('request')->getGet('attendee_name');
 $currentUserId = (int) (session('user_id') ?: session('attendee_id'));
 $onlineCount = count(array_filter($attendees ?? [], static fn (array $attendee): bool => !empty($attendee['is_online']) && (int) $attendee['is_online'] === 1));
-$attendeeFilters = ['All', 'Online now', 'Founders', 'Operations', 'Finance', 'Tech'];
+$attendeeFilters = ['All', 'Online now'];
 ?>
 
 <main class="rc-page rc-page-center" data-screen-label="Attendees">
@@ -38,7 +38,7 @@ $attendeeFilters = ['All', 'Online now', 'Founders', 'Operations', 'Finance', 'T
         <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
             <form method="get" data-attendee-search-form style="position:relative;flex:1;min-width:240px;max-width:380px;display:flex">
                 <i class="fa fa-search" style="position:absolute;left:16px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.6)" aria-hidden="true"></i>
-                <input class="rc-input rc-attendee-search" type="text" name="attendee_name" value="<?php echo esc($searchValue, 'attr'); ?>" placeholder="Search by name, company or role" autocomplete="off" style="padding-left:42px;background:#1d0a21!important;border-radius:12px!important">
+                <input class="rc-input rc-attendee-search" type="text" name="attendee_name" value="<?php echo esc($searchValue, 'attr'); ?>" placeholder="Search by name, country" autocomplete="off" style="padding-left:42px;background:#1d0a21!important;border-radius:12px!important">
             </form>
 
             <div class="rc-attendee-filters">
@@ -64,16 +64,6 @@ $attendeeFilters = ['All', 'Online now', 'Founders', 'Operations', 'Finance', 'T
                     $messageRole = ($role ?: 'Attendee') . ($company !== '' ? ' · ' . $company : '');
                     $place = trim((string) (($attendee['city'] ?? '') . (!empty($attendee['country']) ? ', ' . $attendee['country'] : '')));
                     $isOnline = !empty($attendee['is_online']) && (int) $attendee['is_online'] === 1;
-                    $tagHaystack = strtolower($role . ' ' . $company);
-                    if (str_contains($tagHaystack, 'founder') || str_contains($tagHaystack, 'owner')) {
-                        $tags = ['Founders', 'Strategy'];
-                    } elseif (str_contains($tagHaystack, 'financ') || str_contains($tagHaystack, 'bank') || str_contains($tagHaystack, 'account')) {
-                        $tags = ['Finance', 'Strategy'];
-                    } elseif (str_contains($tagHaystack, 'engineer') || str_contains($tagHaystack, 'product') || str_contains($tagHaystack, 'tech')) {
-                        $tags = ['Tech', 'Product'];
-                    } else {
-                        $tags = ['Operations', 'Systems'];
-                    }
                     $isConnected = !empty($attendee['is_connected']) && (int) $attendee['is_connected'] === 1;
                     $connectionStatus = (string) ($attendee['connection_status'] ?? '');
                     $connectionDirection = (string) ($attendee['connection_direction'] ?? '');
@@ -118,7 +108,6 @@ $attendeeFilters = ['All', 'Online now', 'Founders', 'Operations', 'Finance', 'T
                              aria-label="View profile for <?php echo esc($fullName ?: 'Attendee', 'attr'); ?>"
                              data-attendee-card
                              data-search="<?php echo esc($searchIndex, 'attr'); ?>"
-                             data-tags="<?php echo esc(implode('|', $tags), 'attr'); ?>"
                              data-profile-id="<?php echo (int) $attendee['attendee_id']; ?>"
                              data-profile-name="<?php echo esc($fullName ?: 'Attendee', 'attr'); ?>"
                              data-profile-role="<?php echo esc($role ?: 'Attendee', 'attr'); ?>"
@@ -158,10 +147,6 @@ $attendeeFilters = ['All', 'Online now', 'Founders', 'Operations', 'Finance', 'T
 
                         <div style="display:flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.08em;color:rgba(255,255,255,.65)">
                             <i class="fa fa-map-marker" aria-hidden="true"></i><?php echo esc($place ?: 'Conference portal'); ?>
-                        </div>
-
-                        <div style="display:flex;gap:6px;flex-wrap:wrap">
-                            <?php foreach ($tags as $tag): ?><span class="rc-card-tag"><?php echo esc($tag); ?></span><?php endforeach; ?>
                         </div>
 
                         <div style="margin-top:auto;display:flex;gap:8px">
@@ -691,10 +676,8 @@ $attendeeFilters = ['All', 'Online now', 'Founders', 'Operations', 'Finance', 'T
 
         attendeeCards.forEach(function(card) {
             const searchMatches = !query || card.dataset.search.includes(query);
-            const tags = (card.dataset.tags || "").split("|");
             const filterMatches = activeFilter === "All"
-                || (activeFilter === "Online now" && card.dataset.profileOnline === "1")
-                || tags.includes(activeFilter);
+                || (activeFilter === "Online now" && card.dataset.profileOnline === "1");
             const matches = searchMatches && filterMatches;
             card.hidden = !matches;
             if (matches) {
