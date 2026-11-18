@@ -88,6 +88,83 @@ class SessionsController extends BaseController
         ]);
     }
 
+    public function rating(int $sessionId)
+    {
+        $attendeeId = $this->attendeeId();
+        if ($attendeeId <= 0) {
+            return $this->response->setStatusCode(401)->setJSON(['message' => 'Please sign in to rate this session.']);
+        }
+
+        $db = db_connect();
+        if (! $db->tableExists('tbl_session_ratings')) {
+            return $this->response->setStatusCode(503)->setJSON(['message' => 'Session ratings are being prepared.']);
+        }
+
+        $row = $db->table('tbl_session_ratings')
+            ->select('rating')
+            ->where('sessions_id', $sessionId)
+            ->where('attendee_id', $attendeeId)
+            ->get()
+            ->getRowArray();
+
+        return $this->response->setJSON([
+            'rating' => isset($row['rating']) ? (int) $row['rating'] : null,
+        ]);
+    }
+
+    public function saveRating(int $sessionId)
+    {
+        $attendeeId = $this->attendeeId();
+        if ($attendeeId <= 0) {
+            return $this->response->setStatusCode(401)->setJSON(['message' => 'Please sign in to rate this session.']);
+        }
+
+        $payload = $this->request->getJSON(true);
+        $ratingValue = is_array($payload) ? ($payload['rating'] ?? null) : $this->request->getPost('rating');
+        $rating = filter_var($ratingValue, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1, 'max_range' => 5]]);
+        if ($rating === false) {
+            return $this->response->setStatusCode(422)->setJSON(['message' => 'Choose between one and five stars.']);
+        }
+
+        $db = db_connect();
+        if (! $db->tableExists('tbl_session_ratings')) {
+            return $this->response->setStatusCode(503)->setJSON(['message' => 'Session ratings are being prepared.']);
+        }
+        if (! $db->table('tbl_conference_sessions')->where('sessions_id', $sessionId)->countAllResults()) {
+            return $this->response->setStatusCode(404)->setJSON(['message' => 'Session not found.']);
+        }
+
+        $table = $db->table('tbl_session_ratings');
+        $existing = $table->select('rating_id')
+            ->where('sessions_id', $sessionId)
+            ->where('attendee_id', $attendeeId)
+            ->get()
+            ->getRowArray();
+        $now = date('Y-m-d H:i:s');
+
+        if ($existing) {
+            $table->where('rating_id', (int) $existing['rating_id'])->update([
+                'rating' => $rating,
+                'updated_at' => $now,
+            ]);
+        } else {
+            $table->insert([
+                'sessions_id' => $sessionId,
+                'attendee_id' => $attendeeId,
+                'rating' => $rating,
+                'created_at' => $now,
+                'updated_at' => $now,
+            ]);
+        }
+
+        return $this->response->setJSON(['status' => 'success', 'rating' => $rating]);
+    }
+
+    private function attendeeId(): int
+    {
+        return (int) (session('user_id') ?: session('attendee_id'));
+    }
+
     private function onlineAttendeeCount($db): int
     {
         if ($db->tableExists('tbl_portal_user_presence')) {

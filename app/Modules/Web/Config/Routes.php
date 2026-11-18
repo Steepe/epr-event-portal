@@ -51,6 +51,8 @@ $routes->group('attendees', ['namespace' => 'App\Modules\Web\Controllers', 'filt
     $routes->get('pastConference/(:num)', 'AgendaController::view_past_conference/$1');
     $routes->get('sessions/(:num)', 'SessionsController::view/$1'); // 👈 single session page
     $routes->get('sessions/(:num)/online', 'SessionsController::onlineCount/$1');
+    $routes->get('sessions/(:num)/rating', 'SessionsController::rating/$1');
+    $routes->post('sessions/(:num)/rating', 'SessionsController::saveRating/$1');
     $routes->get('sessions/(:num)/zoom', 'ZoomSessionController::join/$1');
     $routes->get('sessions/(:num)/zoom/left', 'ZoomSessionController::left/$1');
     $routes->get('sessions/(:num)/zoom/signature', 'ZoomSessionController::signature/$1');

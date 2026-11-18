@@ -39,6 +39,8 @@ $routes->group('mobile', ['namespace' => 'App\Modules\MobileApp\Controllers', 'f
     $routes->get('lobby', 'Lobby::index');
     $routes->get('agenda/(:num)', 'Agenda::index/$1');
     $routes->get('session/(:num)', 'Session::detail/$1');
+    $routes->get('session/(:num)/rating', '\App\Modules\Web\Controllers\SessionsController::rating/$1');
+    $routes->post('session/(:num)/rating', '\App\Modules\Web\Controllers\SessionsController::saveRating/$1');
     $routes->get('webinars', 'Webinars::index');
     $routes->get('envision', 'Home::envision');
 

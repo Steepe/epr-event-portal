@@ -128,8 +128,8 @@ document.addEventListener('DOMContentLoaded', function () {
     var attendeeId = <?= json_encode((string) session('attendee_id')) ?>;
     var api = document.body.getAttribute('data-api');
 
-    /* Like + rating are kept on this device, as on the previous mobile build. */
-    var stateKey = 'epr-mobile-session:' + sessionId;
+    /* Likes are local to this signed-in attendee. Ratings are stored on the server. */
+    var stateKey = 'epr-mobile-session:' + attendeeId + ':' + sessionId;
     var state = {};
     try { state = JSON.parse(localStorage.getItem(stateKey)) || {}; } catch (e) { state = {}; }
     function save() { try { localStorage.setItem(stateKey, JSON.stringify(state)); } catch (e) { /* ignore */ } }
@@ -143,20 +143,46 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     like.addEventListener('click', function () { state.liked = !state.liked; save(); paintLike(); });
 
+    try { delete state.rating; save(); } catch (e) { /* ignore old device-only ratings */ }
+    var ratingUrl = <?= json_encode(site_url('mobile/session/' . $sessionId . '/rating')) ?>;
+    var csrf = <?= json_encode(csrf_hash()) ?>;
+    var rating = 0;
+    var savingRating = false;
     var stars = Array.prototype.slice.call(document.querySelectorAll('#rateSession [data-star]'));
     function paintStars() {
         stars.forEach(function (star) {
-            var on = Number(star.getAttribute('data-star')) <= (state.rating || 0);
+            var on = Number(star.getAttribute('data-star')) <= rating;
             star.classList.toggle('is-on', on);
-            star.setAttribute('aria-checked', Number(star.getAttribute('data-star')) === (state.rating || 0) ? 'true' : 'false');
+            star.setAttribute('aria-checked', Number(star.getAttribute('data-star')) === rating ? 'true' : 'false');
         });
     }
     stars.forEach(function (star) {
         star.addEventListener('click', function () {
-            state.rating = Number(star.getAttribute('data-star')); save(); paintStars();
-            EPR.toast('Thanks for rating this session ' + state.rating + '/5.');
+            var selected = Number(star.getAttribute('data-star'));
+            if (!selected || savingRating) return;
+            savingRating = true;
+            fetch(ratingUrl, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: {'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf},
+                body: JSON.stringify({rating: selected})
+            }).then(function (response) {
+                return response.ok ? response.json() : Promise.reject();
+            }).then(function (data) {
+                rating = Number(data.rating) || selected;
+                paintStars();
+                EPR.toast('Thanks for rating this session ' + rating + '/5.');
+            }).catch(function () {
+                EPR.toast('Your rating could not be saved.');
+            }).finally(function () {
+                savingRating = false;
+            });
         });
     });
+    fetch(ratingUrl, {credentials: 'same-origin'})
+        .then(function (response) { return response.ok ? response.json() : null; })
+        .then(function (data) { rating = Number(data && data.rating) || 0; paintStars(); })
+        .catch(function () { paintStars(); });
     paintLike(); paintStars();
 
     /* Live chat */

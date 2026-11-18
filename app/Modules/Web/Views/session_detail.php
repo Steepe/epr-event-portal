@@ -87,9 +87,12 @@ $leadSpeakerPhoto = !empty($leadSpeaker['speaker_photo'])
                 <button class="rc-session-like" type="button"><i class="fa fa-heart-o" style="color:#ff5fb4" aria-hidden="true"></i>Like Session</button>
                 <div style="display:flex;align-items:center;gap:10px">
                     <span style="font-size:13px;color:rgba(255,255,255,.75)">Rate this session</span>
-                    <div style="display:flex;gap:2px;color:rgba(255,255,255,.3);font-size:22px;line-height:1">
-                        <span style="color:#efb11e">★</span><span style="color:#efb11e">★</span><span>★</span><span>★</span><span>★</span>
+                    <div id="rateSession" role="radiogroup" aria-label="Rate this session" style="display:flex;gap:2px;font-size:22px;line-height:1">
+                        <?php for ($star = 1; $star <= 5; $star++): ?>
+                            <button type="button" role="radio" aria-checked="false" aria-label="<?php echo $star; ?> star<?php echo $star === 1 ? '' : 's'; ?>" data-star="<?php echo $star; ?>" style="padding:0;border:0;background:transparent;color:rgba(255,255,255,.3);font:inherit;line-height:1;cursor:pointer">★</button>
+                        <?php endfor; ?>
                     </div>
+                    <span id="ratingStatus" aria-live="polite" style="font-size:12px;color:rgba(255,255,255,.65)"></span>
                 </div>
             </div>
             <div style="display:flex;align-items:center;gap:16px">
@@ -172,12 +175,61 @@ document.addEventListener("DOMContentLoaded", () => {
     const empty = document.getElementById("chat-empty");
     const sessionId = <?php echo json_encode($chatSessionId); ?>;
     const attendeeId = <?php echo json_encode($chatAttendeeId); ?>;
+    const ratingUrl = <?php echo json_encode(base_url('attendees/sessions/' . $chatSessionId . '/rating')); ?>;
+    const csrf = <?php echo json_encode(csrf_hash()); ?>;
     const currentAttendeeName = <?php echo json_encode(session('firstname') ?: 'You'); ?>;
     const historyUrl = <?php echo json_encode(base_url('api/chat/' . $chatSessionId)); ?>;
     const sendUrl = <?php echo json_encode(base_url('api/chat/send/' . $chatSessionId)); ?>;
     const onlineCountUrl = <?php echo json_encode(base_url('attendees/sessions/' . $chatSessionId . '/online')); ?>;
     const renderedMessageIds = new Set();
     let latestMessageId = 0;
+
+    const ratingStars = Array.from(document.querySelectorAll("#rateSession [data-star]"));
+    const ratingStatus = document.getElementById("ratingStatus");
+    let currentRating = 0;
+    let savingRating = false;
+
+    function paintRating() {
+        ratingStars.forEach(star => {
+            const selected = Number(star.dataset.star) <= currentRating;
+            star.style.color = selected ? "#efb11e" : "rgba(255,255,255,.3)";
+            star.setAttribute("aria-checked", String(Number(star.dataset.star) === currentRating));
+        });
+    }
+
+    function loadRating() {
+        if (!sessionId) return;
+        fetch(ratingUrl, { credentials: "same-origin" })
+            .then(response => response.ok ? response.json() : null)
+            .then(data => {
+                currentRating = Number(data?.rating) || 0;
+                paintRating();
+            })
+            .catch(() => paintRating());
+    }
+
+    ratingStars.forEach(star => star.addEventListener("click", () => {
+        const rating = Number(star.dataset.star);
+        if (!rating || savingRating) return;
+        savingRating = true;
+        ratingStatus.textContent = "Saving…";
+        fetch(ratingUrl, {
+            method: "POST",
+            credentials: "same-origin",
+            headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": csrf },
+            body: JSON.stringify({ rating })
+        })
+            .then(response => response.ok ? response.json() : Promise.reject())
+            .then(data => {
+                currentRating = Number(data.rating) || rating;
+                paintRating();
+                ratingStatus.textContent = "Thanks.";
+            })
+            .catch(() => { ratingStatus.textContent = "Could not save rating."; })
+            .finally(() => { savingRating = false; });
+    }));
+    paintRating();
+    loadRating();
 
     function refreshOnlineCount() {
         fetch(onlineCountUrl, {credentials: "same-origin"})
