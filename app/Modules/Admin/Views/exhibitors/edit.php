@@ -75,9 +75,9 @@ $this->section('content');
     </div>
 
     <div>
-      <label class="block text-sm text-gray-400 mb-1">Vimeo Video ID</label>
+      <label class="block text-sm text-gray-400 mb-1" for="vimeo_id">Exhibitor Video — Vimeo ID</label>
       <div class="flex items-center gap-2">
-        <input type="text" name="vimeo_id" value="<?php echo esc($exhibitor['vimeo_id']); ?>"
+        <input id="vimeo_id" type="text" name="vimeo_id" value="<?php echo esc($exhibitor['vimeo_id']); ?>"
                class="flex-1 p-2.5 bg-gray-900 border border-gray-700 text-gray-200 rounded">
         <?php if (!empty($exhibitor['vimeo_id'])): ?>
           <button type="button"
@@ -87,6 +87,7 @@ $this->section('content');
           </button>
         <?php endif; ?>
       </div>
+      <p class="mt-1 text-xs text-gray-500">Paste only the number from the Vimeo video URL. Leave blank to show the exhibitor logo instead.</p>
     </div>
 
     <div>
