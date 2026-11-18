@@ -48,8 +48,6 @@ $initials = static function (string $name): string {
                     $photo = !empty($speaker['speaker_photo']) ? base_url('uploads/speakers/' . $speaker['speaker_photo']) : '';
                     $sessions = $speaker['sessions'] ?? [];
                     $sessionTitles = array_values(array_filter(array_map(static fn (array $session): string => trim((string) ($session['sessions_name'] ?? '')), $sessions)));
-                    $topicText = (string) ($speaker['topics'] ?? $speaker['speaker_topics'] ?? $speaker['expertise'] ?? 'Systems, Execution, Leadership');
-                    $topics = array_values(array_filter(array_map('trim', preg_split('/[,|]/', $topicText))));
                     $bio = trim((string) ($speaker['bio'] ?? 'This speaker shares practical lessons on sustainable execution, leadership rhythms and the systems that help teams scale.'));
                     $linkedinUrl = trim((string) ($speaker['linkedin_url'] ?? ''));
                     if ($linkedinUrl !== '' && ! filter_var($linkedinUrl, FILTER_VALIDATE_URL)) {
@@ -78,7 +76,6 @@ $initials = static function (string $name): string {
                                 <aside class="rc-speaker-modal-profile">
                                     <?php if ($photo !== ''): ?><img src="<?php echo $photo; ?>" alt="<?php echo esc($name); ?>" onerror="this.hidden=true;this.nextElementSibling.hidden=false"><span class="rc-speaker-modal-initials" hidden><?php echo $initials($name); ?></span><?php else: ?><span class="rc-speaker-modal-initials"><?php echo $initials($name); ?></span><?php endif; ?>
                                     <div class="rc-speaker-modal-name"><strong><?php echo esc($name); ?></strong><span><?php echo esc($speakerTitle); ?></span><?php if ($company !== ''): ?><span><?php echo esc($company); ?></span><?php endif; ?></div>
-                                    <div class="rc-speaker-topics"><?php foreach (array_slice($topics, 0, 3) as $topic): ?><span><?php echo esc($topic); ?></span><?php endforeach; ?></div>
                                     <?php if ($linkedinUrl !== ''): ?><div class="rc-speaker-socials"><a href="<?php echo esc($linkedinUrl, 'attr'); ?>" target="_blank" rel="noopener" aria-label="<?php echo esc($name, 'attr'); ?> on LinkedIn"><i class="fa fa-linkedin" aria-hidden="true"></i></a></div><?php endif; ?>
                                 </aside>
                                 <section class="rc-speaker-modal-main">

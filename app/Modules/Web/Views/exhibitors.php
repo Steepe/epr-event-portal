@@ -108,11 +108,27 @@ document.addEventListener("click", function(event) {
     iframe.style.cssText = "position:absolute;inset:0;z-index:2;width:100%;height:100%;border:0";
     player.appendChild(iframe);
 });
-document.addEventListener("hidden.bs.modal", function(event) {
-    event.target.querySelectorAll("[data-booth-video] iframe").forEach(function(iframe) {
+function stopBoothVideo(modal) {
+    modal.querySelectorAll("[data-booth-video] iframe").forEach(function(iframe) {
+        iframe.src = "";
         iframe.remove();
     });
-});
+}
+
+// The portal's modal helper triggers Bootstrap's jQuery event, rather than a
+// browser event. Listen through jQuery so the player is removed for the ×,
+// backdrop, and Escape close paths.
+if (window.jQuery) {
+    window.jQuery(document).on("hidden.bs.modal", ".modal", function() {
+        stopBoothVideo(this);
+    });
+} else {
+    document.addEventListener("hidden.bs.modal", function(event) {
+        if (event.target.classList.contains("modal")) {
+            stopBoothVideo(event.target);
+        }
+    });
+}
 </script>
 </body>
 </html>
