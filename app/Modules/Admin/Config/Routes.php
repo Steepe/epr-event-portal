@@ -59,6 +59,7 @@ $routes->group('admin', ['namespace' => 'App\Modules\Admin\Controllers'], functi
             $routes->get('(:num)/sessions', 'ConferenceSessionsController::index/$1');
             $routes->get('(:num)/sessions/create', 'ConferenceSessionsController::create/$1');
             $routes->post('(:num)/sessions/store', 'ConferenceSessionsController::store/$1');
+            $routes->post('(:num)/sessions/normalize-dates', 'ConferenceSessionsController::normalizeDates/$1');
             $routes->get('sessions/(:num)/edit', 'ConferenceSessionsController::edit/$1');
             $routes->post('sessions/(:num)/update', 'ConferenceSessionsController::update/$1');
             $routes->get('sessions/(:num)/delete', 'ConferenceSessionsController::delete/$1');

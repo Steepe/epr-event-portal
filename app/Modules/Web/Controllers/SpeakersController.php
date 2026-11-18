@@ -23,11 +23,21 @@ class SpeakersController extends BaseController
         $apiKey  = env('api.securityKey');
         $apiBase = rtrim(base_url('api'), '/');
         $curl    = service('curlrequest', ['verify' => false]);
+        $conferenceId = (int) $session->get('live-conference-id');
+        if ($conferenceId <= 0) {
+            $liveConference = db_connect()->table('tbl_conferences')
+                ->select('conference_id')
+                ->where('status', 'live')
+                ->orderBy('start_date', 'DESC')
+                ->get(1)
+                ->getRowArray();
+            $conferenceId = (int) ($liveConference['conference_id'] ?? 0);
+        }
 
         $speakers = [];
 
         try {
-            $response = $curl->get("{$apiBase}/speakers", [
+            $response = $curl->get("{$apiBase}/speakers?conference_id={$conferenceId}", [
                 'headers' => ['X-API-KEY' => $apiKey],
             ]);
 

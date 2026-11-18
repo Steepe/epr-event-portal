@@ -24,6 +24,16 @@ $this->section('content');
   </a>
 </div>
 
+<?php if (!empty($invalidSessionIds)): ?>
+  <div class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded border border-amber-600 bg-amber-950/30 p-3 text-amber-100">
+    <span><?php echo count($invalidSessionIds); ?> session<?php echo count($invalidSessionIds) === 1 ? '' : 's'; ?> fall outside this conference's configured duration. They are hidden from the attendee agenda until their dates are corrected.</span>
+    <form method="post" action="<?php echo site_url('admin/conferences/' . $conference['conference_id'] . '/sessions/normalize-dates'); ?>">
+      <?php echo csrf_field(); ?>
+      <button type="submit" class="rounded bg-amber-500 px-3 py-2 text-sm font-medium text-gray-950 hover:bg-amber-400" onclick="return confirm('Move every out-of-range session to the nearest permitted conference date?');">Align session dates</button>
+    </form>
+  </div>
+<?php endif; ?>
+
 <?php if (session()->getFlashdata('error')): ?>
   <div class="mb-4 text-red-400 bg-gray-800 border border-red-600 p-3 rounded">
     <?php echo session()->getFlashdata('error'); ?>
@@ -39,7 +49,7 @@ $this->section('content');
     <p class="text-gray-400">No sessions found for this conference.</p>
   <?php else: ?>
     <?php foreach ($sessions as $session): ?>
-      <div class="bg-gray-800 border border-gray-700 rounded-lg shadow hover:shadow-lg transition">
+      <div class="bg-gray-800 border <?php echo in_array((int) $session['sessions_id'], $invalidSessionIds ?? [], true) ? 'border-amber-500' : 'border-gray-700'; ?> rounded-lg shadow hover:shadow-lg transition">
         <div class="p-5">
           <h2 class="text-lg font-semibold text-gray-100">
             <?php echo esc($session['sessions_name']); ?>

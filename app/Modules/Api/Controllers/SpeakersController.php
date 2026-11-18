@@ -27,16 +27,22 @@ class SpeakersController extends ResourceController
     public function index()
     {
         try {
+            $conferenceId = (int) $this->request->getGet('conference_id');
             $speakers = $this->model->orderBy('speaker_name', 'ASC')->findAll();
             $db = db_connect();
             foreach ($speakers as &$speaker) {
-                $speaker['sessions'] = $db->table('tbl_session_speakers ss')
+                $sessionQuery = $db->table('tbl_session_speakers ss')
                     ->select('s.sessions_id, s.sessions_name, s.event_date, s.start_time')
                     ->join('tbl_conference_sessions s', 's.sessions_id = ss.sessions_id', 'left')
-                    ->where('ss.speaker_id', (int) $speaker['speaker_id'])
+                    ->where('ss.speaker_id', (int) $speaker['speaker_id']);
+                if ($conferenceId > 0) {
+                    $sessionQuery->where('s.conference_id', $conferenceId);
+                }
+                $speaker['sessions'] = $sessionQuery
                     ->orderBy('s.event_date', 'ASC')
                     ->orderBy('s.start_time', 'ASC')
-                    ->get()->getResultArray();
+                    ->get()
+                    ->getResultArray();
             }
             unset($speaker);
 

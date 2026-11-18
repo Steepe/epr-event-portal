@@ -34,6 +34,7 @@ $this->section('content');
   <div class="mb-6 rounded-lg border border-amber-500/70 bg-amber-950/30 p-4 text-amber-100">
     <p class="font-semibold">Important: enter every session date and time in GMT (UTC+0).</p>
     <p class="mt-1 text-sm text-amber-200/85">The portal automatically converts the saved GMT time to each attendee’s local time zone.</p>
+    <?php if (!empty($sessionDateRange)): ?><p class="mt-1 text-sm text-amber-200/85">This conference accepts sessions from <?php echo esc($sessionDateRange['start']); ?> to <?php echo esc($sessionDateRange['end']); ?>.</p><?php endif; ?>
   </div>
 
   <form method="post" enctype="multipart/form-data"
@@ -50,7 +51,7 @@ $this->section('content');
 
       <div>
         <label class="block text-sm text-gray-400 mb-2">Event Date (GMT / UTC+0)</label>
-        <input type="date" name="event_date" value="<?php echo esc($session['event_date']); ?>" required
+        <input type="date" name="event_date" value="<?php echo esc($session['event_date']); ?>" required<?php if (!empty($sessionDateRange)): ?> min="<?php echo esc($sessionDateRange['start'], 'attr'); ?>" max="<?php echo esc($sessionDateRange['end'], 'attr'); ?>"<?php endif; ?>
                class="w-full p-2 rounded bg-gray-900 border border-gray-700 text-gray-200 focus:ring-blue-500 focus:border-blue-500">
       </div>
 

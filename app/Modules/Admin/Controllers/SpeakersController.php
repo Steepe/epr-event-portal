@@ -127,11 +127,18 @@ class SpeakersController extends BaseController
      */
     private function storePhoto(): ?string
     {
+        if ($this->postExceedsUploadLimit()) {
+            throw new \RuntimeException($this->serverUploadLimitMessage());
+        }
+
         $photo = $this->request->getFile('speaker_photo');
         if (! $photo || $photo->getError() === UPLOAD_ERR_NO_FILE) {
             return null;
         }
         if (! $photo->isValid()) {
+            if ($photo->getError() === UPLOAD_ERR_INI_SIZE) {
+                throw new \RuntimeException($this->serverUploadLimitMessage());
+            }
             throw new \RuntimeException($this->uploadErrorMessage($photo->getError()));
         }
         if ($photo->hasMoved()) {
@@ -182,6 +189,40 @@ class SpeakersController extends BaseController
             UPLOAD_ERR_CANT_WRITE => 'The server could not write the speaker photo. Please check server permissions.',
             UPLOAD_ERR_EXTENSION => 'A server extension stopped the speaker photo upload.',
             default => 'The speaker photo upload failed. Please try again.',
+        };
+    }
+
+    private function postExceedsUploadLimit(): bool
+    {
+        $contentLength = (int) $this->request->getServer('CONTENT_LENGTH');
+        $limit = $this->iniBytes((string) ini_get('post_max_size'));
+
+        return $contentLength > 0 && $limit > 0 && $contentLength > $limit;
+    }
+
+    private function serverUploadLimitMessage(): string
+    {
+        $uploadLimit = (string) ini_get('upload_max_filesize');
+        $postLimit = (string) ini_get('post_max_size');
+
+        return "The server rejected this upload before the portal could check it (server limits: {$uploadLimit} per file and {$postLimit} per form). Please try again after the server upload limits have refreshed.";
+    }
+
+    private function iniBytes(string $value): int
+    {
+        $value = trim($value);
+        if ($value === '') {
+            return 0;
+        }
+
+        $unit = strtolower(substr($value, -1));
+        $bytes = (int) $value;
+
+        return match ($unit) {
+            'g' => $bytes * 1024 * 1024 * 1024,
+            'm' => $bytes * 1024 * 1024,
+            'k' => $bytes * 1024,
+            default => $bytes,
         };
     }
 }

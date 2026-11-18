@@ -53,10 +53,22 @@ class ConferenceSessionsController extends BaseController
             ->orderBy('start_time', 'ASC')
             ->orderBy('sessions_id', 'ASC')
             ->findAll();
+        $sessionDateRange = $this->sessionDateRange($conference);
+        $invalidSessionIds = [];
+        if ($sessionDateRange !== null) {
+            foreach ($sessions as $session) {
+                $eventDate = (string) ($session['event_date'] ?? '');
+                if ($eventDate < $sessionDateRange['start'] || $eventDate > $sessionDateRange['end']) {
+                    $invalidSessionIds[] = (int) $session['sessions_id'];
+                }
+            }
+        }
 
         echo module_view('Admin', 'sessions/index', [
             'conference' => $conference,
             'sessions' => $sessions,
+            'sessionDateRange' => $sessionDateRange,
+            'invalidSessionIds' => $invalidSessionIds,
             'pageTitle' => 'Sessions - ' . $conference['title']
         ]);
     }
@@ -84,6 +96,7 @@ class ConferenceSessionsController extends BaseController
             'conference' => $conference,
             'speakers'   => $speakers,
             'isLive'     => $isLive,
+            'sessionDateRange' => $this->sessionDateRange($conference),
             'pageTitle'  => 'Add Session to ' . $conference['title']
         ]);
     }
@@ -97,6 +110,10 @@ class ConferenceSessionsController extends BaseController
 
         helper(['form', 'url']);
         $isLive = ($conference['status'] === 'live');
+        $eventDate = trim((string) $this->request->getPost('event_date'));
+        if ($dateError = $this->sessionDateError($conference, $eventDate)) {
+            return redirect()->back()->withInput()->with('error', $dateError);
+        }
 
         // Handle workbook upload
         $file = $this->request->getFile('workbook');
@@ -117,7 +134,7 @@ class ConferenceSessionsController extends BaseController
         $data = [
             'conference_id' => $conference_id,
             'sessions_name' => $this->request->getPost('sessions_name'),
-            'event_date'    => $this->request->getPost('event_date'),
+            'event_date'    => $eventDate,
             'start_time'    => $this->request->getPost('start_time'),
             'end_time'      => $this->request->getPost('end_time'),
             'access_level'  => $this->request->getPost('access_level'),
@@ -189,6 +206,7 @@ class ConferenceSessionsController extends BaseController
             'speakers'         => $speakers,
             'assignedSpeakers' => $assignedSpeakers,
             'isLive'           => $isLive,
+            'sessionDateRange' => $this->sessionDateRange($conference),
             'pageTitle'        => 'Edit Session - ' . $conference['title']
         ]);
     }
@@ -202,6 +220,10 @@ class ConferenceSessionsController extends BaseController
 
         $conference = $this->conferenceModel->find($session['conference_id']);
         $isLive = ($conference['status'] === 'live');
+        $eventDate = trim((string) $this->request->getPost('event_date'));
+        if ($dateError = $this->sessionDateError($conference, $eventDate)) {
+            return redirect()->back()->withInput()->with('error', $dateError);
+        }
 
         $file = $this->request->getFile('workbook');
         $workbookPath = $session['workbook'];
@@ -219,7 +241,7 @@ class ConferenceSessionsController extends BaseController
 
         $data = [
             'sessions_name' => $this->request->getPost('sessions_name'),
-            'event_date'    => $this->request->getPost('event_date'),
+            'event_date'    => $eventDate,
             'start_time'    => $this->request->getPost('start_time'),
             'end_time'      => $this->request->getPost('end_time'),
             'access_level'  => $this->request->getPost('access_level'),
@@ -255,6 +277,55 @@ class ConferenceSessionsController extends BaseController
             ->with('success', 'Session updated successfully.');
     }
 
+    /**
+     * Moves incorrectly dated sessions onto the closest date permitted by the
+     * conference duration. This is deliberately an explicit admin action so
+     * existing schedules are never silently rewritten.
+     */
+    public function normalizeDates($conferenceId = null): \CodeIgniter\HTTP\RedirectResponse
+    {
+        $conference = $this->conferenceModel->find($conferenceId);
+        if (! $conference) {
+            throw new PageNotFoundException('Conference not found.');
+        }
+
+        $range = $this->sessionDateRange($conference);
+        if ($range === null) {
+            return redirect()->to(site_url('admin/conferences/' . $conferenceId . '/sessions'))
+                ->with('error', 'Set a valid conference start date and duration before aligning session dates.');
+        }
+
+        $db = db_connect();
+        $sessions = $db->table('tbl_conference_sessions');
+        $beforeCount = $db->table('tbl_conference_sessions')
+            ->where('conference_id', $conferenceId)
+            ->where('event_date <', $range['start'])
+            ->countAllResults();
+        $afterCount = $db->table('tbl_conference_sessions')
+            ->where('conference_id', $conferenceId)
+            ->where('event_date >', $range['end'])
+            ->countAllResults();
+
+        if ($beforeCount > 0) {
+            $sessions->where('conference_id', $conferenceId)
+                ->where('event_date <', $range['start'])
+                ->update(['event_date' => $range['start']]);
+        }
+        if ($afterCount > 0) {
+            $sessions->where('conference_id', $conferenceId)
+                ->where('event_date >', $range['end'])
+                ->update(['event_date' => $range['end']]);
+        }
+
+        $moved = $beforeCount + $afterCount;
+        $message = $moved > 0
+            ? $moved . ' session' . ($moved === 1 ? '' : 's') . ' moved into the configured conference date range.'
+            : 'All session dates already match the configured conference duration.';
+
+        return redirect()->to(site_url('admin/conferences/' . $conferenceId . '/sessions'))
+            ->with('success', $message);
+    }
+
     public function delete($id = null)
     {
         $session = $this->sessionModel->find($id);
@@ -286,6 +357,40 @@ class ConferenceSessionsController extends BaseController
         }
 
         return preg_match('/^[A-Za-z0-9_-]+$/', $value) ? $value : '';
+    }
+
+    /**
+     * @return array{start: string, end: string}|null
+     */
+    private function sessionDateRange(array $conference): ?array
+    {
+        $days = max(0, (int) ($conference['days'] ?? 0));
+        $startDate = substr(trim((string) ($conference['start_date'] ?? '')), 0, 10);
+        if ($days < 1 || ! preg_match('/^\d{4}-\d{2}-\d{2}$/', $startDate)) {
+            return null;
+        }
+
+        try {
+            $start = new \DateTimeImmutable($startDate, new \DateTimeZone('UTC'));
+        } catch (\Exception) {
+            return null;
+        }
+
+        return [
+            'start' => $start->format('Y-m-d'),
+            'end' => $start->modify('+' . ($days - 1) . ' days')->format('Y-m-d'),
+        ];
+    }
+
+    private function sessionDateError(array $conference, string $eventDate): ?string
+    {
+        $range = $this->sessionDateRange($conference);
+        if ($range === null || ($eventDate >= $range['start'] && $eventDate <= $range['end'])) {
+            return null;
+        }
+
+        $dateRange = $range['start'] === $range['end'] ? $range['start'] : $range['start'] . ' to ' . $range['end'];
+        return 'This session must be scheduled within the conference dates: ' . $dateRange . ' (GMT / UTC+0).';
     }
 
     /**
