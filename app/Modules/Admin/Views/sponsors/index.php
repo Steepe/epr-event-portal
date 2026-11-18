@@ -47,7 +47,7 @@ $this->section('content');
         <?php endif; ?>
 
         <h2 class="text-lg font-semibold text-gray-100"><?php echo esc($sponsor['name']); ?></h2>
-        <?php $tierKey = strtolower(trim((string) ($sponsor['tier'] ?? ''))); ?>
+        <?php $tierKey = strtolower(trim((string) ($sponsor['tier'] ?? ''))) ?: 'uncategorised'; ?>
         <span class="text-xs px-2 py-1 mt-1 rounded-full
               <?php echo match($tierKey) {
                   'platinum' => 'bg-yellow-700 text-yellow-300',

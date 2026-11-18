@@ -5,7 +5,7 @@ echo module_view('Web', 'includes/topbar');
 $tiers = [];
 if (!empty($sponsors)) {
     foreach ($sponsors as $sponsor) {
-        $tier = $sponsor['tier'] ?? 'Partner';
+        $tier = trim((string) ($sponsor['tier'] ?? '')) ?: 'Uncategorised';
         $tiers[$tier][] = $sponsor;
     }
 }

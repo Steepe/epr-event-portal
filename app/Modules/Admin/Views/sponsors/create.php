@@ -30,7 +30,7 @@ $this->section('content');
     </div>
     <div>
       <label class="block text-sm text-gray-400 mb-1">Tier</label>
-      <select name="tier"
+      <select name="tier" required
               class="w-full p-2.5 bg-gray-900 border border-gray-700 text-gray-200 rounded">
         <option value="Platinum">Platinum</option>
         <option value="Gold">Gold</option>
