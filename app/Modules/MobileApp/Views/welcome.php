@@ -2,7 +2,6 @@
 <?php
 $firstName      = trim((string) session('firstname'));
 $conferenceYear = (string) ($conference['year'] ?? date('Y'));
-$isLive         = !empty($conference);
 $pastIcons      = [];
 foreach (array_reverse($pastConferences ?? []) as $item) {
     if (!empty($item['icon'])) {
@@ -21,10 +20,6 @@ if (count($pastIcons) < 3) {
     </div>
 
     <a class="m-start__hero" href="<?= site_url('mobile/home') ?>">
-        <div class="m-start__row">
-            <span class="m-start__module">MODULE 02</span>
-            <?php if ($isLive): ?><span class="m-start__live">LIVE NOW</span><?php endif; ?>
-        </div>
         <div class="m-start__brand">
             <img src="<?= mobile_asset_url('images/accelerate-logo-white.png') ?>" alt="<?= esc($conference['title'] ?? 'Accelerate', 'attr') ?>">
             <span class="m-start__year"><?= esc($conferenceYear) ?></span>
@@ -40,8 +35,7 @@ if (count($pastIcons) < 3) {
     <div class="m-start__grid">
         <a class="m-start__card" href="<?= site_url('mobile/past-conferences') ?>">
             <span class="m-start__nub m-start__nub--top"></span>
-            <span class="m-start__module m-start__module--dim">MODULE 01</span>
-            <div class="m-start__icons">
+            <div class="m-start__visual m-start__icons">
                 <?php foreach (array_slice($pastIcons, 0, 3) as $index => $icon): ?>
                     <img class="<?= $index === 2 ? 'is-light' : '' ?>" src="<?= esc($icon, 'attr') ?>" alt="">
                 <?php endforeach; ?>
@@ -50,8 +44,7 @@ if (count($pastIcons) < 3) {
         </a>
         <a class="m-start__card" href="<?= site_url('mobile/webinars') ?>">
             <span class="m-start__nub m-start__nub--top"></span>
-            <span class="m-start__module m-start__module--dim">MODULE 03</span>
-            <img class="m-start__webinar" src="<?= mobile_asset_url('images/webinars.png') ?>" alt="EPR Global Webinars">
+            <div class="m-start__visual"><img class="m-start__webinar" src="<?= mobile_asset_url('images/webinars.png') ?>" alt="EPR Global Webinars"></div>
             <div class="m-start__foot"><span>Webinars</span><i class="fa fa-long-arrow-right" aria-hidden="true"></i></div>
         </a>
     </div>
