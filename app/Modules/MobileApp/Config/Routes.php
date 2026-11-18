@@ -57,6 +57,7 @@ $routes->group('mobile', ['namespace' => 'App\Modules\MobileApp\Controllers', 'f
 
     $routes->get('attendees', 'Attendees::index');
     $routes->get('speakers', 'SpeakersController::index');
+    $routes->post('speakers/send-message', 'SpeakersController::sendMessage');
 
     $routes->get('exhibitors', 'ExhibitorsController::index');
     $routes->post('exhibitors/send-message', 'ExhibitorsController::sendMessage');

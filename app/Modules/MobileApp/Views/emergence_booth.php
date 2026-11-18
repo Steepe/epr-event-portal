@@ -3,7 +3,8 @@
 $members    = $members ?? [];
 $programmes = $programmes ?? [];
 $resources  = $resources ?? [];
-$videoUrl   = (string) ($videoUrl ?? '');
+$videoPlaylist = array_values(array_filter($videoPlaylist ?? [], static fn ($url): bool => is_string($url) && $url !== ''));
+$videoUrl   = $videoPlaylist[0] ?? '';
 $topics     = ['Programmes', 'Partnership', 'Speaking', 'Media'];
 ?>
 
@@ -17,12 +18,12 @@ $topics     = ['Programmes', 'Partnership', 'Speaking', 'Media'];
     <?php if (! ($ready ?? false)): ?>
         <div class="m-card m-info m-info--20"><b>Emergence Booth is being prepared.</b><span>Please check back shortly.</span></div>
     <?php else: ?>
-        <div class="m-video" data-video-src="<?= esc($videoUrl, 'attr') ?>" data-video-title="Welcome film">
+        <div class="m-video" data-video-playlist="<?= esc(json_encode($videoPlaylist, JSON_UNESCAPED_SLASHES), 'attr') ?>" data-video-title="EPR films">
             <img class="m-video__ghost" src="<?= mobile_asset_url('images/accelerate-logo-white.png') ?>" alt="" data-video-hide>
             <?php if ($videoUrl !== ''): ?>
-                <button class="m-play m-play--64" type="button" data-play data-video-hide aria-label="Play welcome film"><i class="fa fa-play" aria-hidden="true"></i></button>
+                <button class="m-play m-play--64" type="button" data-booth-play data-video-hide aria-label="Play EPR films"><i class="fa fa-play" aria-hidden="true"></i></button>
             <?php endif; ?>
-            <span class="m-video__tag" data-video-hide><i class="fa fa-film" aria-hidden="true"></i>WELCOME FILM</span>
+            <span class="m-video__tag" data-video-hide><i class="fa fa-film" aria-hidden="true"></i>EPR FILMS</span>
             <div class="m-video__caption" data-video-hide>Why we build systems, not hype</div>
         </div>
 
@@ -117,6 +118,23 @@ document.addEventListener('DOMContentLoaded', function () {
     var input = document.getElementById('memberChatInput');
     var memberId = null, poller = 0, signature = '';
 
+    document.querySelector('[data-booth-play]')?.addEventListener('click', function () {
+        var button = this, holder = button.closest('[data-video-playlist]'), playlist = [];
+        try { playlist = JSON.parse(holder.dataset.videoPlaylist || '[]'); } catch (e) { playlist = []; }
+        if (!playlist.length || holder.querySelector('iframe')) return;
+        var index = 0;
+        var playNext = function () {
+            var source = playlist[index], frame = document.createElement('iframe');
+            frame.src = source + (source.indexOf('?') === -1 ? '?' : '&') + 'autoplay=1';
+            frame.allow = 'autoplay; fullscreen; picture-in-picture'; frame.allowFullscreen = true; frame.title = 'EPR film';
+            holder.querySelector('iframe')?.remove(); holder.appendChild(frame);
+            Array.prototype.forEach.call(holder.querySelectorAll('[data-video-hide]'), function (item) { item.hidden = true; });
+            index = (index + 1) % playlist.length;
+            if (playlist.length > 1 && window.playerjs) { new window.playerjs.Player(frame).on('ended', playNext); }
+        };
+        playNext();
+    });
+
     function render(rows) {
         var next = JSON.stringify(rows);
         if (next === signature) return;
@@ -197,5 +215,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 });
 </script>
+<script src="https://assets.mediadelivery.net/playerjs/0.1.1/player-0.1.1.min.js" defer></script>
 
 <?= module_view('MobileApp', 'includes/footer') ?>

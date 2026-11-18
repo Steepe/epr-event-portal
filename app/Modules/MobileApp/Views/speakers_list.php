@@ -227,7 +227,9 @@ echo module_view('MobileApp', 'includes/header'); ?>
         <?php if (!empty($speakers)): ?>
             <?php foreach ($speakers as $speaker): ?>
                 <?php
-                    $image = base_url('uploads/speaker_pictures/' . $speaker['speaker_photo']);
+                    $image = !empty($speaker['speaker_photo'])
+                        ? base_url('uploads/speakers/' . rawurlencode((string) $speaker['speaker_photo']))
+                        : mobile_asset_url('images/user.png');
                     $speakerId = $speaker['speaker_id'];
                 ?>
                 <div class="speaker-card">

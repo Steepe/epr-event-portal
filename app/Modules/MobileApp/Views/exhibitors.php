@@ -15,8 +15,8 @@
         if ($logoFile !== '') {
             // The desktop portal stores booth logos in exhibitors_logos; older uploads live in exhibitors.
             $logo = file_exists(FCPATH . 'uploads/exhibitors_logos/' . $logoFile)
-                ? '/uploads/exhibitors_logos/' . rawurlencode($logoFile)
-                : '/uploads/exhibitors/' . rawurlencode($logoFile);
+                ? base_url('uploads/exhibitors_logos/' . rawurlencode($logoFile))
+                : base_url('uploads/exhibitors/' . rawurlencode($logoFile));
         }
         $tagline = trim((string) ($ex['tagline'] ?? '')) ?: 'Explore their virtual booth';
         $vimeo   = preg_replace('/\D/', '', (string) ($ex['vimeo_id'] ?? ''));
@@ -30,9 +30,12 @@
                  data-phone="<?= esc((string) ($ex['telephone'] ?? ''), 'attr') ?>" data-website="<?= esc($website, 'attr') ?>"
                  data-summary="<?= esc((string) ($ex['profile_summary'] ?? ''), 'attr') ?>" data-promo="<?= esc($promo, 'attr') ?>">
             <button class="m-exhibitor__visual" type="button" data-booth-open aria-label="Open <?= esc($ex['company_name'], 'attr') ?> booth">
-                <img src="<?= esc($logo, 'attr') ?>" alt="" loading="lazy" onerror="this.onerror=null;this.src='<?= $fallbackLogo ?>'">
+                <?php if ($vimeo !== ''): ?>
+                    <iframe src="https://player.vimeo.com/video/<?= esc($vimeo, 'attr') ?>?autoplay=1&amp;muted=1&amp;loop=1&amp;background=1&amp;dnt=1" title="<?= esc($ex['company_name'], 'attr') ?> video" allow="autoplay; fullscreen; picture-in-picture" tabindex="-1"></iframe>
+                <?php else: ?>
+                    <img src="<?= esc($logo, 'attr') ?>" alt="" loading="lazy" onerror="this.onerror=null;this.src='<?= $fallbackLogo ?>'">
+                <?php endif; ?>
                 <span class="m-exhibitor__bar"><?= esc($ex['company_name']) ?></span>
-                <?php if ($vimeo !== ''): ?><span class="m-video__tag m-video__tag--bl" style="padding:6px 10px"><i class="fa fa-play" aria-hidden="true"></i>BOOTH VIDEO</span><?php endif; ?>
             </button>
             <div class="m-exhibitor__info">
                 <div class="m-exhibitor__copy"><b><?= esc($ex['company_name']) ?></b><span><?= esc($tagline) ?></span></div>

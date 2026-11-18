@@ -41,8 +41,8 @@ $mobileScreen = (string) ($screenLabel ?? ($title ?? ''));
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?= mobile_asset_url('font-awesome/css/font-awesome.min.css') ?>">
-    <link rel="stylesheet" href="<?= mobile_asset_url('css/mobile.css') ?>?v=<?= @filemtime(FCPATH . 'assets/css/mobile.css') ?: 1 ?>">
-    <script defer src="<?= mobile_asset_url('js/accelerate-background.js') ?>?v=<?= @filemtime(FCPATH . 'assets/js/accelerate-background.js') ?: 1 ?>"></script>
+    <link rel="stylesheet" href="<?= mobile_asset_url('css/mobile.css') ?>">
+    <script defer src="<?= mobile_asset_url('js/accelerate-background.js') ?>"></script>
     <script>
         var _paq = window._paq = window._paq || [];
         _paq.push(['trackPageView']);

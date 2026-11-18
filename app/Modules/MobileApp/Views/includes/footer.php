@@ -52,6 +52,6 @@ $mobileUnread = count(array_filter($mobileNotifs, static fn (array $item): bool 
 <?php endif; ?>
 
 <div class="m-toast" id="mToast" role="status" aria-live="polite" hidden></div>
-<script src="<?= mobile_asset_url('js/mobile-app.js') ?>?v=<?= @filemtime(FCPATH . 'assets/js/mobile-app.js') ?: 1 ?>"></script>
+<script src="<?= mobile_asset_url('js/mobile-app.js') ?>"></script>
 </body>
 </html>

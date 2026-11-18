@@ -27,7 +27,11 @@ class NetworkingCenter extends BaseController
         $tab    = in_array($tab, ['speakers', 'communities'], true) ? $tab : 'attendees';
 
         $attendees = (new AttendeeModel())->getAttendees($userId);
-        $speakers  = (new SpeakersModel())->getAllSpeakers();
+        $conferenceId = (int) session('live-conference-id');
+        if ($conferenceId <= 0) {
+            $conferenceId = (int) (db_connect()->table('tbl_conferences')->select('conference_id')->where('status', 'live')->orderBy('start_date', 'DESC')->get(1)->getRowArray()['conference_id'] ?? 0);
+        }
+        $speakers  = (new SpeakersModel())->getAllSpeakers($conferenceId ?: null);
 
         [$online, $connections] = $this->networkState($userId);
 
@@ -90,8 +94,8 @@ class NetworkingCenter extends BaseController
                 ->orderBy('c.country')
                 ->get()->getResultArray();
 
-            // Same attendee id the chat endpoints store messages under.
-            $attendeeId = (int) (session('attendee_id') ?: session('user_id'));
+            // Community chat stores the canonical portal account identifier.
+            $attendeeId = (int) (session('user_id') ?: session('attendee_id'));
             $unread     = [];
             $rows       = $db->table('tbl_country_community_messages')
                 ->select('community_id, COUNT(*) AS total')

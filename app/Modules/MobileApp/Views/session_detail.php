@@ -125,7 +125,7 @@ $sessionId = (int) ($event['sessions_id'] ?? 0);
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     var sessionId = <?= $sessionId ?>;
-    var attendeeId = <?= json_encode((string) session('attendee_id')) ?>;
+    var attendeeId = <?= json_encode((string) (session('user_id') ?: session('attendee_id'))) ?>;
     var api = document.body.getAttribute('data-api');
 
     /* Likes are local to this signed-in attendee. Ratings are stored on the server. */
@@ -231,7 +231,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var text = input.value.trim();
         if (!text) return;
         input.value = '';
-        EPR.post(api + '/chat/send/' + sessionId, { attendee_id: attendeeId, message: tokenise(text) }, true).then(function (res) {
+        EPR.post(api + '/chat/send/' + sessionId, { message: tokenise(text) }, true).then(function (res) {
             if (!res.ok) { EPR.toast((res.body && res.body.messages && res.body.messages.error) || 'Unable to send your message.', true); input.value = text; return; }
             load();
         }).catch(function () { EPR.toast('Unable to send your message.', true); input.value = text; });

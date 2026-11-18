@@ -49,10 +49,8 @@ class EmergenceBoothController extends BaseController
         }
         unset($member);
 
-        $video = $db->table('tbl_emergence_booth_settings')->where('setting_key', 'welcome_video_url')->get()->getRowArray();
-
         $programmes = $db->table('tbl_emergence_booth_programmes')->where('is_active', 1)->orderBy('sort_order')->orderBy('title')->get()->getResultArray();
-        $attendeeId = (int) (session('attendee_id') ?: session('user_id'));
+        $attendeeId = (int) (session('user_id') ?: session('attendee_id'));
         $waitlistedProgrammeIds = [];
         if ($attendeeId > 0 && $programmes !== []) {
             foreach ($db->table('tbl_emergence_booth_programme_waitlists')
@@ -73,7 +71,7 @@ class EmergenceBoothController extends BaseController
             'members'    => $members,
             'programmes' => $programmes,
             'resources'  => $db->table('tbl_emergence_booth_resources')->where('is_active', 1)->orderBy('sort_order')->orderBy('title')->get()->getResultArray(),
-            'videoUrl'   => (string) ($video['setting_value'] ?? ''),
+            'videoPlaylist' => $this->videoPlaylist(),
         ]);
     }
 
@@ -121,6 +119,24 @@ class EmergenceBoothController extends BaseController
             'status' => 'error',
             'message' => 'Unable to send message. Please try again later.'
         ]);
+    }
+
+    /** @return list<string> */
+    private function videoPlaylist(): array
+    {
+        $row = db_connect()->table('tbl_emergence_booth_settings')->where('setting_key', 'video_playlist')->get()->getRowArray();
+        $playlist = json_decode((string) ($row['setting_value'] ?? ''), true);
+        $playlist = is_array($playlist) ? $playlist : [];
+        $playlist = array_values(array_filter($playlist, static fn ($url): bool => is_string($url) && filter_var($url, FILTER_VALIDATE_URL)));
+        if ($playlist === []) {
+            $legacy = db_connect()->table('tbl_emergence_booth_settings')->where('setting_key', 'welcome_video_url')->get()->getRowArray();
+            $url = (string) ($legacy['setting_value'] ?? '');
+            if ($url !== '' && filter_var($url, FILTER_VALIDATE_URL)) {
+                $playlist[] = $url;
+            }
+        }
+
+        return array_slice($playlist, 0, 4);
     }
 
 }

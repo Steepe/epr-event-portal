@@ -2,13 +2,13 @@
 <?php
 $tiers = [];
 foreach (($sponsors ?? []) as $sponsor) {
-    $tier = trim((string) ($sponsor['tier'] ?? '')) ?: 'Partner';
+    $tier = trim((string) ($sponsor['tier'] ?? '')) ?: 'Uncategorised';
     $tiers[$tier][] = $sponsor;
 }
 
-// Size and glow follow the design's three tiers; other tier names fall back to the nearest one.
-$tierStyle = ['diamond' => 'platinum', 'platinum' => 'platinum', 'gold' => 'gold', 'silver' => 'silver'];
-$tierOrder = ['diamond' => 0, 'platinum' => 1, 'gold' => 2, 'silver' => 3];
+// Keep the current admin tier catalogue and its legacy value in a deliberate order.
+$tierStyle = ['diamond' => 'platinum', 'platinum' => 'platinum', 'gold' => 'gold', 'silver' => 'silver', 'bronze' => 'bronze', 'distruptor' => 'gold'];
+$tierOrder = ['diamond' => 0, 'platinum' => 1, 'gold' => 2, 'silver' => 3, 'bronze' => 4, 'distruptor' => 5];
 uksort($tiers, static function ($a, $b) use ($tierOrder) {
     $aKey = strtolower((string) $a);
     $bKey = strtolower((string) $b);

@@ -2,7 +2,7 @@
 <?php
 $netTab       = in_array($activeTab ?? '', ['speakers', 'communities'], true) ? $activeTab : 'attendees';
 $communities  = $communities ?? [];
-$placeholders = ['attendees' => 'Search attendees or companies', 'speakers' => 'Search speakers', 'communities' => 'Search countries or managers'];
+$placeholders = ['attendees' => 'Search attendees or countries', 'speakers' => 'Search speakers', 'communities' => 'Search countries or managers'];
 $initialsOf   = static fn (string $name): string => implode('', array_map(static fn ($part) => mb_strtoupper(mb_substr($part, 0, 1)), array_slice(array_values(array_filter(preg_split('/\s+/', trim($name)) ?: [])), 0, 2)));
 
 // Attendees are sent as compact rows and drawn in batches on the device, so a large
@@ -43,7 +43,6 @@ foreach (($attendees ?? []) as $person) {
     <div class="m-chips" id="netFilters"<?= $netTab === 'attendees' ? '' : ' hidden' ?>>
         <button class="m-chip is-active" type="button" data-net-filter="all">All</button>
         <button class="m-chip" type="button" data-net-filter="online">Online now</button>
-        <button class="m-chip" type="button" data-net-filter="pending">Requested</button>
     </div>
 
     <div class="m-stack" id="netAttendees" style="gap:16px"<?= $netTab === 'attendees' ? '' : ' hidden' ?>></div>
@@ -55,10 +54,12 @@ foreach (($attendees ?? []) as $person) {
             $title    = trim(($speaker['speaker_title'] ?? '') . (!empty($speaker['speaker_company']) ? ', ' . $speaker['speaker_company'] : ''), ', ');
             $photo    = !empty($speaker['speaker_photo']) ? base_url('uploads/speakers/' . rawurlencode($speaker['speaker_photo'])) : mobile_asset_url('images/user.png');
             $sessions = array_values(array_filter(array_map(static fn ($s) => !empty($s['sessions_id']) ? ['id' => (int) $s['sessions_id'], 'name' => (string) $s['sessions_name']] : null, $speaker['sessions'] ?? [])));
+            $linkedin = trim((string) ($speaker['linkedin_url'] ?? ''));
+            if ($linkedin !== '' && ! preg_match('#^https?://#i', $linkedin)) { $linkedin = 'https://' . $linkedin; }
             ?>
             <article class="m-card m-card--20 m-speaker" data-speaker
                      data-name="<?= esc($speaker['speaker_name'], 'attr') ?>" data-title="<?= esc($title, 'attr') ?>" data-photo="<?= esc($photo, 'attr') ?>"
-                     data-bio="<?= esc((string) ($speaker['bio'] ?? ''), 'attr') ?>" data-sessions="<?= esc(json_encode($sessions), 'attr') ?>"
+                     data-id="<?= (int) ($speaker['speaker_id'] ?? 0) ?>" data-bio="<?= esc((string) ($speaker['bio'] ?? ''), 'attr') ?>" data-linkedin="<?= esc($linkedin, 'attr') ?>" data-sessions="<?= esc(json_encode($sessions), 'attr') ?>"
                      data-search="<?= esc(mb_strtolower(($speaker['speaker_name'] ?? '') . ' ' . $title), 'attr') ?>">
                 <img src="<?= esc($photo, 'attr') ?>" alt="" loading="lazy" onerror="this.onerror=null;this.src='<?= mobile_asset_url('images/user.png') ?>'">
                 <div><b><?= esc($speaker['speaker_name']) ?></b><span><?= esc($title) ?></span></div>
@@ -161,8 +162,15 @@ foreach (($attendees ?? []) as $person) {
     </div>
     <div class="m-sheet__pad">
         <p class="m-bio" id="speakerBio" hidden></p>
+        <a class="m-btn-ghost m-btn-ghost--38" id="speakerLinkedin" target="_blank" rel="noopener" hidden><i class="fa fa-linkedin" aria-hidden="true"></i>View LinkedIn</a>
         <span class="m-eyebrow">Sessions</span>
         <div class="m-stack" id="speakerSessions" style="gap:12px"></div>
+        <form class="m-stack" id="speakerMessageForm" style="gap:12px;margin-top:18px">
+            <span class="m-eyebrow">Contact speaker</span>
+            <input class="m-input m-input--44" name="subject" maxlength="255" placeholder="Subject" required>
+            <textarea class="m-input" name="message" rows="4" maxlength="5000" placeholder="Write your message" required></textarea>
+            <button class="m-btn m-btn--plain" type="submit">Send message</button>
+        </form>
     </div>
 </aside>
 
@@ -178,6 +186,7 @@ foreach (($attendees ?? []) as $person) {
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     var api = document.body.getAttribute('data-api');
+    var speakerMessageUrl = <?= json_encode(site_url('mobile/speakers/send-message')) ?>;
     var userId = document.body.getAttribute('data-user');
     var q = function (sel, root) { return (root || document).querySelector(sel); };
     var all = function (sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); };
@@ -187,6 +196,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var search = q('#netSearch'), empty = q('#netEmpty');
     var attendeeList = q('#netAttendees'), speakerList = q('#netSpeakers'), filters = q('#netFilters');
     var speakers = all('[data-speaker]');
+    var activeSpeaker = null;
     var communityList = q('#netCommunities'), communities = all('[data-community]');
     var tones = ['#9d0f82', '#742c76', '#d8198e'];
     var labels = { none: ['', 'fa-user-plus', 'Connect'], incoming: ['', 'fa-user-plus', 'Accept'], pending: ['is-pending', 'fa-clock-o', 'Pending'], connected: ['is-connected', 'fa-check', 'Connected'] };
@@ -410,10 +420,12 @@ document.addEventListener('DOMContentLoaded', function () {
         var view = event.target.closest('[data-speaker-view]');
         if (view) {
             var speaker = view.closest('[data-speaker]');
+            activeSpeaker = speaker;
             q('#speakerPhoto').src = speaker.dataset.photo;
             q('#speakerName').textContent = speaker.dataset.name;
             q('#speakerTitle').textContent = speaker.dataset.title;
             var bio = q('#speakerBio'); bio.textContent = speaker.dataset.bio; bio.hidden = !speaker.dataset.bio;
+            var linkedin = q('#speakerLinkedin'); linkedin.href = speaker.dataset.linkedin || '#'; linkedin.hidden = !speaker.dataset.linkedin;
             var list = q('#speakerSessions'); list.textContent = '';
             var sessions = []; try { sessions = JSON.parse(speaker.dataset.sessions) || []; } catch (e) { sessions = []; }
             sessions.forEach(function (item) {
@@ -425,6 +437,19 @@ document.addEventListener('DOMContentLoaded', function () {
             if (!sessions.length) { var none = document.createElement('p'); none.className = 'm-bio'; none.textContent = 'No sessions scheduled yet.'; list.appendChild(none); }
             EPR.openSheet('speaker');
         }
+    });
+
+    q('#speakerMessageForm').addEventListener('submit', function (event) {
+        event.preventDefault();
+        if (!activeSpeaker) return;
+        var form = event.currentTarget, button = form.querySelector('button');
+        var subject = form.subject.value.trim(), message = form.message.value.trim();
+        if (!subject || !message) return;
+        button.disabled = true;
+        EPR.post(speakerMessageUrl, { speaker_id: activeSpeaker.dataset.id, subject: subject, message: message }, true).then(function (res) {
+            if (!res.ok || !res.body || res.body.status !== 'success') throw new Error((res.body && res.body.message) || 'Message could not be sent.');
+            form.reset(); EPR.toast('Message sent to ' + activeSpeaker.dataset.name + '.');
+        }).catch(function (error) { EPR.toast(error.message || 'Message could not be sent.', true); }).then(function () { button.disabled = false; });
     });
 
     apply();
