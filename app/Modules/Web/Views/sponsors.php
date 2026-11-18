@@ -14,8 +14,9 @@ $tierSettings = [
     'platinum' => ['label' => 'PLATINUM', 'color' => '#ffffff', 'width' => '220px', 'height' => '130px', 'glow' => '0 0 30px rgba(255,255,255,.45)'],
     'gold' => ['label' => 'GOLD', 'color' => '#EFB11E', 'width' => '180px', 'height' => '108px', 'glow' => '0 0 26px rgba(239,177,30,.45)'],
     'silver' => ['label' => 'SILVER', 'color' => '#c8c8c8', 'width' => '150px', 'height' => '90px', 'glow' => '0 0 22px rgba(200,200,200,.35)'],
+    'bronze' => ['label' => 'BRONZE', 'color' => '#d18a5a', 'width' => '132px', 'height' => '80px', 'glow' => '0 0 18px rgba(209,138,90,.35)'],
 ];
-$tierOrder = ['platinum' => 1, 'gold' => 2, 'silver' => 3];
+$tierOrder = ['platinum' => 1, 'gold' => 2, 'silver' => 3, 'bronze' => 4];
 uksort($tiers, static function ($a, $b) use ($tierOrder) {
     $aKey = strtolower(trim((string) $a));
     $bKey = strtolower(trim((string) $b));
@@ -45,8 +46,8 @@ uksort($tiers, static function ($a, $b) use ($tierOrder) {
                 ?>
                 <section class="rc-sponsor-tier" aria-label="<?php echo esc($setting['label']); ?> sponsors">
                     <div class="rc-sponsor-label">
-                        <span class="rc-mono" style="font-size:12px;letter-spacing:.22em;color:<?php echo esc($setting['color']); ?>"><?php echo esc($setting['label']); ?></span>
-                        <span class="rc-mono" style="font-size:11px;color:rgba(255,255,255,.5)"><?php echo count($items); ?> PARTNERS</span>
+                        <span class="rc-mono" style="font-size:13px;font-weight:700;letter-spacing:.18em;color:<?php echo esc($setting['color']); ?>"><?php echo esc($setting['label']); ?> SPONSORS</span>
+                        <span class="rc-mono" style="font-size:11px;color:rgba(255,255,255,.5)"><?php echo count($items); ?> <?php echo count($items) === 1 ? 'SPONSOR' : 'SPONSORS'; ?></span>
                     </div>
                     <div class="rc-sponsor-logos">
                         <?php foreach ($items as $sponsor): ?>

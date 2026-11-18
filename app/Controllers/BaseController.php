@@ -56,5 +56,12 @@ abstract class BaseController extends Controller
         // E.g.: $this->session = service('session');
         parent::initController($request, $response, $logger);
         $this->session = \Config\Services::session();
+
+        // Portal and API pages contain live attendee, agenda, and account data.
+        // Never allow a browser or intermediary cache to reuse an old response.
+        $this->response
+            ->setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+            ->setHeader('Pragma', 'no-cache')
+            ->setHeader('Expires', '0');
     }
 }
