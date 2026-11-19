@@ -56,26 +56,39 @@ class EmergenceBoothController extends BaseController
             return $response;
         }
 
-        $file = $this->request->getFile('booth_video');
-        if (! $file || $file->getError() === UPLOAD_ERR_NO_FILE) {
-            return redirect()->back()->with('error', 'Choose a video to upload.');
-        }
-
         try {
             $playlist = $this->videoPlaylist();
-            if (count($playlist) >= 4) {
+            $availableSlots = 4 - count($playlist);
+            if ($availableSlots <= 0) {
                 return redirect()->back()->with('error', 'The booth playlist can contain up to four videos. Remove a video before adding another.');
             }
 
-            $url = (new BunnyStreamService())->uploadWelcomeVideo($file, 'Emergence Booth Video ' . (count($playlist) + 1));
-            $playlist[] = $url;
+            $files = array_values(array_filter(
+                $this->request->getFileMultiple('booth_videos'),
+                static fn ($file): bool => $file !== null && $file->getError() !== UPLOAD_ERR_NO_FILE
+            ));
+            if ($files === []) {
+                return redirect()->back()->with('error', 'Choose at least one video to upload.');
+            }
+            if (count($files) > $availableSlots) {
+                return redirect()->back()->with('error', sprintf(
+                    'You selected %d videos, but this playlist has room for %d more.',
+                    count($files),
+                    $availableSlots
+                ));
+            }
+
+            $bunny = new BunnyStreamService();
+            foreach ($files as $file) {
+                $playlist[] = $bunny->uploadWelcomeVideo($file, 'Emergence Booth Video ' . (count($playlist) + 1));
+            }
             $this->saveSetting('video_playlist', json_encode($playlist, JSON_UNESCAPED_SLASHES));
             $this->saveSetting('welcome_video_url', $playlist[0]);
         } catch (\RuntimeException $exception) {
             return redirect()->back()->with('error', $exception->getMessage());
         }
 
-        return redirect()->to(site_url('admin/emergence-booth'))->with('success', 'Booth video added to the Bunny Stream playlist.');
+        return redirect()->to(site_url('admin/emergence-booth'))->with('success', sprintf('%d booth video%s added to the Bunny Stream playlist.', count($files), count($files) === 1 ? '' : 's'));
     }
 
     public function removeVideo(int $index)

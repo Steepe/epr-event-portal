@@ -18,7 +18,8 @@ $this->section('content');
   <div class="grid gap-6 xl:grid-cols-2">
     <section class="rounded-lg border border-gray-700 bg-gray-800 p-5">
       <h2 class="font-semibold text-gray-100">EPR Films playlist</h2><p class="mt-1 text-sm text-gray-400">Upload up to four Bunny Stream videos. They are displayed on the attendee booth in the order listed below.</p>
-      <form method="post" action="<?php echo site_url('admin/emergence-booth/video'); ?>" enctype="multipart/form-data" class="mt-4 space-y-3"><?php echo csrf_field(); ?><input type="file" name="booth_video" accept="video/mp4,video/webm,video/quicktime,.mp4,.m4v,.mov,.webm" required class="block w-full rounded border border-gray-700 bg-gray-900 p-2 text-sm text-gray-300"><button class="rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-500">Add to Bunny playlist</button></form>
+      <?php $availableVideoSlots = max(0, 4 - count($videoPlaylist ?? [])); ?>
+      <?php if ($availableVideoSlots > 0): ?><form id="booth-video-upload-form" method="post" action="<?php echo site_url('admin/emergence-booth/video'); ?>" enctype="multipart/form-data" class="mt-4 space-y-3"><?php echo csrf_field(); ?><label class="block text-sm text-gray-300">Choose up to <?php echo $availableVideoSlots; ?> video<?php echo $availableVideoSlots === 1 ? '' : 's'; ?><input type="file" name="booth_videos[]" accept="video/mp4,video/webm,video/quicktime,.mp4,.m4v,.mov,.webm" multiple required class="mt-1 block w-full rounded border border-gray-700 bg-gray-900 p-2 text-sm text-gray-300"></label><p class="text-xs text-gray-500">Select multiple files at once. Each video can be up to 256 MB; they will play in the order selected.</p><div id="booth-video-upload-progress" class="hidden" aria-live="polite"><div class="mb-1 flex justify-between text-xs text-gray-300"><span id="booth-video-upload-status">Uploading videos…</span><span id="booth-video-upload-percent">0%</span></div><div class="h-2 overflow-hidden rounded-full bg-gray-700"><div id="booth-video-upload-fill" class="h-full w-0 rounded-full bg-blue-500 transition-all duration-150" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div></div><button type="submit" class="rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-500">Add selected videos to Bunny playlist</button></form><?php else: ?><p class="mt-4 text-sm text-amber-300">The playlist is full. Remove a video below before adding another.</p><?php endif; ?>
       <ol class="mt-4 space-y-2 text-sm text-gray-300"><?php foreach (($videoPlaylist ?? []) as $index => $url): ?><li class="flex items-center gap-2 rounded border border-gray-700 bg-gray-900 p-2"><span class="text-gray-500"><?php echo (int) $index + 1; ?>.</span><a class="min-w-0 flex-1 truncate text-blue-400 hover:underline" target="_blank" rel="noopener" href="<?php echo esc($url); ?>">View Bunny video</a><form method="post" action="<?php echo site_url('admin/emergence-booth/video/' . $index . '/delete'); ?>"><?php echo csrf_field(); ?><button class="text-xs text-red-400 hover:text-red-300" type="submit">Remove</button></form></li><?php endforeach; ?><?php if (empty($videoPlaylist)): ?><li class="text-gray-500">No videos queued yet.</li><?php endif; ?></ol>
     </section>
 
@@ -40,5 +41,58 @@ $this->section('content');
 
   <section class="mt-6 rounded-lg border border-gray-700 bg-gray-800 p-5"><h2 class="font-semibold text-gray-100">Callback requests</h2><div class="mt-4 overflow-x-auto"><table class="w-full text-left text-sm text-gray-300"><thead class="text-xs uppercase text-gray-500"><tr><th class="p-2">Attendee</th><th class="p-2">Topic / note</th><th class="p-2">Received</th><th class="p-2">Status</th></tr></thead><tbody><?php foreach (($callbacks ?? []) as $callback): ?><tr class="border-t border-gray-700"><td class="p-2"><?php echo esc(trim(($callback['firstname'] ?? '') . ' ' . ($callback['lastname'] ?? '')) ?: 'Attendee'); ?><br><span class="text-xs text-gray-500"><?php echo esc($callback['email'] ?? ''); ?><br><?php echo esc($callback['telephone'] ?? ''); ?></span></td><td class="p-2"><strong><?php echo esc($callback['topic']); ?></strong><br><?php echo nl2br(esc($callback['note'])); ?></td><td class="p-2 text-xs"><?php echo esc($callback['created_at']); ?></td><td class="p-2"><form method="post" action="<?php echo site_url('admin/emergence-booth/callbacks/' . $callback['callback_request_id']); ?>" class="flex gap-2"><?php echo csrf_field(); ?><select name="status" class="rounded border border-gray-700 bg-gray-900 p-1 text-xs"><option value="new" <?php echo $callback['status'] === 'new' ? 'selected' : ''; ?>>New</option><option value="in_progress" <?php echo $callback['status'] === 'in_progress' ? 'selected' : ''; ?>>In progress</option><option value="completed" <?php echo $callback['status'] === 'completed' ? 'selected' : ''; ?>>Completed</option></select><button class="text-xs text-blue-400">Save</button></form></td></tr><?php endforeach; ?></tbody></table></div></section>
 <?php endif; ?>
+
+<script>
+(() => {
+  const form = document.getElementById('booth-video-upload-form');
+  if (!form) return;
+
+  const progress = document.getElementById('booth-video-upload-progress');
+  const fill = document.getElementById('booth-video-upload-fill');
+  const status = document.getElementById('booth-video-upload-status');
+  const percent = document.getElementById('booth-video-upload-percent');
+  const button = form.querySelector('button[type="submit"]');
+
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    if (!form.querySelector('input[type="file"]').files.length) return;
+
+    progress.classList.remove('hidden');
+    button.disabled = true;
+    button.classList.add('cursor-not-allowed', 'opacity-60');
+    status.textContent = 'Uploading videos to the portal…';
+    percent.textContent = '0%';
+    fill.style.width = '0%';
+    fill.setAttribute('aria-valuenow', '0');
+
+    const request = new XMLHttpRequest();
+    request.open('POST', form.action);
+    request.upload.addEventListener('progress', (upload) => {
+      if (!upload.lengthComputable) return;
+      const value = Math.min(100, Math.round((upload.loaded / upload.total) * 100));
+      fill.style.width = `${value}%`;
+      fill.setAttribute('aria-valuenow', String(value));
+      percent.textContent = `${value}%`;
+      if (value === 100) status.textContent = 'Saving videos to Bunny Stream…';
+    });
+    request.addEventListener('load', () => {
+      if (request.status >= 200 && request.status < 400) {
+        status.textContent = 'Upload complete. Refreshing playlist…';
+        window.location.assign(request.responseURL || form.action);
+        return;
+      }
+      status.textContent = 'Upload failed. Please try again.';
+      button.disabled = false;
+      button.classList.remove('cursor-not-allowed', 'opacity-60');
+    });
+    request.addEventListener('error', () => {
+      status.textContent = 'Upload failed. Check your connection and try again.';
+      button.disabled = false;
+      button.classList.remove('cursor-not-allowed', 'opacity-60');
+    });
+    request.send(new FormData(form));
+  });
+})();
+</script>
 
 <?php $this->endSection(); ?>
