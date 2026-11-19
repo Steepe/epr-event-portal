@@ -1,277 +1,59 @@
+<?= module_view('MobileApp', 'includes/header', ['shell' => 'tabbed', 'back' => false, 'activeTab' => 'lobby', 'title' => 'Lobby', 'screenLabel' => 'Lobby']) ?>
 <?php
-/**
- * Created by PhpStorm.
- * User: oluwamayowasteepe
- * Project: epr-event-portal
- * Date: 12/11/2025
- * Time: 05:32
- */
+$agendaUrl      = !empty($conferenceId) ? site_url('mobile/agenda/' . $conferenceId) : site_url('mobile/home');
+$conferenceYear = (string) ($conference['year'] ?? date('Y'));
+$showNotice     = (bool) ($payment_notice ?? false);
+$ticketPrice    = $ticket_price ?? null;
+$ticketCurrency = $ticket_currency ?? 'USD';
 
-echo module_view('MobileApp', 'includes/header');
-
-$attendee_id = session('user_id') ?? null;
-$country = session('reg_country') ?? 'Nigeria';
-$conference_id = session('live-conference-id') ?? null;
+$nodes = [
+    ['NETWORKING', 'CENTER', '30%', '18%', '', 'radial-gradient(circle at top left,#8b4ac0,#693b9c)', '139,74,192', site_url('mobile/networking-center')],
+    ['SPONSORS', '', '74%', '28%', '', 'radial-gradient(circle at top left,#a82ad2,#7200a4)', '168,42,210', site_url('mobile/sponsors')],
+    ['EXHIBITORS', '', '22%', '50%', '', 'radial-gradient(circle at top left,#d61be3,#9b0eaa)', '214,27,227', site_url('mobile/exhibitors')],
+    ['EMERGENCE', 'BOOTH', '78%', '60%', '', 'radial-gradient(circle at top left,#e988a2,#c95c7c)', '233,136,162', site_url('mobile/emergence-booth')],
+    ['LIVE', 'CONFERENCE', '50%', '80%', 'm-lobby__node--lg', 'radial-gradient(circle at top left,#f1a91e,#d68500)', '241,169,30', $agendaUrl],
+];
 ?>
 
-<style>
-    body {
-        font-family: 'Poppins', sans-serif;
-        margin: 0;
-        padding: 0;
-        color: #fff;
-        overflow: hidden;
-        position: relative;
-        background-color: #000;
-    }
-
-    /* 🎥 Background Video */
-    #bgVideo {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        object-position: 50% 45%;
-        z-index: -1;
-    }
-
-    #videoOverlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(40, 0, 60, 0.3);
-        z-index: 0;
-    }
-
-    /* ⚠️ Payment Notice */
-    #paymentNotice {
-        display: none;
-        position: fixed;
-        top: 15px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 90%;
-        background: rgba(255, 243, 205, 0.9);
-        color: #856404;
-        border: 1px solid #ffeeba;
-        border-radius: 8px;
-        padding: 10px 15px;
-        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
-        font-size: 13px;
-        z-index: 10;
-    }
-
-    #priceInfo {
-        font-weight: 600;
-        color: #7a5200;
-    }
-
-    #closeNotice {
-        background: none;
-        border: none;
-        color: #856404;
-        font-size: 18px;
-        cursor: pointer;
-        font-weight: bold;
-        margin-left: 10px;
-    }
-
-    /* 🧠 Bubble Grid (mobile-friendly) */
-    .bubble-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 25px;
-        padding: 80px 20px 120px;
-        justify-items: center;
-        z-index: 2;
-        position: relative;
-    }
-
-    .bubble {
-        width: 120px;
-        height: 120px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-align: center;
-        font-weight: 600;
-        color: #fff;
-        font-size: 14px;
-        box-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
-        cursor: pointer;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-        animation: float1 6s ease-in-out infinite;
-        margin-top: 30px;
-        margin-bottom: 30px;
-    }
-
-    .bubble:hover {
-        transform: scale(1.05);
-        box-shadow: 0 0 25px rgba(255, 255, 255, 0.5);
-    }
-
-    .bubble a {
-        color: #fff;
-        text-decoration: none;
-        display: block;
-        line-height: 1.3;
-        font-size: 13px;
-    }
-
-    /* 🎨 Bubble Colors */
-    .agenda     { background: radial-gradient(circle at top left, #f1a91e, #d68500); }
-    .networking { background: radial-gradient(circle at top left, #8b4ac0, #693b9c); }
-    .exhibitors { background: radial-gradient(circle at top left, #d61be3, #9b0eaa); }
-    .sponsors   { background: radial-gradient(circle at top left, #a82ad2, #7200a4); }
-    .envision   { background: radial-gradient(circle at top left, #a04fc0, #6a239a); }
-    .emergence  { background: radial-gradient(circle at top left, #e988a2, #c95c7c); }
-
-    /* 🌊 Floating Animations */
-    @keyframes float1 { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-
-    /* ⚙️ Footer */
-    footer {
-        position: fixed;
-        bottom: 10px;
-        left: 0;
-        width: 100%;
-        text-align: center;
-        font-size: 12px;
-        color: #ddd;
-        z-index: 2;
-    }
-
-    footer a {
-        color: #ffb400;
-        text-decoration: none;
-        font-weight: 600;
-    }
-
-    @media (max-width: 480px) {
-        .bubble {
-            width: 110px;
-            height: 110px;
-            font-size: 12px;
-        }
-
-        .bubble-grid {
-            gap: 20px;
-            padding-top: 70px;
-        }
-    }
-</style>
-
-<!-- 🎥 Background Video -->
-<video autoplay muted loop playsinline id="bgVideo">
-    <source src="<?php echo asset_url('videos/brain-lobby-bg.mp4'); ?>" type="video/mp4">
-</video>
-<div id="videoOverlay"></div>
-
-<!-- ⚠️ Payment Notice -->
-<!--<div id="paymentNotice">
-    <strong>Access Restricted:</strong>
-    This is a paid event. Complete your registration payment to unlock all sessions.
-    <span id="priceInfo"></span>
-    <button id="closeNotice">&times;</button>
-</div>-->
-
-<!-- 🧠 Lobby Bubbles (Grid Layout for Mobile) -->
-<div class="bubble-grid">
-
-    <div class="bubble agenda">
-        <a href="<?php echo base_url('mobile/agenda/' . $conference_id); ?>">AGENDA</a>
+<div class="m-lobby">
+    <div class="m-lobby__head">
+        <span class="m-kicker">Lobby · Emergence <?= esc($conferenceYear) ?></span>
+        <img class="m-lobby__brand" src="<?= mobile_asset_url('images/accelerate-logo-white.png') ?>" alt="<?= esc($conference['title'] ?? 'Accelerate', 'attr') ?>">
     </div>
 
-    <div class="bubble networking">
-        <a href="<?php echo base_url('mobile/networking-center'); ?>">NETWORKING<br>CENTER</a>
+    <?php if ($showNotice): ?>
+        <div class="m-notice" data-payment-notice>
+            <i class="fa fa-lock" aria-hidden="true"></i>
+            <div class="m-notice__copy">
+                <span><strong>Access restricted.</strong> Complete your registration payment to unlock all sessions.
+                    <?php if ($ticketPrice !== null): ?><span class="m-notice__price">Ticket: <?= esc($ticketCurrency) ?> <?= esc(number_format((float) $ticketPrice)) ?></span><?php endif; ?>
+                </span>
+                <a class="m-notice__pay" href="<?= site_url('attendees/checkout') ?>">Pay now</a>
+            </div>
+            <button class="m-notice__close" type="button" aria-label="Close payment notice" onclick="this.closest('[data-payment-notice]').remove()">×</button>
+        </div>
+    <?php endif; ?>
+
+    <div class="m-lobby__map" aria-label="Conference areas">
+        <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+            <g fill="none" stroke="rgba(239,177,30,.32)" stroke-width="1" stroke-dasharray="2 5">
+                <line x1="50" y1="80" x2="30" y2="18" vector-effect="non-scaling-stroke"></line>
+                <line x1="50" y1="80" x2="22" y2="50" vector-effect="non-scaling-stroke"></line>
+                <line x1="30" y1="18" x2="74" y2="28" vector-effect="non-scaling-stroke"></line>
+                <line x1="30" y1="18" x2="22" y2="50" vector-effect="non-scaling-stroke"></line>
+                <line x1="22" y1="50" x2="74" y2="28" vector-effect="non-scaling-stroke"></line>
+                <line x1="22" y1="50" x2="78" y2="60" vector-effect="non-scaling-stroke"></line>
+                <line x1="74" y1="28" x2="78" y2="60" vector-effect="non-scaling-stroke"></line>
+            </g>
+        </svg>
+        <?php foreach ($nodes as [$line1, $line2, $x, $y, $modifier, $background, $rgb, $url]): ?>
+            <a class="m-lobby__node <?= $modifier ?>" href="<?= $url ?>" style="left:<?= $x ?>;top:<?= $y ?>;background:<?= $background ?>;--halo:rgba(<?= $rgb ?>,.12);--glow:rgba(<?= $rgb ?>,.45)">
+                <span><span><?= $line1 ?></span><?php if ($line2 !== ''): ?><span><?= $line2 ?></span><?php endif; ?></span>
+            </a>
+        <?php endforeach; ?>
     </div>
 
-    <div class="bubble exhibitors">
-        <a href="<?php echo base_url('mobile/exhibitors'); ?>">EXHIBITORS</a>
-    </div>
-
-    <div class="bubble sponsors">
-        <a href="<?php echo base_url('mobile/sponsors'); ?>">SPONSORS</a>
-    </div>
-
-    <div class="bubble envision">
-        <a href="<?php echo base_url('mobile/envision'); ?>">ENVISION</a>
-    </div>
-
-    <div class="bubble emergence">
-        <a href="<?php echo base_url('mobile/emergence-booth'); ?>">EMERGENCE<br>BOOTH</a>
-    </div>
+    <div class="m-lobby__foot">Crafted with <i class="fa fa-heart" aria-hidden="true"></i> by <a>Crèyatif</a> • © <?= date('Y') ?> Powered By EPR Global.</div>
 </div>
 
-<!-- ⚙️ Footer -->
-<footer>
-    Crafted with ❤️ by <a href="https://www.creyatif.com/website" target="_blank">Crèyatif</a> •
-    &copy; <?php echo date("Y"); ?> Powered By EPR Global.
-</footer>
-
-<?php echo module_view('MobileApp', 'includes/footer'); ?>
-
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const video = document.getElementById("bgVideo");
-        if (video) video.playbackRate = 0.5;
-    });
-
-    document.querySelectorAll('.bubble').forEach(b => {
-        b.style.animationDelay = `${Math.random() * 2}s`;
-    });
-
-    // Paid Event Logic
-    document.addEventListener("DOMContentLoaded", async () => {
-        const attendeeId = "<?php echo $attendee_id; ?>";
-        const country = "<?php echo $country; ?>";
-        const apiBase = "<?php echo rtrim(base_url('api'), '/'); ?>";
-        const apiKey  = "<?php echo env('api.securityKey'); ?>";
-
-        async function apiGet(endpoint) {
-            const res = await fetch(`${apiBase}/${endpoint}`, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    "X-API-KEY": apiKey
-                }
-            });
-            if (!res.ok) throw new Error(`API ${endpoint} failed (${res.status})`);
-            return res.json();
-        }
-
-        try {
-            const confData = await apiGet("conferences/live");
-            const conf = confData?.data;
-            if (!conf) return;
-
-            const isPaidEvent  = conf.is_paid === 1;
-            const conferenceId = conf.conference_id;
-
-            const priceData = await apiGet(`ticket-prices/${conferenceId}/${country}`);
-            const payData = await apiGet(`payments/check/${attendeeId}`);
-            const hasPaid = payData?.data && Object.keys(payData.data).length > 0;
-
-            if (isPaidEvent && !hasPaid) {
-                const notice = document.getElementById("paymentNotice");
-                const priceInfo = document.getElementById("priceInfo");
-                priceInfo.textContent =
-                    priceData.status === "success"
-                        ? `Ticket: ${priceData.currency} ${priceData.price}`
-                        : "Ticket pricing unavailable.";
-                notice.style.display = "block";
-            }
-
-            document.getElementById("closeNotice")?.addEventListener("click", () => {
-                document.getElementById("paymentNotice").style.display = "none";
-            });
-        } catch (err) {
-            console.error("Error loading conference/payment info:", err);
-        }
-    });
-</script>
+<?= module_view('MobileApp', 'includes/footer') ?>

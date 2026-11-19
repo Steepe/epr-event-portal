@@ -15,6 +15,13 @@ use CodeIgniter\Exceptions\PageNotFoundException;
 
 class SponsorsController extends BaseController
 {
+    private const SPONSOR_TIERS = [
+        'platinum' => 'Platinum',
+        'gold' => 'Gold',
+        'silver' => 'Silver',
+        'bronze' => 'Bronze',
+    ];
+
     protected SponsorsModel $sponsorsModel;
 
     public function __construct()
@@ -46,6 +53,11 @@ class SponsorsController extends BaseController
     {
         helper(['form', 'url']);
 
+        $tier = $this->requestedTier();
+        if ($tier === null) {
+            return redirect()->back()->withInput()->with('error', 'Please select a valid sponsor category.');
+        }
+
         $logo = $this->request->getFile('logo');
         $logoFilename = null;
 
@@ -57,7 +69,7 @@ class SponsorsController extends BaseController
 
         $data = [
             'name'         => $this->request->getPost('name'),
-            'tier'         => $this->request->getPost('tier'),
+            'tier'         => $tier,
             'is_featured'  => $this->request->getPost('is_featured') ? 1 : 0,
             'website'      => $this->request->getPost('website'),
             'description'  => $this->request->getPost('description'),
@@ -92,6 +104,11 @@ class SponsorsController extends BaseController
             throw new PageNotFoundException('Sponsor not found.');
         }
 
+        $tier = $this->requestedTier();
+        if ($tier === null) {
+            return redirect()->back()->withInput()->with('error', 'Please select a valid sponsor category.');
+        }
+
         $logo = $this->request->getFile('logo');
         $logoFilename = $sponsor['logo'];
 
@@ -107,7 +124,7 @@ class SponsorsController extends BaseController
 
         $data = [
             'name'         => $this->request->getPost('name'),
-            'tier'         => $this->request->getPost('tier'),
+            'tier'         => $tier,
             'is_featured'  => $this->request->getPost('is_featured') ? 1 : 0,
             'website'      => $this->request->getPost('website'),
             'description'  => $this->request->getPost('description'),
@@ -118,6 +135,13 @@ class SponsorsController extends BaseController
 
         return redirect()->to(site_url('admin/sponsors'))
             ->with('success', 'Sponsor updated successfully.');
+    }
+
+    private function requestedTier(): ?string
+    {
+        $tier = strtolower(trim((string) $this->request->getPost('tier')));
+
+        return self::SPONSOR_TIERS[$tier] ?? null;
     }
 
     public function delete($id = null)

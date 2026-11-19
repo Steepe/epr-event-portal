@@ -16,8 +16,16 @@ class PastConferencesController extends BaseController
 {
     public function index()
     {
+        $conferences = db_connect()
+            ->table('tbl_conferences')
+            ->where('status', 'past')
+            ->orderBy('start_date', 'DESC')
+            ->get()
+            ->getResultArray();
+
         $data = [
-            'page_title' => 'Past Conferences'
+            'page_title'  => 'Past Conferences',
+            'conferences' => $conferences,
         ];
 
         return module_view('Web', 'past_conferences', $data);

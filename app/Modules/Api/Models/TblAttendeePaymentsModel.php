@@ -7,7 +7,6 @@
  * Time: 10:57
  */
 
-
 namespace App\Modules\Api\Models;
 
 use CodeIgniter\Model;

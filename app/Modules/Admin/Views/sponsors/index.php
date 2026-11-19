@@ -47,15 +47,16 @@ $this->section('content');
         <?php endif; ?>
 
         <h2 class="text-lg font-semibold text-gray-100"><?php echo esc($sponsor['name']); ?></h2>
+        <?php $tierKey = strtolower(trim((string) ($sponsor['tier'] ?? ''))) ?: 'uncategorised'; ?>
         <span class="text-xs px-2 py-1 mt-1 rounded-full
-              <?php echo match($sponsor['tier']) {
-                  'Platinum' => 'bg-yellow-700 text-yellow-300',
-                  'Gold'     => 'bg-amber-700 text-amber-300',
-                  'Silver'   => 'bg-gray-600 text-gray-200',
-                  'Bronze'   => 'bg-orange-700 text-orange-300',
+              <?php echo match($tierKey) {
+                  'platinum' => 'bg-yellow-700 text-yellow-300',
+                  'gold'     => 'bg-amber-700 text-amber-300',
+                  'silver'   => 'bg-gray-600 text-gray-200',
+                  'bronze'   => 'bg-orange-700 text-orange-300',
                   default    => 'bg-gray-700 text-gray-300'
               }; ?>">
-          <?php echo esc($sponsor['tier']); ?>
+          <?php echo esc(ucfirst($tierKey)); ?>
         </span>
 
         <?php if ($sponsor['is_featured']): ?>

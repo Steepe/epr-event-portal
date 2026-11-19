@@ -72,6 +72,14 @@ $this->section('content');
         <input type="url" name="website" placeholder="https://example.com"
                class="w-full p-2 rounded bg-gray-900 border border-gray-700 text-gray-200 focus:ring-blue-500 focus:border-blue-500">
       </div>
+
+      <div>
+        <label class="block text-sm text-gray-400 mb-2" for="vimeo_id">Exhibitor Video — Vimeo ID</label>
+        <input id="vimeo_id" type="text" name="vimeo_id" value="<?php echo esc(old('vimeo_id')); ?>"
+               placeholder="For example: 123456789"
+               class="w-full p-2 rounded bg-gray-900 border border-gray-700 text-gray-200 focus:ring-blue-500 focus:border-blue-500">
+        <p class="mt-1 text-xs text-gray-500">Paste only the number from the Vimeo video URL. Leave blank to show the exhibitor logo instead.</p>
+      </div>
     </div>
 
     <div>

@@ -13,21 +13,27 @@
 use Ratchet\Http\HttpServer;
 use Ratchet\Server\IoServer;
 use Ratchet\WebSocket\WsServer;
+use React\EventLoop\Factory as LoopFactory;
+use React\Socket\Server as Reactor;
 use App\Services\ChatServer;
 
 require __DIR__ . '/vendor/autoload.php';
 
-// ✅ Use port 8081 (not 8080)
-$port = 8081;
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
 
-$server = IoServer::factory(
+$port = (int) (getenv('WEBSOCKET_PORT') ?: 8081);
+$loop = LoopFactory::create();
+$socket = new Reactor('0.0.0.0:' . $port, $loop);
+
+$server = new IoServer(
     new HttpServer(
         new WsServer(
-            new ChatServer()
+            new ChatServer($loop)
         )
     ),
-    $port
+    $socket,
+    $loop
 );
 
-echo "🚀 ChatServer running on ws://localhost:{$port}\n";
+echo "ChatServer running on ws://localhost:{$port}\n";
 $server->run();

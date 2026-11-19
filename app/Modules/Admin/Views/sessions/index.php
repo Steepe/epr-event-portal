@@ -16,13 +16,23 @@ $this->section('content');
     <h1 class="text-2xl font-semibold text-gray-200">
       Sessions — <?php echo esc($conference['title']); ?>
     </h1>
-    <p class="text-sm text-gray-400">All sessions under this conference.</p>
+    <p class="text-sm text-gray-400">All sessions under this conference. Times below are stored in GMT (UTC+0).</p>
   </div>
   <a href="<?php echo site_url('admin/conferences/' . $conference['conference_id'] . '/sessions/create'); ?>"
      class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm">
      + Add Session
   </a>
 </div>
+
+<?php if (!empty($invalidSessionIds)): ?>
+  <div class="mb-4 flex flex-wrap items-center justify-between gap-3 rounded border border-amber-600 bg-amber-950/30 p-3 text-amber-100">
+    <span><?php echo count($invalidSessionIds); ?> session<?php echo count($invalidSessionIds) === 1 ? '' : 's'; ?> fall outside this conference's configured duration. They are hidden from the attendee agenda until their dates are corrected.</span>
+    <form method="post" action="<?php echo site_url('admin/conferences/' . $conference['conference_id'] . '/sessions/normalize-dates'); ?>">
+      <?php echo csrf_field(); ?>
+      <button type="submit" class="rounded bg-amber-500 px-3 py-2 text-sm font-medium text-gray-950 hover:bg-amber-400" onclick="return confirm('Move every out-of-range session to the nearest permitted conference date?');">Align session dates</button>
+    </form>
+  </div>
+<?php endif; ?>
 
 <?php if (session()->getFlashdata('error')): ?>
   <div class="mb-4 text-red-400 bg-gray-800 border border-red-600 p-3 rounded">
@@ -39,14 +49,14 @@ $this->section('content');
     <p class="text-gray-400">No sessions found for this conference.</p>
   <?php else: ?>
     <?php foreach ($sessions as $session): ?>
-      <div class="bg-gray-800 border border-gray-700 rounded-lg shadow hover:shadow-lg transition">
+      <div class="bg-gray-800 border <?php echo in_array((int) $session['sessions_id'], $invalidSessionIds ?? [], true) ? 'border-amber-500' : 'border-gray-700'; ?> rounded-lg shadow hover:shadow-lg transition">
         <div class="p-5">
           <h2 class="text-lg font-semibold text-gray-100">
             <?php echo esc($session['sessions_name']); ?>
           </h2>
           <p class="text-sm text-gray-400 mt-1">
             <?php echo date('M d, Y', strtotime($session['event_date'])); ?>
-            • <?php echo esc($session['start_time']); ?> - <?php echo esc($session['end_time']); ?>
+            • <?php echo esc(substr((string) $session['start_time'], 0, 5)); ?> - <?php echo esc(substr((string) $session['end_time'], 0, 5)); ?> GMT
           </p>
 
           <p class="mt-3 text-gray-300 text-sm line-clamp-3">
@@ -56,6 +66,9 @@ $this->section('content');
           <div class="mt-4 flex flex-wrap items-center gap-2 text-xs text-gray-400">
             <span class="px-2 py-1 rounded bg-gray-700">
               <?php echo ($session['access_level'] == 1) ? 'Free' : 'Paid'; ?>
+            </span>
+            <span class="px-2 py-1 rounded bg-gray-700">
+              <?php echo (($session['stream_provider'] ?? 'livepush') === 'zoom') ? 'Zoom interactive' : 'Livepush broadcast'; ?>
             </span>
 
             <?php if (!empty($session['tags'])):
@@ -77,11 +90,13 @@ $this->section('content');
             </div>
           <?php endif; ?>
 
-          <?php if (!empty($session['vimeo_id'])): ?>
+          <?php if (($session['stream_provider'] ?? 'livepush') === 'zoom'): ?>
+            <p class="mt-3 text-sm text-gray-400">Zoom meeting <?php echo esc($session['zoom_meeting_number'] ?? ''); ?></p>
+          <?php elseif (!empty($session['livepush_id'])): ?>
             <div class="mt-3">
               <button type="button"
                       class="text-blue-400 text-sm underline hover:text-blue-300"
-                      onclick='openLivepushPreview(<?php echo json_encode($session['vimeo_id']); ?>)'>
+                      onclick='openLivepushPreview(<?php echo json_encode($session['livepush_id']); ?>)'>
                 Preview Live Stream
               </button>
             </div>

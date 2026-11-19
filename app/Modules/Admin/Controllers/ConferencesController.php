@@ -64,6 +64,7 @@ class ConferencesController extends BaseController
         }
 
         $title = trim((string)$this->request->getPost('title'));
+        $welcomeVideoUrl = '';
         if ($title === '') {
             return redirect()->back()
                 ->withInput()
@@ -86,7 +87,7 @@ class ConferencesController extends BaseController
             'days'        => $this->request->getPost('days'),
             'start_date'  => $this->request->getPost('start_date'),
             'end_date'    => $this->request->getPost('end_date'),
-            'welcome_video_url' => $welcomeVideoUrl,
+            'welcome_video_url' => $welcomeVideoUrl ?: null,
         ];
 
         // ✅ Enforce one-live rule

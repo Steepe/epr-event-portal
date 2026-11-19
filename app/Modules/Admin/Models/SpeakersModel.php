@@ -22,7 +22,8 @@ class SpeakersModel extends Model
         'speaker_email',
         'speaker_company',
         'bio',
-        'speaker_photo'
+        'speaker_photo',
+        'linkedin_url'
     ];
 
     protected bool $useTimestamps = false;

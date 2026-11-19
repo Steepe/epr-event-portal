@@ -59,6 +59,7 @@ $routes->group('admin', ['namespace' => 'App\Modules\Admin\Controllers'], functi
             $routes->get('(:num)/sessions', 'ConferenceSessionsController::index/$1');
             $routes->get('(:num)/sessions/create', 'ConferenceSessionsController::create/$1');
             $routes->post('(:num)/sessions/store', 'ConferenceSessionsController::store/$1');
+            $routes->post('(:num)/sessions/normalize-dates', 'ConferenceSessionsController::normalizeDates/$1');
             $routes->get('sessions/(:num)/edit', 'ConferenceSessionsController::edit/$1');
             $routes->post('sessions/(:num)/update', 'ConferenceSessionsController::update/$1');
             $routes->get('sessions/(:num)/delete', 'ConferenceSessionsController::delete/$1');
@@ -127,6 +128,15 @@ $routes->group('admin', ['namespace' => 'App\Modules\Admin\Controllers'], functi
         $routes->post('messages/send', 'MessagesController::send');
         $routes->get('messages/(:num)', 'MessagesController::view/$1');
 
+        // Country communities and manager messages
+        $routes->get('communities', 'CommunitiesController::index');
+        $routes->post('communities/store', 'CommunitiesController::store');
+        $routes->post('communities/(:num)/update', 'CommunitiesController::update/$1');
+        $routes->post('communities/(:num)/delete', 'CommunitiesController::delete/$1');
+        $routes->get('communities/chats', 'CommunitiesController::chats');
+        $routes->get('communities/(:num)/chats/(:num)', 'CommunitiesController::chatMessages/$1/$2');
+        $routes->post('communities/(:num)/chats/(:num)', 'CommunitiesController::sendChat/$1/$2');
+
         // Payments / reports
         $routes->get('payments', 'PaymentsController::index');
         $routes->get('audit-logs', 'AuditLogsController::index');
@@ -134,6 +144,7 @@ $routes->group('admin', ['namespace' => 'App\Modules\Admin\Controllers'], functi
         // Emergence Booth
         $routes->get('emergence-booth', 'EmergenceBoothController::index');
         $routes->post('emergence-booth/video', 'EmergenceBoothController::saveVideo');
+        $routes->post('emergence-booth/video/(:num)/delete', 'EmergenceBoothController::removeVideo/$1');
         $routes->post('emergence-booth/members', 'EmergenceBoothController::saveMember');
         $routes->post('emergence-booth/members/(:num)/delete', 'EmergenceBoothController::deleteMember/$1');
         $routes->post('emergence-booth/programmes', 'EmergenceBoothController::saveProgramme');

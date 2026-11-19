@@ -69,6 +69,14 @@ class Profile extends BaseController
             'updated_at'=> date('Y-m-d H:i:s'),
         ];
 
+        // Social links are optional and only saved when the form sends them
+        foreach (['facebook', 'twitter', 'instagram', 'linkedin'] as $social) {
+            $value = $this->request->getPost($social);
+            if ($value !== null) {
+                $data[$social] = trim((string) $value);
+            }
+        }
+
         // Handle profile picture
         $file = $this->request->getFile('profile_picture');
         if ($file && $file->isValid() && !$file->hasMoved()) {

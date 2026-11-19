@@ -79,7 +79,7 @@ $this->section('content');
       <label class="block text-sm mb-1">Attendee Home Welcome Video</label>
       <input type="file" name="welcome_video" accept="video/mp4,video/webm,video/quicktime,.mp4,.m4v,.mov,.webm"
              class="bg-gray-800 border border-gray-700 rounded w-full p-2.5">
-      <p class="mt-1 text-xs text-gray-500">Optional. Upload an MP4, M4V, MOV, or WebM file. It is securely uploaded to Bunny Stream and plays on <code>/attendees/home</code> when this conference is live.</p>
+      <p class="mt-1 text-xs text-gray-500">Optional. Upload an MP4, M4V, MOV, or WebM file (maximum 256 MB). It is securely uploaded to Bunny Stream and plays on <code>/attendees/home</code> when this conference is live.</p>
     </div>
 
       <div>

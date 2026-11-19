@@ -179,4 +179,3 @@ class BunnyStreamService
         return trim((string) env('bunny.streamApiKey'));
     }
 }
-

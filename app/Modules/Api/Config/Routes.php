@@ -54,6 +54,10 @@ $routes->group('api', ['namespace' => 'App\Modules\Api\Controllers', 'filter'   
     // 👥 Attendees
     $routes->get('attendees', 'AttendeesController::index');
     $routes->get('attendees/(:num)', 'AttendeesController::show/$1');
+    $routes->post('connections', 'ConnectionsController::create');
+    $routes->get('connections/pending', 'ConnectionsController::pending');
+    $routes->post('connections/(:num)/accept', 'ConnectionsController::accept/$1');
+    $routes->post('connections/(:num)/decline', 'ConnectionsController::decline/$1');
 
     // 🎙️ Speakers
     $routes->get('speakers', 'SpeakersController::index');
@@ -71,6 +75,7 @@ $routes->group('api', ['namespace' => 'App\Modules\Api\Controllers', 'filter'   
 
     // 💬 Messages
     $routes->post('messages/send', 'MessagesController::send');
+    $routes->get('messages/thread/(:num)', 'MessagesController::thread/$1');
     $routes->get('messages/inbox/(:num)', 'MessagesController::inbox/$1');
     $routes->get('messages/outbox/(:num)', 'MessagesController::outbox/$1');
     $routes->get('messages/unread/(:num)', 'Messages::unread/$1');
@@ -80,10 +85,20 @@ $routes->group('api', ['namespace' => 'App\Modules\Api\Controllers', 'filter'   
     $routes->get('conferences/live/sessions', 'ConferenceController::liveSessions');
     $routes->get('conferences/(:num)/sessions', 'ConferenceController::sessionsByConference/$1');
 
+    $routes->get('chat/(:num)', 'ChatController::index/$1');
     $routes->post('chat/send/(:num)', 'ChatController::send/$1');
     $routes->get('attendees/all', 'AttendeesController::all');
 
     $routes->get('speakers/(:num)/offers', 'SpeakersController::offers/$1');
+
+    $routes->get('payments/status/(:num)', 'PaymentsController::status/$1');
+    $routes->post('payments/initialize', 'PaymentsController::initialize');
+
+    $routes->get('payments/flutterwave-callback', 'PaymentsController::flutterwaveCallback');
+    $routes->get('payments/paypal-success', 'PaymentsController::paypalSuccess');
+    $routes->get('payments/paypal-cancel', 'PaymentsController::paypalCancel');
+
+    $routes->get('payments/price', 'PaymentsController::price');
 
 
 

@@ -25,21 +25,76 @@ class MessagesController extends BaseController
 
     public function send()
     {
-        $data = $this->request->getJSON(true);
+        $data = $this->request->getJSON(true) ?: [];
+        $senderId = $this->currentUserId();
+        $receiverId = (int) ($data['receiver_id'] ?? 0);
+        $message = trim((string) ($data['message'] ?? ''));
 
-        if (empty($data['sender_id']) || empty($data['receiver_id']) || empty($data['message'])) {
+        if ($senderId <= 0) {
+            return $this->failUnauthorized('Please log in to send messages.');
+        }
+
+        if ($receiverId <= 0 || $message === '') {
             return $this->failValidationErrors('Missing required fields.');
         }
 
+        if ($receiverId === $senderId) {
+            return $this->failValidationErrors('You cannot message yourself.');
+        }
+
+        if (mb_strlen($message) > 2000) {
+            return $this->failValidationErrors('Messages cannot exceed 2,000 characters.');
+        }
+
         $msgId = $this->messages->insert([
-            'sender_id'   => $data['sender_id'],
-            'receiver_id' => $data['receiver_id'],
-            'message'     => trim($data['message'])
+            'sender_id'   => $senderId,
+            'receiver_id' => $receiverId,
+            'message'     => $message,
+            'is_read'     => 0,
         ]);
+
+        $messageRecord = $this->messages->find($msgId);
 
         return $this->respondCreated([
             'status' => 'success',
-            'message_id' => $msgId
+            'data' => $messageRecord,
+        ]);
+    }
+
+    public function thread($partnerId)
+    {
+        $currentUserId = $this->currentUserId();
+        $partnerId = (int) $partnerId;
+        if ($currentUserId <= 0) {
+            return $this->failUnauthorized('Please log in to view messages.');
+        }
+
+        if ($partnerId <= 0 || $partnerId === $currentUserId) {
+            return $this->failValidationErrors('Invalid conversation.');
+        }
+
+        $messages = $this->messages
+            ->groupStart()
+                ->where('sender_id', $currentUserId)
+                ->where('receiver_id', $partnerId)
+            ->groupEnd()
+            ->orGroupStart()
+                ->where('sender_id', $partnerId)
+                ->where('receiver_id', $currentUserId)
+            ->groupEnd()
+            ->orderBy('id', 'ASC')
+            ->findAll();
+
+        $this->messages
+            ->where('sender_id', $partnerId)
+            ->where('receiver_id', $currentUserId)
+            ->where('is_read', 0)
+            ->set('is_read', 1)
+            ->update();
+
+        return $this->respond([
+            'status' => 'success',
+            'data' => $messages,
         ]);
     }
 
@@ -57,5 +112,11 @@ class MessagesController extends BaseController
             'status' => 'success',
             'data'   => $this->messages->where('sender_id', $userId)->orderBy('id', 'DESC')->findAll()
         ]);
+    }
+
+    private function currentUserId(): int
+    {
+        $userId = (int) session('user_id');
+        return $userId > 0 ? $userId : (int) session('attendee_id');
     }
 }

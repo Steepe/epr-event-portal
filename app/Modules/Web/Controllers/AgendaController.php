@@ -30,6 +30,13 @@ class AgendaController extends BaseController
         $db = db_connect();
 
         try {
+            $conference = $db->table('tbl_conferences')
+                ->select('conference_id, start_date, days')
+                ->where('conference_id', $conferenceId)
+                ->get()
+                ->getRowArray();
+            $sessionDateRange = $this->sessionDateRange($conference ?? []);
+
             // Fetch sessions with speakers in one query
             $builder = $db->table('tbl_conference_sessions s')
                 ->select('s.*, sp.speaker_name')
@@ -46,6 +53,16 @@ class AgendaController extends BaseController
             foreach ($results as $row) {
                 $eventDate = $row['event_date'];
 
+                // The conference duration is authoritative. Do not create an
+                // attendee-facing agenda day from an accidentally saved date.
+                if ($sessionDateRange !== null && ($eventDate < $sessionDateRange['start'] || $eventDate > $sessionDateRange['end'])) {
+                    log_message('warning', 'Agenda session {sessionId} is outside conference {conferenceId} duration and was not displayed.', [
+                        'sessionId' => $row['sessions_id'],
+                        'conferenceId' => $conferenceId,
+                    ]);
+                    continue;
+                }
+
                 // Group speakers under each session
                 $sessionId = $row['sessions_id'];
                 if (!isset($grouped[$eventDate][$sessionId])) {
@@ -57,7 +74,7 @@ class AgendaController extends BaseController
                         'end_time'      => $row['end_time'],
                         'access_level'  => $row['access_level'],
                         'description'   => $row['description'],
-                        'vimeo_id'      => $row['vimeo_id'],
+                        'livepush_id'   => $row['livepush_id'] ?? null,
                         'workbook'      => $row['workbook'],
                         'tags'          => $row['tags'],
                         'speakers'      => [],
@@ -77,11 +94,20 @@ class AgendaController extends BaseController
                 $grouped[$date] = array_values($sessions);
             }
 
+// Always read premium from DB (instant unlock)
+            $user = $db->table('tbl_users')
+                ->where('id', $session->get('user_id'))
+                ->get()
+                ->getRow();
+
+            $premium = $user->premium_access ?? 0;
+
             $data = [
                 'sessionsByDate' => $grouped,
                 'timezone'       => $session->get('user_timezone') ?? 'Africa/Lagos',
-                'plan'           => $session->get('plan') ?? 1,
+                'premium'        => $premium,   // <-- ADD THIS
                 'attendee_id'    => $session->get('attendee_id'),
+                'conference_id'  => $conferenceId,
             ];
 
             return module_view('Web', 'agenda', $data);
@@ -138,5 +164,28 @@ class AgendaController extends BaseController
             log_message('error', 'Agenda load failed: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Unable to load sessions.');
         }
+    }
+
+    /**
+     * @return array{start: string, end: string}|null
+     */
+    private function sessionDateRange(array $conference): ?array
+    {
+        $days = max(0, (int) ($conference['days'] ?? 0));
+        $startDate = substr(trim((string) ($conference['start_date'] ?? '')), 0, 10);
+        if ($days < 1 || ! preg_match('/^\d{4}-\d{2}-\d{2}$/', $startDate)) {
+            return null;
+        }
+
+        try {
+            $start = new \DateTimeImmutable($startDate, new \DateTimeZone('UTC'));
+        } catch (\Exception) {
+            return null;
+        }
+
+        return [
+            'start' => $start->format('Y-m-d'),
+            'end' => $start->modify('+' . ($days - 1) . ' days')->format('Y-m-d'),
+        ];
     }
 }

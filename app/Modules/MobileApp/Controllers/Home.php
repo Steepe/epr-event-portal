@@ -22,13 +22,25 @@ class Home extends BaseController
 
         $conferenceModel = new ConferenceModel();
 
-        $conferences = $conferenceModel
-            ->whereIn('status', ['live', 'past'])
+        $conference = $conferenceModel
+            ->where('status', 'live')
             ->orderBy('year', 'DESC')
-            ->findAll();
+            ->first();
+
+        if (!empty($conference['conference_id'])) {
+            session()->set('live-conference-id', $conference['conference_id']);
+        }
+
+        // A welcome film is conference content, not a global default. Keeping an
+        // older event's player here made a new conference appear to have the
+        // wrong video when its own film had not been configured yet.
+        $welcomeVideoUrl = trim((string) ($conference['welcome_video_url'] ?? ''));
 
         return module_view('MobileApp', 'home', [
-            'conferences' => $conferences
+            'conference' => $conference,
+            'welcome_video_url' => filter_var($welcomeVideoUrl, FILTER_VALIDATE_URL)
+                ? $welcomeVideoUrl
+                : '',
         ]);
     }
 

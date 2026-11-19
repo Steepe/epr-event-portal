@@ -17,7 +17,7 @@ $this->section('content');
         <p class="text-sm text-gray-400 mt-1">For <?php echo esc($speaker['speaker_name']); ?></p>
       <?php endif; ?>
     </div>
-    <a href="<?php echo $backUrl; ?>" class="text-sm text-blue-300 hover:text-blue-200 hover:underline">Back to offers</a>
+    <a href="<?php echo $backUrl; ?>" class="rounded bg-gray-700 px-4 py-2 text-sm text-gray-100 hover:bg-gray-600">Cancel</a>
   </div>
 
   <form method="post" action="<?php echo $action; ?>" class="space-y-5">
@@ -47,9 +47,12 @@ $this->section('content');
              class="w-full p-2.5 bg-gray-900 border border-gray-700 text-gray-100 rounded focus:border-blue-500 focus:outline-none">
     </div>
 
-    <button class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded">
-      <?php echo $isEdit ? 'Update Offer' : 'Create Offer'; ?>
-    </button>
+    <div class="flex justify-end gap-3">
+      <a href="<?php echo $backUrl; ?>" class="px-5 py-2.5 bg-gray-700 hover:bg-gray-600 text-white rounded">Cancel</a>
+      <button class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded">
+        <?php echo $isEdit ? 'Update Offer' : 'Create Offer'; ?>
+      </button>
+    </div>
   </form>
 </div>
 

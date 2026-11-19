@@ -16,7 +16,7 @@ class Messages extends BaseController
 {
     public function index()
     {
-        $userId = session()->get('attendee_id');
+        $userId = session()->get('user_id') ?: session()->get('attendee_id');
         $model = new MessageModel();
         $data['threads'] = $model->getThreads($userId);
         return module_view('MobileApp', 'messages/index', $data);
@@ -24,7 +24,7 @@ class Messages extends BaseController
 
     public function thread($id)
     {
-        $userId = session()->get('attendee_id');
+        $userId = session()->get('user_id') ?: session()->get('attendee_id');
         $model = new MessageModel();
         $data['messages'] = $model->getThreadMessages($userId, $id);
         return module_view('MobileApp', 'messages/thread', $data);

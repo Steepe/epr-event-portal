@@ -21,9 +21,14 @@
     <link rel="shortcut icon" href="<?php echo asset_url('images/favicon.png')?>">
 
     <!-- App css -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="<?php echo asset_url('css/bootstrap.min.css')?>" type="text/css">
     <link href="<?php echo asset_url('css/eprglobal.css')?>" rel="stylesheet" type="text/css" />
     <link href="<?php echo asset_url('font-awesome/css/font-awesome.min.css')?>" rel="stylesheet" type="text/css" />
+    <link href="<?php echo asset_url('css/accelerate-portal.css')?>" rel="stylesheet" type="text/css" />
+    <script defer src="<?php echo asset_url('js/accelerate-background.js')?>"></script>
 
     <script>
         /* Storing user's device details in a variable*/
@@ -40,7 +45,11 @@
         let isMobileDevice = regexp.test(details);
 
         if (isMobileDevice) {
-            location.href = "<?php echo base_url('mobile/login')?>";
+            <?php if (isset($token)): ?>
+            location.replace(<?= json_encode(site_url('mobile/reset-password') . '?token=' . rawurlencode($token), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>);
+            <?php else: ?>
+            location.replace("<?php echo base_url('mobile/login')?>");
+            <?php endif; ?>
             //document.write("You are using a Mobile Device");
         }
     </script>

@@ -15,7 +15,7 @@ use App\Services\PortalAccessService;
 
 class HomeController extends BaseController
 {
-    private const DEFAULT_WELCOME_VIDEO_URL = 'https://iframe.mediadelivery.net/embed/405384/60589a7b-3fe7-40fb-a2ae-3c024f23e01e?autoplay=true&loop=false&muted=false&preload=true&responsive=true';
+    private const DEFAULT_WELCOME_VIDEO_URL = 'https://iframe.mediadelivery.net/embed/405384/60589a7b-3fe7-40fb-a2ae-3c024f23e01e?loop=false&muted=false&preload=true&responsive=true';
 
     public function index()
     {

@@ -1,662 +1,396 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: oluwamayowasteepe
- * Project: epr-event-portal
- * Date: 29/10/2025
- * Time: 21:01
- */
-
 echo module_view('Web', 'includes/header');
 echo module_view('Web', 'includes/topbar');
 
-$event           = $session ?? [];
+$event = $session ?? [];
 $sessionSpeakers = $speakers ?? [];
-$sessionSponsor  = $sponsors[0] ?? null;
-$timezone        = $timezone ?? 'Africa/Lagos';
-
+$sessionSponsor = $sponsors[0] ?? null;
 $canAccess = (session('plan') ?? 1) >= ($event['access_level'] ?? 1);
-$livepushId = trim($event['vimeo_id'] ?? '');
+$streamProvider = ($event['stream_provider'] ?? 'livepush') === 'zoom' ? 'zoom' : 'livepush';
+$livepushId = trim($event['livepush_id'] ?? '');
 $videoSrc = '';
+$zoomJoinUrl = '';
+$zoomMeetingReady = false;
 
-if (preg_match('/^[A-Za-z0-9_-]+$/', $livepushId)) {
+if ($streamProvider === 'livepush' && preg_match('/^[A-Za-z0-9_-]+$/', $livepushId)) {
     // Keep the provider URL in one place; only the Livepush video ID comes from admin.
     $videoSrc = 'https://watch.livepush.io/live/' . rawurlencode($livepushId);
 }
+
+if ($streamProvider === 'zoom' && preg_match('/^\d{9,16}$/', (string) ($event['zoom_meeting_number'] ?? ''))) {
+    $zoomMeetingReady = true;
+}
+
+if ($streamProvider === 'zoom' && $canAccess && $zoomMeetingReady) {
+    $zoomJoinUrl = base_url('attendees/sessions/' . (int) ($event['sessions_id'] ?? 0) . '/zoom');
+}
+
+$title = $event['sessions_name'] ?? 'Designing Systems That Outlast Motivation';
+$dateText = !empty($event['event_date']) ? date('F j, Y', strtotime($event['event_date'])) : 'November 11, 2026';
+$start = !empty($event['start_time']) ? (new DateTime($event['event_date'] . ' ' . $event['start_time'], new DateTimeZone('UTC')))->format('g:i A') : '10:00 AM';
+$end = !empty($event['end_time']) ? (new DateTime($event['event_date'] . ' ' . $event['end_time'], new DateTimeZone('UTC')))->format('g:i A') : '11:00 AM';
+$chatSessionId = (int) ($event['sessions_id'] ?? 0);
+$chatAttendeeId = (int) session('attendee_id');
+$onlineAttendeeCount = (int) ($online_attendee_count ?? 0);
+$leadSpeaker = $sessionSpeakers[0] ?? [];
+$leadSpeakerName = $leadSpeaker['speaker_name'] ?? 'Kemi Bello';
+$leadSpeakerRole = trim((string) ($leadSpeaker['speaker_title'] ?? 'Founder & CEO, Brightspark'));
+$leadSpeakerPhoto = !empty($leadSpeaker['speaker_photo'])
+    ? base_url('uploads/speakers/' . $leadSpeaker['speaker_photo'])
+    : asset_url('images/user.png');
 ?>
 
-
-<style>
-    .container {
-        max-width: 1400px !important; /* default is ~1140 */
-    }
-
-    .nav-pills .nav-link.active {
-        color: #fff;
-        background-color: #9D0F82;
-        border-radius: 10px;
-        width: 170px;
-        text-align: center;
-    }
-
-    .nav-pills .nav-link {
-        background-color: #D8198E;
-        border-radius: 10px;
-        color: #FFFFFF;
-        width: 170px;
-        border: none;
-        text-align: center;
-    }
-
-    .wy-message-bubble { background-color: #9D0F82 !important; }
-    .wy-content { color: #FFFFFF !important; }
-    .wy-like-button, .wy-toast-action { background-color: #D8198E !important; color: #fff !important; }
-
-    :root { --wy-theme-color: #D8198E; }
-
-    .speaker-summary-bg { margin-bottom: 15px; }
-    .speaker-summary img { border-radius: 10px; object-fit: cover; }
-</style>
-
-<style>
-    .chat-bubble-wrapper {
-        display: flex;
-        margin-bottom: 14px;
-        align-items: flex-end;
-    }
-
-    .chat-bubble-wrapper.me {
-        justify-content: flex-end;
-    }
-
-    .chat-avatar {
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        margin-right: 8px;
-        object-fit: cover;
-    }
-
-    .chat-bubble {
-        max-width: 80%;
-        padding: 10px 14px;
-        border-radius: 10px;
-        font-size: 14px;
-        line-height: 1.4;
-        position: relative;
-        background: #333;
-        color: #fff;
-    }
-
-    /* Me (my messages) */
-    .chat-bubble.me {
-        background: #D8198E;
-        margin-left: 40px;
-        border-bottom-right-radius: 4px;
-        width: 100%;
-    }
-
-    /* Them */
-    .chat-bubble.them {
-        background: #742c76;
-        border-bottom-left-radius: 4px;
-        width: 100%;
-    }
-
-    /* Name */
-    .chat-name {
-        font-weight: bold;
-        margin-bottom: 4px;
-        font-size: 13px;
-    }
-
-    /* Timestamp */
-    .chat-time {
-        font-size: 10px;
-        color: #ccc;
-        margin-top: 6px;
-        text-align: right;
-    }
-
-    /* WhatsApp-style bubble tail */
-    .chat-bubble.me::after {
-        content: "";
-        position: absolute;
-        right: -8px;
-        bottom: 0;
-        width: 0;
-        height: 0;
-        border-left: 8px solid #D8198E;
-        border-top: 8px solid transparent;
-        border-bottom: 8px solid transparent;
-    }
-
-    .chat-bubble.them::before {
-        content: "";
-        position: absolute;
-        left: -8px;
-        bottom: 0;
-        width: 0;
-        height: 0;
-        border-right: 8px solid #222;
-        border-top: 8px solid transparent;
-        border-bottom: 8px solid transparent;
-    }
-
-    .mention-link {
-        color: #4e95ff !important;
-        font-weight: bold;
-    }
-
-    .mention-link:hover {
-        color: #ff7acb !important;
-        text-decoration: underline;
-    }
-
-
-</style>
-
-<div class="container">
-    <div class="row mt-5 pt-50 w-100 mb-1">
-        <h4 style="color: #9D0F82; font-weight: bold;">Session</h4>
-    </div>
-
-    <div class="row w-100">
-        <div class="col-md-8">
-            <h5 class="text-white"><?php echo  esc($event['sessions_name'] ?? '') ?></h5>
-
-            <div class="view-box mb-3">
-                    <div style="padding:56.25% 0 0 0;position:relative;">
-                        <iframe src="<?php echo  esc($videoSrc) ?>"
-                                frameborder="0"
-                                allow="autoplay; fullscreen; picture-in-picture"
-                                allowfullscreen
-                                style="position:absolute;top:0;left:0;width:100%;height:100%;">
-                        </iframe>
-                    </div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-6 text-left">
-                    <span class="epr-text-purple like-session like-outline" style="font-size:16px; font-weight:bold; cursor:pointer;">
-                        <i class="fa fa-heart-o" aria-hidden="true"></i>
-                    </span>
-                    <span class="epr-text-purple like-session like-fill" style="font-size:16px; font-weight:bold; cursor:pointer; display:none;">
-                        <i class="fa fa-heart" aria-hidden="true"></i>
-                    </span>
-                    <span class="epr-text-purple mt-1">&nbsp;Like Session</span>
-                </div>
-                <div class="col-md-6">
-                    <form class="rating" style="float: right;">
-                        <?php for ($i = 1; $i <= 5; $i++): ?>
-                            <label>
-                                <input type="radio" name="stars" value="<?php echo  $i ?>" />
-                                <?php echo  str_repeat('<span class="icon">★</span>', $i) ?>
-                            </label>
-                        <?php endfor; ?>
-                    </form>
-                    <p class="text-white" style="float:right; margin-top:5px;">Rate this session</p>
-                </div>
-            </div>
-
-            <div class="row mt-3">
-                <div class="col-md-6">
-                    <?php foreach ($sessionSpeakers as $speaker): ?>
-                        <div class="speaker-summary-bg">
-                            <div class="speaker-summary d-flex">
-                                <div>
-                                    <img src="<?php echo  base_url('uploads/speakers/' . $speaker['speaker_photo']) ?>"
-                                         alt="<?php echo  esc($speaker['speaker_name']) ?>"
-                                         onerror="this.src='<?php echo  asset_url('images/user.png') ?>';"
-                                         style="width:120px;height:120px;">
-                                </div>
-                                <div class="text-center pt-2 pl-2">
-                                    <h6><strong><?php echo  esc($speaker['speaker_name']) ?></strong></h6>
-                                    <p style="font-size:12px;"><?php echo  esc($speaker['speaker_title'] . ', ' . $speaker['speaker_company']) ?></p>
-                                </div>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
-
-                <div class="col-md-6">
-                    <h6 class="text-white"><strong>Session Overview</strong></h6>
-                    <p class="text-white" style="font-size:14px;"><?php echo  nl2br(esc($event['description'] ?? '')) ?></p>
-
-                    <?php if (!empty($event['workbook'])): ?>
-                        <a href="<?php echo  base_url('uploads/workbooks/' . $event['workbook']) ?>" download>
-                            <button class="btn btn-epr-pink mb-3">Download Workbook</button>
-                        </a>
-                    <?php endif; ?>
-                </div>
+<main data-screen-label="Live Session" style="position:absolute;inset:72px 0 0 0;display:grid;grid-template-columns:minmax(0,1fr) minmax(300px,380px);gap:24px;padding:24px 32px;box-sizing:border-box">
+    <section style="min-height:0;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:18px;padding-right:6px">
+        <div style="display:flex;flex-direction:column;gap:10px">
+            <a href="<?php echo session('live-conference-id') ? base_url('attendees/agenda/' . session('live-conference-id')) : base_url('attendees/lobby'); ?>"
+               class="rc-back-link">
+                <i class="fa fa-long-arrow-left" aria-hidden="true"></i>Agenda · <span data-local-session-date data-event-date="<?php echo esc($event['event_date'] ?? '', 'attr'); ?>" data-start-time="<?php echo esc($event['start_time'] ?? '', 'attr'); ?>"><?php echo esc($dateText); ?></span>
+            </a>
+            <span style="font-size:28px;font-weight:600;letter-spacing:-.02em;line-height:1.15;text-wrap:pretty"><?php echo esc($title); ?></span>
+            <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;font-size:13px;color:rgba(255,255,255,.75)">
+                <span class="rc-mono" data-local-session-time data-event-date="<?php echo esc($event['event_date'] ?? '', 'attr'); ?>" data-start-time="<?php echo esc($event['start_time'] ?? '', 'attr'); ?>" data-end-time="<?php echo esc($event['end_time'] ?? '', 'attr'); ?>" style="font-size:12px"><span data-local-session-range><?php echo esc($start); ?> – <?php echo esc($end); ?></span> · <span data-local-session-zone>GMT</span></span>
+                <span style="display:flex;align-items:center;gap:6px"><i class="fa fa-eye" aria-hidden="true"></i><span data-online-attendee-count><?php echo number_format($onlineAttendeeCount); ?></span> online now</span>
             </div>
         </div>
 
-        <aside class="col-md-4 mt-4" id="chat_pane">
-            <div class="row">
-                <div id="chat-containerx" style="height:530px; position: relative; top: 5px;">
-                    <div id="chat-messages"
-                         style="height:480px; overflow-y:auto; background:#d2bcd4; padding:20px 10px; border-radius:10px; pa">
-                    </div>
-
-                    <div class="mt-2 d-flex">
-    <textarea id="chatInput" class="form-control" placeholder="Type a message..."
-              style="background:#222; color:#fff; border-radius:10px; height:55px;"></textarea>
-                        <button class="btn btn-epr-pink ml-2" onclick="sendMessage()"
-                                style="height:55px; border-radius:10px;">Send</button>
-                    </div>
-                </div>
-            </div>
-
-            <?php if ($sessionSponsor): ?>
-                <div class="row w-100 mt-2 mb-2 pl-4">
-                    <h6>Sponsored by</h6>&nbsp;&nbsp;
-                    <span><img src="<?php echo  base_url('uploads/sponsors_logo/' . $sessionSponsor['logo']) ?>" width="100"></span>
+        <div data-session-video data-video-src="<?php echo esc($canAccess ? $videoSrc : '', 'attr'); ?>" data-zoom-join-url="<?php echo esc($zoomJoinUrl, 'attr'); ?>" style="position:relative;width:100%;box-sizing:border-box;aspect-ratio:16/9;flex:none;border-radius:16px;overflow:hidden;background:radial-gradient(circle at 50% 42%,#5a1f5f 0%,#2a0f2e 48%,#12050f 100%);border:1px solid rgba(255,255,255,.12)">
+            <img src="<?php echo $leadSpeakerPhoto; ?>" alt="<?php echo esc($leadSpeakerName); ?>" style="position:absolute;left:50%;top:36%;transform:translate(-50%,-50%);height:40%;aspect-ratio:1;border-radius:50%;object-fit:cover;box-shadow:0 0 80px rgba(216,25,142,.45)">
+            <?php if ($streamProvider === 'zoom' && ! $zoomMeetingReady): ?>
+                <div style="position:absolute;inset:0;z-index:3;display:grid;place-items:center;padding:24px;text-align:center;background:rgba(18,5,15,.6)">
+                    <span style="max-width:330px;font-size:14px;line-height:1.55;color:rgba(255,255,255,.9)">This interactive Zoom session has not been configured yet.</span>
                 </div>
             <?php endif; ?>
-        </aside>
-    </div>
-</div>
+            <div style="position:absolute;top:16px;left:16px;display:flex;gap:8px;align-items:center">
+                <span style="display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.16em;padding:5px 10px;border-radius:6px;background:#d8198e"><span style="width:6px;height:6px;border-radius:50%;background:#fff"></span><?php echo $streamProvider === 'zoom' ? 'ZOOM LIVE' : 'LIVE'; ?></span>
+                <span class="rc-mono" style="font-size:11px;letter-spacing:.1em;padding:5px 10px;border-radius:6px;background:rgba(0,0,0,.45)">23:41</span>
+            </div>
+            <div style="position:absolute;left:16px;bottom:52px;max-width:calc(100% - 32px);box-sizing:border-box;display:flex;align-items:baseline;gap:8px;padding:6px 12px;border-radius:8px;background:rgba(18,5,15,.72);white-space:nowrap;overflow:hidden">
+                <span style="font-size:14px;font-weight:600"><?php echo esc($leadSpeakerName); ?></span>
+                <span style="font-size:12px;color:rgba(255,255,255,.75);overflow:hidden;text-overflow:ellipsis"><?php echo esc($leadSpeakerRole); ?></span>
+            </div>
+            <div data-session-video-controls style="position:absolute;left:0;right:0;bottom:0;padding:28px 18px 14px;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,0,0,.72));display:flex;align-items:center;gap:16px;font-size:16px">
+                <button type="button" data-session-video-play aria-label="<?php echo $canAccess ? ($streamProvider === 'zoom' ? 'Join interactive Zoom session' : 'Play session') : 'Session locked'; ?>" style="width:16px;padding:0;border:0;background:transparent;color:#fff;cursor:<?php echo $canAccess ? 'pointer' : 'default'; ?>"><i class="fa <?php echo $canAccess ? 'fa-play' : 'fa-lock'; ?>" aria-hidden="true"></i></button>
+                <i class="fa fa-volume-up" aria-hidden="true"></i>
+                <div style="flex:1;height:4px;border-radius:4px;background:rgba(255,255,255,.2);position:relative">
+                    <div style="position:absolute;inset:0;border-radius:4px;background:#d8198e"></div>
+                    <span style="position:absolute;right:-6px;top:-4px;width:12px;height:12px;border-radius:50%;background:#fff;box-shadow:0 0 10px #d8198e"></span>
+                </div>
+                <i class="fa fa-cc" aria-hidden="true"></i>
+                <i class="fa fa-cog" aria-hidden="true"></i>
+                <i class="fa fa-expand" aria-hidden="true"></i>
+            </div>
+        </div>
 
-<?php
-echo module_view('Web', 'includes/scripts');
-?>
-
-<script src="<?php echo  asset_url('js/toast.min.js') ?>"></script>
-
-<script>
-
-    $(document).ready(function(){
-        let liked = false;
-
-        $('.like-session').on('click', function(){
-            if (!liked) {
-                liked = true;
-                $('.like-fill').show();
-                $('.like-outline').hide();
-
-                $.get("<?php echo  base_url('attendees/attendees/save_earned_points') ?>", {
-                    short_name: "favorite_session",
-                    activity: "<?php echo  $event['sessions_id'] ?? '' ?>"
-                });
-            }
-        });
-
-        $(':radio').change(function() {
-            const session_rate = this.value;
-            $.get("<?php echo  base_url('attendees/attendees/save_earned_points') ?>", {
-                short_name: "rate_session",
-                activity: "<?php echo  $event['sessions_id'] ?? '' ?>"
-            }, function(data){
-                if (data === "false") {
-                    alert('You have rated this session before.');
-                } else {
-                    $.get("<?php echo  base_url('attendees/attendees/save_session_rating') ?>", {
-                        session_rate: session_rate,
-                        session_id: "<?php echo  $event['sessions_id'] ?? '' ?>"
-                    });
-                }
-            });
-        });
-    });
-
-
-</script>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<!-- Emoji Picker Web Component -->
-<script type="module" src="https://unpkg.com/emoji-picker-element@latest/index.js"></script>
-
-<!-- Tribute.js (Mentions) -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tributejs@5.1.3/dist/tribute.css">
-<script src="https://cdn.jsdelivr.net/npm/tributejs@5.1.3/dist/tribute.min.js"></script>
-
-<script>
-    /* ===========================================================
-       CLEAN CHAT ENGINE — Supabase Realtime + Emoji + Mentions
-       =========================================================== */
-
-    const supabaseClient = supabase.createClient(
-        "<?php echo getenv('supabase.url'); ?>",
-        "<?php echo getenv('supabase.anon_key'); ?>"
-    );
-
-    const sessionId   = "<?php echo $event['sessions_id']; ?>";
-    const attendeeId  = "<?php echo session('attendee_id'); ?>";
-    const apiEndpoint = "/api/chat/send/" + sessionId;
-
-    const chatBox   = document.getElementById("chat-messages");
-    const chatInput = document.getElementById("chatInput");
-
-    let profileCache = {};          // id → profile
-    window._mentionLookup = {};     // id → fullname
-
-    /* ----------------------------
-       Auto-scroll to bottom
-    ----------------------------- */
-    function scrollChatDown() {
-        chatBox.scrollTop = chatBox.scrollHeight;
-    }
-
-    /* ----------------------------
-       Escape HTML (safe rendering)
-    ----------------------------- */
-    function sanitizeAllowLinks(str) {
-        if (!str) return "";
-
-        // Temporarily remove mention HTML
-        const placeholders = [];
-        str = str.replace(/\[\[MENTION:(.*?)\]\]/g, (match, inner, index) => {
-            placeholders.push(inner);
-            return `[[MENTION_PLACEHOLDER_${placeholders.length - 1}]]`;
-        });
-
-        // Sanitize everything else
-        let escaped = str
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;")
-            .replace(/\n/g, "<br>");
-
-        // Restore mention HTML safely
-        placeholders.forEach((html, i) => {
-            escaped = escaped.replace(
-                `[[MENTION_PLACEHOLDER_${i}]]`,
-                html
-            );
-        });
-
-        return escaped;
-    }
-
-    /* ----------------------------
-       Replace stored tokens @{user:ID}
-    ----------------------------- */
-    function replaceTokensWithNames(message) {
-        return message.replace(/@\{user:(\d+)\}/g, function(_, userId) {
-            const u = profileCache[userId];
-            if (!u) return "@Unknown";
-
-            const fullname = `${u.firstname ?? ''} ${u.lastname ?? ''}`.trim();
-            const profileUrl = "/attendees/profile/" + userId;
-
-            // We wrap the HTML inside a marker so sanitizer knows to skip it
-            return `[[MENTION:<a href="${profileUrl}" class="mention-link" style="color:#ff4eb8;font-weight:bold;text-decoration:none;">@${fullname}</a>]]`;
-        });
-    }
-
-    /* ----------------------------
-       Replace raw @Full Name (NEW!)
-    ----------------------------- */
-    function replaceRawMentions(message) {
-        for (let uid in profileCache) {
-            const u = profileCache[uid];
-            if (!u) continue;
-
-            const fullname = `${u.firstname} ${u.lastname}`.trim();
-            if (!fullname) continue;
-
-            const escaped = fullname.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
-            const regex = new RegExp("@" + escaped, "gi");
-
-            const profileUrl = "/attendees/profile/" + uid;
-
-            message = message.replace(
-                regex,
-                `<a href="${profileUrl}"
-                    class="mention-link"
-                    style="color:#ff4eb8;font-weight:bold;text-decoration:none;">
-                    @${fullname}
-                 </a>`
-            );
-        }
-        return message;
-    }
-
-    /* ----------------------------
-       Load user profile (cached)
-    ----------------------------- */
-    async function getUserProfile(userId) {
-        if (profileCache[userId]) return profileCache[userId];
-
-        try {
-            let res = await fetch("/api/users/" + userId, {
-                headers: { "X-API-KEY": "<?php echo env('api.securityKey'); ?>" }
-            });
-
-            let json = await res.json();
-            if (json.status === "success") {
-                profileCache[userId] = json.data;
-                return json.data;
-            }
-        } catch (e) {}
-
-        return profileCache[userId] = {
-            firstname: "User",
-            lastname: userId,
-            profile_picture: ""
-        };
-    }
-
-    /* ----------------------------
-       RENDER MESSAGE (now supports @Name + @{user:ID})
-    ----------------------------- */
-    async function appendMessage(data) {
-        const user = await getUserProfile(data.attendee_id);
-        const isMe = Number(data.attendee_id) === Number(attendeeId);
-        const fullName = `${user.firstname ?? ''} ${user.lastname ?? ''}`.trim();
-
-        const avatar = user.profile_picture
-            ? "<?php echo base_url('uploads/profile_pictures'); ?>/" + user.profile_picture
-            : "<?php echo asset_url('images/user.png'); ?>";
-
-        // 1️⃣ Convert raw mentions like @John Doe
-        let rendered = replaceRawMentions(data.message);
-
-        // 2️⃣ Convert token mentions @{user:5}
-        rendered = replaceTokensWithNames(rendered);
-
-        // 3️⃣ Sanitize safely
-        rendered = sanitizeAllowLinks(rendered);
-
-        const bubble = `
-        <div class="chat-bubble-wrapper ${isMe ? 'me' : 'them'}">
-            ${!isMe ? `<img src="${avatar}" class="chat-avatar">` : ""}
-            <div class="chat-bubble ${isMe ? 'me' : 'them'}">
-                <div class="chat-name">${fullName}</div>
-
-                ${rendered}
-
-                <div class="chat-time">
-                    ${new Date(data.created_at).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' })}
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+            <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+                <button class="rc-session-like" type="button"><i class="fa fa-heart-o" style="color:#ff5fb4" aria-hidden="true"></i>Like Session</button>
+                <div style="display:flex;align-items:center;gap:10px">
+                    <span style="font-size:13px;color:rgba(255,255,255,.75)">Rate this session</span>
+                    <div id="rateSession" role="radiogroup" aria-label="Rate this session" style="display:flex;gap:2px;font-size:22px;line-height:1">
+                        <?php for ($star = 1; $star <= 5; $star++): ?>
+                            <button type="button" role="radio" aria-checked="false" aria-label="<?php echo $star; ?> star<?php echo $star === 1 ? '' : 's'; ?>" data-star="<?php echo $star; ?>" style="padding:0;border:0;background:transparent;color:rgba(255,255,255,.3);font:inherit;line-height:1;cursor:pointer">★</button>
+                        <?php endfor; ?>
+                    </div>
+                    <span id="ratingStatus" aria-live="polite" style="font-size:12px;color:rgba(255,255,255,.65)"></span>
                 </div>
             </div>
-        </div>`;
+            <div style="display:flex;align-items:center;gap:16px">
+                <button class="rc-session-download" type="button"><i class="fa fa-download" aria-hidden="true"></i>Download Workbook</button>
+                <?php if ($sessionSponsor): ?>
+                    <div style="display:flex;align-items:center;gap:10px">
+                        <span style="font-size:12px;color:rgba(255,255,255,.65)">Sponsored by</span>
+                        <span style="height:38px;width:96px;border-radius:8px;background:#fff;display:flex;align-items:center;justify-content:center">
+                            <img src="<?php echo base_url('uploads/sponsors_logo/' . $sessionSponsor['logo']); ?>" alt="Sponsor" style="max-width:84%;max-height:78%;object-fit:contain">
+                        </span>
+                    </div>
+                <?php endif; ?>
+            </div>
+        </div>
 
-        chatBox.insertAdjacentHTML("beforeend", bubble);
-        scrollChatDown();
-    }
+        <div style="display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:18px">
+            <div class="rc-panel" style="padding:20px;display:flex;flex-direction:column;gap:14px">
+                <span class="rc-kicker" style="font-size:11px;color:rgba(255,255,255,.6)">Speakers</span>
+                <?php if (!empty($sessionSpeakers)): ?>
+                    <?php foreach ($sessionSpeakers as $speaker): ?>
+                        <?php $speakerPhoto = !empty($speaker['speaker_photo']) ? base_url('uploads/speakers/' . $speaker['speaker_photo']) : asset_url('images/user.png'); ?>
+                        <div style="display:flex;align-items:center;gap:14px">
+                            <img src="<?php echo $speakerPhoto; ?>" alt="" style="width:60px;height:60px;border-radius:50%;object-fit:cover">
+                            <div style="display:flex;flex-direction:column;gap:2px">
+                                <span style="font-size:15px;font-weight:600"><?php echo esc($speaker['speaker_name'] ?? 'Speaker'); ?></span>
+                                <span style="font-size:12px;color:rgba(255,255,255,.7)"><?php echo esc($speaker['speaker_title'] ?? ''); ?></span>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <span style="color:rgba(255,255,255,.7)">Speakers TBA</span>
+                <?php endif; ?>
+            </div>
 
-    /* ----------------------------
-       Load chat history
-    ----------------------------- */
-    async function loadChatHistory() {
-        const url = "<?php echo getenv('supabase.url'); ?>/rest/v1/tbl_session_chats"
-            + "?session_id=eq.<?php echo $event['sessions_id']; ?>&order=id.asc";
+            <div class="rc-panel" style="padding:20px;display:flex;flex-direction:column;gap:12px">
+                <span class="rc-kicker" style="font-size:11px;color:rgba(255,255,255,.6)">Session overview</span>
+                <p style="margin:0;font-size:14px;line-height:1.65;color:rgba(255,255,255,.86)">
+                    <?php echo esc($event['description'] ?? 'Motivation fades; systems compound. This session breaks down how high-performing teams design operating rhythms, feedback loops and simple rules that keep execution moving.'); ?>
+                </p>
+            </div>
+        </div>
+    </section>
 
-        const response = await fetch(url, {
-            headers: {
-                "apikey": "<?php echo getenv('supabase.anon_key'); ?>",
-                "Authorization": "Bearer <?php echo getenv('supabase.anon_key'); ?>"
-            }
+    <aside class="rc-panel" style="min-height:0;display:flex;flex-direction:column;overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid rgba(255,255,255,.08)">
+            <span style="font-size:16px;font-weight:600">Live chat</span>
+            <span class="rc-mono" style="display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.12em;color:rgba(255,255,255,.7)"><span style="width:7px;height:7px;border-radius:50%;background:#efb11e;box-shadow:0 0 8px #efb11e"></span><span data-online-attendee-count><?php echo number_format($onlineAttendeeCount); ?></span> ONLINE</span>
+        </div>
+        <div id="chat-messages" style="flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding:16px;display:flex;flex-direction:column;gap:12px">
+            <span id="chat-empty" style="margin:auto;color:rgba(255,255,255,.58);font-size:13px">No messages yet. Start the conversation.</span>
+        </div>
+        <div style="display:flex;gap:8px;padding:12px;border-top:1px solid rgba(255,255,255,.08)">
+            <div style="position:relative;flex:none">
+                <button id="chatEmojiToggle" type="button" aria-label="Choose an emoji" aria-expanded="false" style="width:44px;height:44px;border:0;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;color:rgba(255,255,255,.75);background:transparent;cursor:pointer"><i class="fa fa-smile-o" aria-hidden="true"></i></button>
+                <div id="chatEmojiPicker" hidden role="dialog" aria-label="Emoji picker" style="position:absolute;z-index:20;bottom:52px;left:0;width:216px;padding:8px;border:1px solid rgba(255,255,255,.16);border-radius:12px;background:#29112e;box-shadow:0 14px 32px rgba(0,0,0,.34);grid-template-columns:repeat(6,1fr);gap:3px">
+                    <?php foreach (['😀', '😂', '😍', '🥳', '👍', '👏', '🔥', '🎉', '💡', '✅', '🙌', '💯', '🤝', '❤️', '🙏', '👀', '🚀', '✨'] as $emoji): ?>
+                        <button type="button" data-chat-emoji="<?php echo esc($emoji, 'attr'); ?>" aria-label="Add <?php echo esc($emoji, 'attr'); ?>" style="border:0;border-radius:7px;background:transparent;padding:6px;cursor:pointer;font-size:19px;line-height:1"><?php echo $emoji; ?></button>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+            <input id="chatInput" class="rc-input" placeholder="Type a message..." style="flex:1;min-width:0;height:44px;background:#1d0a21!important">
+            <button id="sendChat" class="rc-pill" type="button" style="height:44px;padding:0 18px;flex:none">Send</button>
+        </div>
+    </aside>
+</main>
+
+</div>
+</div>
+
+<?php echo module_view('Web', 'includes/scripts'); ?>
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const sessionVideo = document.querySelector("[data-session-video]");
+    const sessionPlay = document.querySelector("[data-session-video-play]");
+    const input = document.getElementById("chatInput");
+    const box = document.getElementById("chat-messages");
+    const sendButton = document.getElementById("sendChat");
+    const emojiToggle = document.getElementById("chatEmojiToggle");
+    const emojiPicker = document.getElementById("chatEmojiPicker");
+    const empty = document.getElementById("chat-empty");
+    const sessionId = <?php echo json_encode($chatSessionId); ?>;
+    const attendeeId = <?php echo json_encode($chatAttendeeId); ?>;
+    const ratingUrl = <?php echo json_encode(base_url('attendees/sessions/' . $chatSessionId . '/rating')); ?>;
+    const csrf = <?php echo json_encode(csrf_hash()); ?>;
+    const currentAttendeeName = <?php echo json_encode(session('firstname') ?: 'You'); ?>;
+    const historyUrl = <?php echo json_encode(base_url('api/chat/' . $chatSessionId)); ?>;
+    const sendUrl = <?php echo json_encode(base_url('api/chat/send/' . $chatSessionId)); ?>;
+    const onlineCountUrl = <?php echo json_encode(base_url('attendees/sessions/' . $chatSessionId . '/online')); ?>;
+    const renderedMessageIds = new Set();
+    let latestMessageId = 0;
+
+    const ratingStars = Array.from(document.querySelectorAll("#rateSession [data-star]"));
+    const ratingStatus = document.getElementById("ratingStatus");
+    let currentRating = 0;
+    let savingRating = false;
+
+    function paintRating() {
+        ratingStars.forEach(star => {
+            const selected = Number(star.dataset.star) <= currentRating;
+            star.style.color = selected ? "#efb11e" : "rgba(255,255,255,.3)";
+            star.setAttribute("aria-checked", String(Number(star.dataset.star) === currentRating));
         });
-
-        const messages = await response.json();
-        for (let msg of messages) await appendMessage(msg);
     }
 
-    /* ----------------------------
-       SEND MESSAGE
-    ----------------------------- */
-    async function sendMessage() {
-        let msg = chatInput.value.trim();
-        if (!msg.length) return;
+    function loadRating() {
+        if (!sessionId) return;
+        fetch(ratingUrl, { credentials: "same-origin" })
+            .then(response => response.ok ? response.json() : null)
+            .then(data => {
+                currentRating = Number(data?.rating) || 0;
+                paintRating();
+            })
+            .catch(() => paintRating());
+    }
 
-        // Convert @Full Name → @{user:ID}
-        for (let uid in profileCache) {
-            let u = profileCache[uid];
-            if (!u) continue;
+    ratingStars.forEach(star => star.addEventListener("click", () => {
+        const rating = Number(star.dataset.star);
+        if (!rating || savingRating) return;
+        savingRating = true;
+        ratingStatus.textContent = "Saving…";
+        fetch(ratingUrl, {
+            method: "POST",
+            credentials: "same-origin",
+            headers: { "Content-Type": "application/json", "X-CSRF-TOKEN": csrf },
+            body: JSON.stringify({ rating })
+        })
+            .then(response => response.ok ? response.json() : Promise.reject())
+            .then(data => {
+                currentRating = Number(data.rating) || rating;
+                paintRating();
+                ratingStatus.textContent = "Thanks.";
+            })
+            .catch(() => { ratingStatus.textContent = "Could not save rating."; })
+            .finally(() => { savingRating = false; });
+    }));
+    paintRating();
+    loadRating();
 
-            const fullname = `${u.firstname} ${u.lastname}`.trim();
-            if (!fullname) continue;
+    function refreshOnlineCount() {
+        fetch(onlineCountUrl, {credentials: "same-origin"})
+            .then(response => response.ok ? response.json() : null)
+            .then(data => {
+                if (!data || !Number.isFinite(Number(data.count))) {
+                    return;
+                }
+                document.querySelectorAll("[data-online-attendee-count]").forEach(element => {
+                    element.textContent = Number(data.count).toLocaleString();
+                });
+            })
+            .catch(() => {});
+    }
 
-            const escaped = fullname.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&");
-            const regex = new RegExp("@" + escaped, "gi");
+    function startSessionVideo() {
+        const zoomJoinUrl = sessionVideo?.dataset.zoomJoinUrl || "";
+        const src = sessionVideo?.dataset.videoSrc || "";
+        if ((!src && !zoomJoinUrl) || sessionVideo.querySelector("iframe")) {
+            return;
+        }
+        const iframe = document.createElement("iframe");
+        iframe.src = zoomJoinUrl || (src + (src.includes("?") ? "&" : "?") + "autoplay=1");
+        iframe.allow = zoomJoinUrl
+            ? "camera; microphone; display-capture; fullscreen; autoplay; clipboard-write"
+            : "autoplay; fullscreen; picture-in-picture";
+        iframe.allowFullscreen = true;
+        iframe.style.cssText = "position:absolute;inset:0;z-index:4;width:100%;height:100%;border:0";
+        sessionVideo.appendChild(iframe);
+    }
 
-            msg = msg.replace(regex, `@{user:${uid}}`);
+    sessionPlay?.addEventListener("click", startSessionVideo);
+
+    // Put both broadcast and Zoom players into the page as soon as it loads.
+    // Zoom still presents its own Join flow, where attendees can explicitly
+    // grant microphone/camera permissions, but they no longer need to discover
+    // the portal's separate play button first.
+    if (sessionVideo?.dataset.videoSrc || sessionVideo?.dataset.zoomJoinUrl) {
+        startSessionVideo();
+    }
+
+    refreshOnlineCount();
+    window.setInterval(refreshOnlineCount, 20000);
+
+    function appendMessage(message) {
+        const messageId = Number(message.id || 0);
+        if (messageId && renderedMessageIds.has(messageId)) {
+            return;
+        }
+        if (messageId) {
+            renderedMessageIds.add(messageId);
+            latestMessageId = Math.max(latestMessageId, messageId);
         }
 
-        await fetch(apiEndpoint, {
-            method: "POST",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({
-                attendee_id: attendeeId,
-                message: msg
-            })
-        });
+        const isMine = Number(message.attendee_id || 0) === attendeeId;
+        const row = document.createElement("div");
+        row.style.cssText = "display:flex;align-items:flex-end;gap:8px" + (isMine ? ";justify-content:flex-end" : "");
 
-        chatInput.value = "";
+        const bubble = document.createElement("div");
+        bubble.style.cssText = "max-width:82%;padding:9px 13px;border-radius:" + (isMine ? "12px 12px 4px 12px" : "12px 12px 12px 4px") + ";background:" + (isMine ? "#d8198e" : "#742c76") + ";font-size:13px;line-height:1.45";
+        const name = document.createElement("strong");
+        name.textContent = isMine ? currentAttendeeName : (message.attendee_name || "Attendee");
+        bubble.appendChild(name);
+        bubble.appendChild(document.createElement("br"));
+        bubble.appendChild(document.createTextNode(message.message || ""));
+        row.appendChild(bubble);
+        empty?.remove();
+        box.appendChild(row);
+        box.scrollTop = box.scrollHeight;
     }
-    window.sendMessage = sendMessage;
 
-    /* ENTER to send */
-    chatInput.addEventListener("keydown", function(e) {
-        if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
+    function loadMessages() {
+        if (!sessionId) {
+            return Promise.resolve();
+        }
+
+        const url = new URL(historyUrl, window.location.origin);
+        if (latestMessageId) {
+            url.searchParams.set("after", String(latestMessageId));
+        }
+
+        return fetch(url.toString(), { credentials: "same-origin" })
+            .then(response => response.ok ? response.json() : Promise.reject(new Error("chat-history-failed")))
+            .then(payload => {
+                const messages = Array.isArray(payload?.data) ? payload.data : [];
+                messages.forEach(appendMessage);
+            })
+            .catch(() => {});
+    }
+
+    function sendMessage() {
+        const text = input.value.trim();
+        if (!text || !sessionId || sendButton?.disabled) {
+            return;
+        }
+
+        sendButton.disabled = true;
+        sendButton.textContent = "Sending...";
+        fetch(sendUrl, {
+            method: "POST",
+            credentials: "same-origin",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message: text })
+        })
+            .then(response => response.ok ? response.json() : Promise.reject(new Error("chat-send-failed")))
+            .then(() => {
+                input.value = "";
+                return loadMessages();
+            })
+            .catch(() => {
+                sendButton.textContent = "Try again";
+            })
+            .finally(() => {
+                sendButton.disabled = false;
+                if (sendButton.textContent !== "Try again") {
+                    sendButton.textContent = "Send";
+                }
+            });
+    }
+
+    function insertEmoji(emoji) {
+        const start = input.selectionStart ?? input.value.length;
+        const end = input.selectionEnd ?? start;
+        input.value = input.value.slice(0, start) + emoji + input.value.slice(end);
+        const cursor = start + emoji.length;
+        input.focus();
+        input.setSelectionRange(cursor, cursor);
+    }
+
+    sendButton?.addEventListener("click", sendMessage);
+    emojiToggle?.addEventListener("click", () => {
+        const isOpen = !emojiPicker.hidden;
+        emojiPicker.hidden = isOpen;
+        emojiPicker.style.display = isOpen ? "none" : "grid";
+        emojiToggle.setAttribute("aria-expanded", String(!isOpen));
+    });
+    emojiPicker?.addEventListener("click", event => {
+        const button = event.target.closest("[data-chat-emoji]");
+        if (!button) return;
+        insertEmoji(button.dataset.chatEmoji || "");
+        emojiPicker.hidden = true;
+        emojiPicker.style.display = "none";
+        emojiToggle?.setAttribute("aria-expanded", "false");
+    });
+    document.addEventListener("click", event => {
+        if (emojiPicker && !emojiPicker.hidden && !emojiPicker.contains(event.target) && !emojiToggle?.contains(event.target)) {
+            emojiPicker.hidden = true;
+            emojiPicker.style.display = "none";
+            emojiToggle?.setAttribute("aria-expanded", "false");
+        }
+    });
+    input?.addEventListener("keydown", event => {
+        if (event.key === "Enter" && !event.shiftKey) {
+            event.preventDefault();
             sendMessage();
         }
     });
 
-    /* ----------------------------
-       REALTIME new messages
-    ----------------------------- */
-    supabaseClient
-        .channel("session-" + sessionId)
-        .on("postgres_changes", {
-            event: "INSERT",
-            schema: "public",
-            table: "tbl_session_chats",
-            filter: "session_id=eq." + sessionId
-        }, payload => appendMessage(payload.new))
-        .subscribe();
-
-    /* ----------------------------
-       MENTIONS INIT
-    ----------------------------- */
-    /* ----------------------------
-       MENTIONS INIT — loads attendees first and builds profileCache
-    ----------------------------- */
-    async function initMentions() {
-        try {
-            const res = await fetch('/api/attendees/all', {
-                headers: { 'X-API-KEY': '<?php echo env("api.securityKey"); ?>' }
-            });
-
-            const json = await res.json();
-            if (!json || !json.data) {
-                console.warn("Mentions: no attendee data returned.");
-                return;
-            }
-
-            // Build mention list + preload profileCache
-            const values = json.data.map(a => {
-                const id = String(a.id);
-                const fullname = `${a.firstname} ${a.lastname}`.trim();
-
-                // Preload the cache (CRITICAL FIX)
-                profileCache[id] = {
-                    firstname: a.firstname,
-                    lastname: a.lastname,
-                    profile_picture: a.profile_picture || ""
-                };
-
-                window._mentionLookup[id] = fullname;
-                return { key: fullname, id: id };
-            });
-
-            // Tribute setup — inserts @Full Name into textarea
-            const tribute = new Tribute({
-                trigger: "@",
-                values: values,
-                lookup: "key",
-                selectTemplate: item => "@" + item.original.key,
-                menuItemTemplate: item => item.string
-            });
-
-            tribute.attach(chatInput);
-
-            console.log("Mentions loaded:", Object.keys(profileCache).length, "users");
-        }
-        catch (err) {
-            console.warn("Mentions failed:", err);
-        }
-    }
-
-    /* ----------------------------
-       EMOJI
-    ----------------------------- */
-    function initEmojiPicker() {
-        const btn = document.createElement("button");
-        btn.innerHTML = "😊";
-        btn.className = "btn btn-sm";
-        btn.style.marginLeft = "8px";
-
-        chatInput.parentElement.appendChild(btn);
-
-        const picker = document.createElement("emoji-picker");
-        picker.style.position = "absolute";
-        picker.style.zIndex = "9999";
-        picker.style.bottom = "60px";
-        picker.style.right = "0";
-        picker.style.display = "none";
-
-        chatInput.parentElement.appendChild(picker);
-
-        btn.addEventListener("click", () => {
-            picker.style.display = picker.style.display === "none" ? "block" : "none";
-        });
-
-        picker.addEventListener("emoji-click", e => {
-            const emoji = e.detail.unicode;
-            const start = chatInput.selectionStart;
-            const end   = chatInput.selectionEnd;
-            chatInput.value =
-                chatInput.value.substring(0, start) +
-                emoji +
-                chatInput.value.substring(end);
-            chatInput.selectionStart = chatInput.selectionEnd = start + emoji.length;
-            picker.style.display = "none";
-        });
-    }
-
-    /* ----------------------------
-       INIT CHAT
-    ----------------------------- */
-    /* ----------------------------
-       INIT CHAT — MUST load mentions first
-    ----------------------------- */
-    (async function initChat() {
-        await initMentions();    // <-- CRITICAL: load & cache attendees FIRST
-        await loadChatHistory(); // now messages can be correctly replaced
-
-        initEmojiPicker();
-        scrollChatDown();
-    })();
+    loadMessages();
+    window.setInterval(loadMessages, 3000);
+});
 </script>
-
-
 </body>
 </html>

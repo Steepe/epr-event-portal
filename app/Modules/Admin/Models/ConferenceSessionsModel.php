@@ -26,7 +26,11 @@ class ConferenceSessionsModel extends Model
         'end_time',
         'access_level',
         'description',
-        'vimeo_id',
+        'livepush_id',
+        'stream_provider',
+        'zoom_meeting_number',
+        'zoom_passcode',
+        'zoom_is_webinar',
         'workbook',
         'tags',
     ];

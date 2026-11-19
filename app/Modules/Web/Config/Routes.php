@@ -19,11 +19,20 @@ $routes->group('attendees', ['namespace' => 'App\Modules\Web\Controllers'], func
     $routes->get('register', 'RegistrationController::index');
     $routes->get('login', 'LoginController::index');
     $routes->get('logout', 'LoginController::logout');
-    $routes->get('reset-password', 'LoginController::resetPassword');
+    $routes->get('forgot-password', 'ForgotPasswordController::index');
+    $routes->get('reset-password', 'ForgotPasswordController::resetForm');
+    $routes->get('reset-password/(:segment)', 'ForgotPasswordController::resetForm/$1');
+    $routes->post('webhooks/flutterwave', 'PaymentWebhookController::flutterwave');
+    $routes->post('webhooks/paypal',    'PaymentWebhookController::paypal');
+
+    $routes->get('payments/success', 'PaymentsController::success');
+    $routes->get('payments/cancelled', 'PaymentsController::cancelled');
+
 
 });
 
 $routes->get('emergence/funnel', '\App\Modules\Web\Controllers\EmergenceFunnelController::index');
+$routes->get('attendees/background-recording', '\App\Modules\Web\Controllers\LobbyController::backgroundRecording');
 $routes->options('emergence/funnel/register', '\App\Modules\Api\Controllers\EmergenceFunnelController::preflight');
 $routes->post('emergence/funnel/register', '\App\Modules\Api\Controllers\EmergenceFunnelController::register');
 $routes->get('emergence/checkout', '\App\Modules\Web\Controllers\CheckoutController::emergence');
@@ -41,42 +50,57 @@ $routes->group('attendees', ['namespace' => 'App\Modules\Web\Controllers', 'filt
     $routes->get('agenda/(:num)', 'AgendaController::index/$1');
     $routes->get('pastConference/(:num)', 'AgendaController::view_past_conference/$1');
     $routes->get('sessions/(:num)', 'SessionsController::view/$1'); // 👈 single session page
+    $routes->get('sessions/(:num)/online', 'SessionsController::onlineCount/$1');
+    $routes->get('sessions/(:num)/rating', 'SessionsController::rating/$1');
+    $routes->post('sessions/(:num)/rating', 'SessionsController::saveRating/$1');
+    $routes->get('sessions/(:num)/zoom', 'ZoomSessionController::join/$1');
+    $routes->get('sessions/(:num)/zoom/left', 'ZoomSessionController::left/$1');
+    $routes->get('sessions/(:num)/zoom/signature', 'ZoomSessionController::signature/$1');
 
     $routes->get('networking_center', 'NetworkingCenterController::index');
     $routes->get('attendees', 'AttendeesController::index');          // Attendees listing
+    $routes->post('presence', 'PresenceController::heartbeat');
+    $routes->get('communities', 'CommunityController::index');
+    $routes->get('communities/chat/(:num)', 'CommunityController::chatMessages/$1');
+    $routes->post('communities/chat/(:num)', 'CommunityController::sendChat/$1');
 
     // Optional: endpoints for messaging via AJAX
     $routes->post('messages/submit_direct_message', 'MessagesController::submitDirectMessage');
-    $routes->get('notifications', 'NotificationsController::index');
 
     $routes->get('speakers', 'SpeakersController::index');
 
     $routes->get('past_conferences', 'PastConferencesController::index');
     $routes->get('sponsors', 'SponsorsController::index');
+    $routes->get('notifications', 'NotificationsController::index');
 
     $routes->get('exhibitors', 'ExhibitorsController::index');
     $routes->get('exhibitors/(:num)', 'ExhibitorsController::booth/$1'); // "Enter Booth" page
 
     $routes->get('emergence_booth', 'EmergenceBoothController::index');
     $routes->post('emergence_booth/callback', 'EmergenceBoothController::callback');
+    $routes->post('emergence_booth/programmes/(:num)/waitlist', 'EmergenceBoothController::joinProgrammeWaitlist/$1');
     $routes->get('emergence_booth/chat/(:num)', 'EmergenceBoothController::chatMessages/$1');
     $routes->post('emergence_booth/chat/(:num)', 'EmergenceBoothController::sendChat/$1');
     $routes->get('envision', 'EnvisionController::index');
 
-    $routes->get('forgot-password', 'ForgotPasswordController::index');
-    $routes->post('forgot-password', 'ForgotPasswordController::sendLink');
-    $routes->get('reset-password/(:segment)', 'ForgotPasswordController::resetForm/$1');
-    $routes->post('reset-password/(:segment)', 'ForgotPasswordController::updatePassword/$1');
 
     $routes->get('webinars', 'WebinarsController::index');
     $routes->get('points', 'PointsController::index');
-    $routes->get('communities', 'CommunityController::index');
 
     $routes->get('profile', 'ProfileController::index');
     $routes->post('profile/update', 'ProfileController::update');
     $routes->post('profile/upload-photo', 'ProfileController::uploadPhoto');
     $routes->post('speakers/sendMessage', 'SpeakersController::sendMessage');
     $routes->get('checkout', 'CheckoutController::attendee');
+
+    $routes->get('upgrade/(:num)', 'UpgradeController::index/$1');
+
+    $routes->post('admin/payments/initiate', 'App\Modules\Web\Controllers\UpgradeController::initiate');
+
+
+
+
+
 
 
 

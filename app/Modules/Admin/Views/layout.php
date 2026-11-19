@@ -94,6 +94,11 @@ $isSuperadmin = $adminRole === 'superadmin';
             <i class="bx bx-store-alt text-lg"></i> Emergence Booth
         </a>
 
+        <a href="<?php echo base_url('admin/communities'); ?>"
+           class="flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-700">
+            <i class="bx bx-world text-lg"></i> Communities
+        </a>
+
         <!-- Admin Users (Superadmin only) -->
         <?php if ($isSuperadmin): ?>
             <a href="<?php echo base_url('admin/admins'); ?>"

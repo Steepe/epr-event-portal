@@ -21,7 +21,23 @@ if (!function_exists('asset_url')) {
         // Ensure path doesn’t start with a slash
         $path = ltrim($path, '/');
 
-        // Use base_url() which CI4 provides automatically
-        return base_url('assets/' . $path);
+        // Use a file version so browsers may cache assets safely, but always
+        // request a fresh copy immediately after a deployment changes a file.
+        $url = base_url('assets/' . $path);
+        $asset = FCPATH . 'assets/' . $path;
+
+        return is_file($asset) ? $url . '?v=' . filemtime($asset) : $url;
+    }
+}
+
+if (!function_exists('mobile_asset_url')) {
+    /** Load mobile visual assets from the current host, including staging previews. */
+    function mobile_asset_url(string $path = ''): string
+    {
+        $path = ltrim($path, '/');
+        $url = '/assets/' . $path;
+        $asset = FCPATH . 'assets/' . $path;
+
+        return is_file($asset) ? $url . '?v=' . filemtime($asset) : $url;
     }
 }

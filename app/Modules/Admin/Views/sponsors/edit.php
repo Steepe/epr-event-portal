@@ -30,10 +30,18 @@ $this->section('content');
     </div>
     <div>
       <label class="block text-sm text-gray-400 mb-1">Tier</label>
-      <select name="tier"
+      <?php
+      $selectedTier = strtolower(trim((string) ($sponsor['tier'] ?? '')));
+      $tiers = ['Platinum', 'Gold', 'Silver', 'Bronze'];
+      $hasSelectedTier = in_array($selectedTier, array_map('strtolower', $tiers), true);
+      ?>
+      <select name="tier" required
               class="w-full p-2.5 bg-gray-900 border border-gray-700 text-gray-200 rounded">
-        <?php foreach (['Platinum', 'Gold', 'Silver', 'Bronze'] as $tier): ?>
-          <option value="<?php echo $tier; ?>" <?php echo ($sponsor['tier'] === $tier ? 'selected' : ''); ?>>
+        <?php if (! $hasSelectedTier): ?>
+          <option value="" selected disabled>Select sponsor category</option>
+        <?php endif; ?>
+        <?php foreach ($tiers as $tier): ?>
+          <option value="<?php echo $tier; ?>" <?php echo ($selectedTier === strtolower($tier) ? 'selected' : ''); ?>>
             <?php echo $tier; ?>
           </option>
         <?php endforeach; ?>

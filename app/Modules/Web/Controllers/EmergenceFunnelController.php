@@ -3,6 +3,7 @@
 namespace App\Modules\Web\Controllers;
 
 use App\Controllers\BaseController;
+use App\Libraries\CountryList;
 
 class EmergenceFunnelController extends BaseController
 {
@@ -111,7 +112,7 @@ class EmergenceFunnelController extends BaseController
     private function countries(): array
     {
         try {
-            return db_connect()
+            $countries = db_connect()
                 ->table('tbl_countries')
                 ->select('country_name')
                 ->orderBy('country_name', 'ASC')
@@ -119,9 +120,10 @@ class EmergenceFunnelController extends BaseController
                 ->getResultArray();
         } catch (\Throwable $e) {
             log_message('error', 'Emergence funnel country fetch failed: ' . $e->getMessage());
-
-            return [];
+            $countries = [];
         }
+
+        return CountryList::forDropdown($countries);
     }
 
     private function envBoolean(string $key, bool $default): bool

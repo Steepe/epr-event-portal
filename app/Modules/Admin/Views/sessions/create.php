@@ -31,6 +31,12 @@ $this->section('content');
     </div>
   <?php endif; ?>
 
+  <div class="mb-6 rounded-lg border border-amber-500/70 bg-amber-950/30 p-4 text-amber-100">
+    <p class="font-semibold">Important: enter every session date and time in GMT (UTC+0).</p>
+    <p class="mt-1 text-sm text-amber-200/85">The portal automatically converts the saved GMT time to each attendee’s local time zone.</p>
+    <?php if (!empty($sessionDateRange)): ?><p class="mt-1 text-sm text-amber-200/85">This conference accepts sessions from <?php echo esc($sessionDateRange['start']); ?> to <?php echo esc($sessionDateRange['end']); ?>.</p><?php endif; ?>
+  </div>
+
   <form method="post" enctype="multipart/form-data"
         action="<?php echo site_url('admin/conferences/' . $conference['conference_id'] . '/sessions/store'); ?>"
         class="space-y-6">
@@ -44,19 +50,19 @@ $this->section('content');
       </div>
 
       <div>
-        <label class="block text-sm text-gray-400 mb-2">Event Date</label>
-        <input type="date" name="event_date" required
+        <label class="block text-sm text-gray-400 mb-2">Event Date (GMT / UTC+0)</label>
+        <input type="date" name="event_date" required<?php if (!empty($sessionDateRange)): ?> min="<?php echo esc($sessionDateRange['start'], 'attr'); ?>" max="<?php echo esc($sessionDateRange['end'], 'attr'); ?>"<?php endif; ?>
                class="w-full p-2 rounded bg-gray-900 border border-gray-700 text-gray-200 focus:ring-blue-500 focus:border-blue-500">
       </div>
 
       <div>
-        <label class="block text-sm text-gray-400 mb-2">Start Time</label>
+        <label class="block text-sm text-gray-400 mb-2">Start Time (GMT / UTC+0)</label>
         <input type="time" name="start_time" required
                class="w-full p-2 rounded bg-gray-900 border border-gray-700 text-gray-200 focus:ring-blue-500 focus:border-blue-500">
       </div>
 
       <div>
-        <label class="block text-sm text-gray-400 mb-2">End Time</label>
+        <label class="block text-sm text-gray-400 mb-2">End Time (GMT / UTC+0)</label>
         <input type="time" name="end_time" required
                class="w-full p-2 rounded bg-gray-900 border border-gray-700 text-gray-200 focus:ring-blue-500 focus:border-blue-500">
       </div>
@@ -77,12 +83,47 @@ $this->section('content');
                 class="w-full p-2 rounded bg-gray-900 border border-gray-700 text-gray-200 focus:ring-blue-500 focus:border-blue-500"></textarea>
     </div>
 
-    <div>
-      <label class="block text-sm text-gray-400 mb-2">Livepush Video ID</label>
-      <input type="text" name="livepush_id" pattern="[A-Za-z0-9_-]+"
-             class="w-full p-2 rounded bg-gray-900 border border-gray-700 text-gray-200 focus:ring-blue-500 focus:border-blue-500"
-             placeholder="e.g., emMVd4NBsIW87CXc">
-      <p class="mt-1 text-xs text-gray-500">Paste only the ID after <code class="text-gray-400">/live/</code>, not the full iframe code.</p>
+    <div class="rounded border border-gray-700 bg-gray-900/50 p-4" data-stream-provider-form>
+      <label class="block text-sm text-gray-300 mb-3">Session delivery</label>
+      <div class="flex flex-wrap gap-5 text-sm text-gray-200">
+        <label class="inline-flex items-center gap-2 cursor-pointer">
+          <input type="radio" name="stream_provider" value="livepush" checked data-stream-provider-choice>
+          Livepush broadcast
+        </label>
+        <label class="inline-flex items-center gap-2 cursor-pointer">
+          <input type="radio" name="stream_provider" value="zoom" data-stream-provider-choice>
+          Zoom interactive session
+        </label>
+      </div>
+
+      <div class="mt-4" data-stream-fields="livepush">
+        <label class="block text-sm text-gray-400 mb-2">Livepush Video ID</label>
+        <input type="text" name="livepush_id" pattern="[A-Za-z0-9_-]+"
+               class="w-full p-2 rounded bg-gray-900 border border-gray-700 text-gray-200 focus:ring-blue-500 focus:border-blue-500"
+               placeholder="e.g., emMVd4NBsIW87CXc">
+        <p class="mt-1 text-xs text-gray-500">Paste only the ID after <code class="text-gray-400">/live/</code>, not the full iframe code.</p>
+      </div>
+
+      <div class="mt-4" data-stream-fields="zoom" hidden>
+        <div class="grid md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm text-gray-400 mb-2">Zoom meeting or webinar number</label>
+            <input type="text" name="zoom_meeting_number" inputmode="numeric" pattern="[0-9 ]{9,20}"
+                   class="w-full p-2 rounded bg-gray-900 border border-gray-700 text-gray-200 focus:ring-blue-500 focus:border-blue-500"
+                   placeholder="e.g., 123 4567 8901" data-zoom-meeting-number>
+          </div>
+          <div>
+            <label class="block text-sm text-gray-400 mb-2">Zoom passcode <span class="text-gray-500">(if set in Zoom)</span></label>
+            <input type="text" name="zoom_passcode" maxlength="255"
+                   class="w-full p-2 rounded bg-gray-900 border border-gray-700 text-gray-200 focus:ring-blue-500 focus:border-blue-500">
+          </div>
+        </div>
+        <label class="mt-3 inline-flex items-center gap-2 text-sm text-gray-300 cursor-pointer">
+          <input type="checkbox" name="zoom_is_webinar" value="1" class="rounded border-gray-600 bg-gray-800 text-blue-600 focus:ring-blue-500">
+          This is a Zoom webinar
+        </label>
+        <p class="mt-2 text-xs text-gray-500">The meeting number and passcode are released only to logged-in attendees who can access this portal session.</p>
+      </div>
     </div>
 
     <div>
@@ -136,5 +177,22 @@ $this->section('content');
     </div>
   </form>
 </div>
+
+<script>
+  document.querySelectorAll('[data-stream-provider-form]').forEach(form => {
+    const choices = form.querySelectorAll('[data-stream-provider-choice]');
+    const livepush = form.querySelector('[data-stream-fields="livepush"]');
+    const zoom = form.querySelector('[data-stream-fields="zoom"]');
+    const zoomNumber = form.querySelector('[data-zoom-meeting-number]');
+    const sync = () => {
+      const provider = form.querySelector('[data-stream-provider-choice]:checked')?.value || 'livepush';
+      livepush.hidden = provider !== 'livepush';
+      zoom.hidden = provider !== 'zoom';
+      zoomNumber.required = provider === 'zoom';
+    };
+    choices.forEach(choice => choice.addEventListener('change', sync));
+    sync();
+  });
+</script>
 
 <?php $this->endSection(); ?>

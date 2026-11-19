@@ -13,10 +13,66 @@ use App\Controllers\BaseController;
 
 class EmergenceBoothController extends BaseController
 {
+    private const TABLES = [
+        'tbl_emergence_booth_settings', 'tbl_emergence_booth_members', 'tbl_admin_presence',
+        'tbl_emergence_booth_programmes', 'tbl_emergence_booth_resources',
+        'tbl_emergence_booth_callback_requests', 'tbl_emergence_booth_messages',
+        'tbl_emergence_booth_programme_waitlists',
+    ];
+
+    /**
+     * Booth content is managed in the admin and shared with the desktop portal.
+     */
     public function index()
     {
-        // No dynamic data needed for now — static booth items
-        echo module_view('MobileApp', 'emergence_booth');
+        if (!session()->get('isLoggedIn')) {
+            return redirect()->to(site_url('mobile/login'));
+        }
+
+        $db = db_connect();
+
+        foreach (self::TABLES as $table) {
+            if (! $db->tableExists($table)) {
+                return module_view('MobileApp', 'emergence_booth', ['ready' => false]);
+            }
+        }
+
+        $members = $db->table('tbl_emergence_booth_members m')
+            ->select('m.*, p.last_seen_at')
+            ->join('tbl_admin_presence p', 'p.admin_id = m.admin_id', 'left')
+            ->where('m.is_active', 1)
+            ->orderBy('m.sort_order')->orderBy('m.display_name')
+            ->get()->getResultArray();
+
+        foreach ($members as &$member) {
+            $member['is_online'] = ! empty($member['last_seen_at']) && strtotime((string) $member['last_seen_at']) >= time() - 120;
+        }
+        unset($member);
+
+        $programmes = $db->table('tbl_emergence_booth_programmes')->where('is_active', 1)->orderBy('sort_order')->orderBy('title')->get()->getResultArray();
+        $attendeeId = (int) (session('user_id') ?: session('attendee_id'));
+        $waitlistedProgrammeIds = [];
+        if ($attendeeId > 0 && $programmes !== []) {
+            foreach ($db->table('tbl_emergence_booth_programme_waitlists')
+                ->select('programme_id')
+                ->where('attendee_id', $attendeeId)
+                ->whereIn('programme_id', array_map(static fn (array $programme): int => (int) $programme['programme_id'], $programmes))
+                ->get()->getResultArray() as $waitlist) {
+                $waitlistedProgrammeIds[(int) $waitlist['programme_id']] = true;
+            }
+        }
+        foreach ($programmes as &$programme) {
+            $programme['is_waitlisted'] = isset($waitlistedProgrammeIds[(int) $programme['programme_id']]);
+        }
+        unset($programme);
+
+        return module_view('MobileApp', 'emergence_booth', [
+            'ready'      => true,
+            'members'    => $members,
+            'programmes' => $programmes,
+            'resources'  => $db->table('tbl_emergence_booth_resources')->where('is_active', 1)->orderBy('sort_order')->orderBy('title')->get()->getResultArray(),
+            'videoPlaylist' => $this->videoPlaylist(),
+        ]);
     }
 
     public function sendSupportEmail()
@@ -63,6 +119,24 @@ class EmergenceBoothController extends BaseController
             'status' => 'error',
             'message' => 'Unable to send message. Please try again later.'
         ]);
+    }
+
+    /** @return list<string> */
+    private function videoPlaylist(): array
+    {
+        $row = db_connect()->table('tbl_emergence_booth_settings')->where('setting_key', 'video_playlist')->get()->getRowArray();
+        $playlist = json_decode((string) ($row['setting_value'] ?? ''), true);
+        $playlist = is_array($playlist) ? $playlist : [];
+        $playlist = array_values(array_filter($playlist, static fn ($url): bool => is_string($url) && filter_var($url, FILTER_VALIDATE_URL)));
+        if ($playlist === []) {
+            $legacy = db_connect()->table('tbl_emergence_booth_settings')->where('setting_key', 'welcome_video_url')->get()->getRowArray();
+            $url = (string) ($legacy['setting_value'] ?? '');
+            if ($url !== '' && filter_var($url, FILTER_VALIDATE_URL)) {
+                $playlist[] = $url;
+            }
+        }
+
+        return array_slice($playlist, 0, 4);
     }
 
 }

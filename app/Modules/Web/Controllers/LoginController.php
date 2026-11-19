@@ -22,17 +22,12 @@ class LoginController extends BaseController
     public function logout(): \CodeIgniter\HTTP\RedirectResponse
     {
         $session = session();
+        PresenceController::clearForUser((int) $session->get('user_id'));
 
         // Destroy all session data
         $session->destroy();
 
         return redirect()->to('attendees/login');
     }
-
-    public function resetPassword(): string
-    {
-        return module_view('Web', 'reset_password');
-    }
-
 
 }

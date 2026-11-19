@@ -41,10 +41,18 @@ class Session extends BaseController
 
         $timezone = session('reg_country') === 'Nigeria' ? 'Africa/Lagos' : 'UTC';
 
+        $db         = db_connect();
+        $user       = $db->table('tbl_users')->where('id', session('user_id'))->get()->getRowArray();
+        $conference = $db->table('tbl_conferences')
+            ->where('conference_id', $session['conference_id'] ?? 0)
+            ->get()->getRowArray();
+
         return module_view('MobileApp', 'session_detail', [
-            'session'   => $session,
-            'speakers'  => $speakers,
-            'timezone'  => $timezone,
+            'session'    => $session,
+            'speakers'   => $speakers,
+            'timezone'   => $timezone,
+            'conference' => $conference,
+            'premium'    => (int) ($user['premium_access'] ?? 0),
         ]);
     }
 

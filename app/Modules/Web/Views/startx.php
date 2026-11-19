@@ -200,4 +200,9 @@ body {
     </div>
 </div>
 
+</div>
+</div>
+
 <?php echo module_view('Web', 'includes/scripts'); ?>
+</body>
+</html>

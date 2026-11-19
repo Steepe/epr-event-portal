@@ -14,21 +14,15 @@ use App\Modules\MobileApp\Models\AttendeeModel;
 
 class Attendees extends BaseController
 {
+    /**
+     * The standalone list now lives inside the Networking Center.
+     */
     public function index()
     {
         if (!session()->get('isLoggedIn')) {
             return redirect()->to(site_url('mobile/login'));
         }
 
-        $currentUserId = session('user_id');
-        $search = $this->request->getGet('q');
-
-        $model = new AttendeeModel();
-        $attendees = $model->getAttendees($currentUserId, $search);
-
-        return module_view('MobileApp', 'attendees_list', [
-            'attendees' => $attendees,
-            'search'    => $search,
-        ]);
+        return redirect()->to(site_url('mobile/networking-center'));
     }
 }
