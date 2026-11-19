@@ -72,7 +72,8 @@ class ConferencesController extends BaseController
         }
 
         try {
-            $welcomeVideoUrl = $this->uploadWelcomeVideo($this->request->getPost('welcome_video_transparent') === '1');
+            $welcomeVideoUrl = $this->manualWelcomeVideoUrl()
+                ?? $this->uploadWelcomeVideo($this->request->getPost('welcome_video_transparent') === '1');
         } catch (\RuntimeException $exception) {
             return redirect()->back()->withInput()->with('error', $exception->getMessage());
         }
@@ -136,7 +137,8 @@ class ConferencesController extends BaseController
 
         $welcomeVideoUrl = (string) ($conference['welcome_video_url'] ?? '');
         try {
-            $uploadedVideoUrl = $this->uploadWelcomeVideo($this->request->getPost('welcome_video_transparent') === '1');
+            $uploadedVideoUrl = $this->manualWelcomeVideoUrl()
+                ?? $this->uploadWelcomeVideo($this->request->getPost('welcome_video_transparent') === '1');
             if ($uploadedVideoUrl !== null) {
                 $welcomeVideoUrl = $uploadedVideoUrl;
             }
@@ -246,6 +248,30 @@ class ConferencesController extends BaseController
         $videoGuid = $parts[count($parts) - 1] ?? '';
 
         return (new BunnyStreamService())->transparentWelcomeVideoUrl($videoGuid);
+    }
+
+    /**
+     * @throws \RuntimeException
+     */
+    private function manualWelcomeVideoUrl(): ?string
+    {
+        $url = trim((string) $this->request->getPost('welcome_video_url_manual'));
+        if ($url === '') {
+            return null;
+        }
+
+        $host = strtolower((string) parse_url($url, PHP_URL_HOST));
+        $path = (string) parse_url($url, PHP_URL_PATH);
+        $isBunnyOriginal = str_ends_with($host, '.b-cdn.net')
+            && (bool) preg_match('#^/[a-f0-9-]{16,64}/original$#i', $path);
+        $isBunnyEmbed = $host === 'iframe.mediadelivery.net'
+            && (bool) preg_match('#^/embed/\d+/[a-f0-9-]{16,64}$#i', $path);
+
+        if (parse_url($url, PHP_URL_SCHEME) !== 'https' || (! $isBunnyOriginal && ! $isBunnyEmbed)) {
+            throw new \RuntimeException('Paste a Bunny Stream original or embed URL.');
+        }
+
+        return $url;
     }
 
     private function postExceedsUploadLimit(): bool

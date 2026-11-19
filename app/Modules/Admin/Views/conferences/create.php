@@ -82,6 +82,10 @@ $this->section('content');
              class="bg-gray-800 border border-gray-700 rounded w-full p-2.5">
       <p class="mt-1 text-xs text-gray-500">Optional. Upload an MP4, M4V, MOV, or WebM file directly to Bunny Stream. Large uploads resume automatically and play on <code>/attendees/home</code> when this conference is live.</p>
       <label class="mt-2 flex items-center gap-2 text-sm text-amber-200"><input type="checkbox" name="welcome_video_transparent" value="1"> This is a transparent WebM avatar (preserve its transparent background)</label>
+      <label class="mt-3 block text-sm text-gray-200">Or use a video uploaded directly in Bunny Stream
+        <input type="url" name="welcome_video_url_manual" placeholder="https://your-pull-zone.b-cdn.net/video-guid/original" class="mt-1 bg-gray-800 border border-gray-700 rounded w-full p-2.5">
+      </label>
+      <p class="mt-1 text-xs text-gray-500">Paste Bunny’s <code>/original</code> URL for a transparent WebM, or its iframe embed URL for a standard video.</p>
     </div>
 
       <div>
