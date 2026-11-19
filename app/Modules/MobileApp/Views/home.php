@@ -4,6 +4,7 @@ $conferenceTitle = trim((string) ($conference['title'] ?? 'Accelerate')) ?: 'Acc
 $conferenceYear  = (string) ($conference['year'] ?? date('Y'));
 $welcomeVideoUrl = trim((string) ($welcome_video_url ?? ''));
 $hasWelcomeVideo = $welcomeVideoUrl !== '' && filter_var($welcomeVideoUrl, FILTER_VALIDATE_URL);
+$transparentWelcomeVideo = ! empty($welcome_video_is_transparent);
 ?>
 
 <div class="m-welcome">
@@ -12,7 +13,7 @@ $hasWelcomeVideo = $welcomeVideoUrl !== '' && filter_var($welcomeVideoUrl, FILTE
         <h1 class="m-welcome__title">Welcome to <?= esc($conferenceTitle) ?></h1>
     </div>
 
-    <div class="m-welcome__video<?= $hasWelcomeVideo ? '' : ' is-unavailable' ?>"<?= $hasWelcomeVideo ? ' data-video-src="' . esc($welcomeVideoUrl, 'attr') . '" data-video-title="Welcome video"' : '' ?>>
+    <div class="m-welcome__video<?= $hasWelcomeVideo ? '' : ' is-unavailable' ?><?= $transparentWelcomeVideo ? ' is-transparent' : '' ?>"<?= $hasWelcomeVideo ? ' data-video-src="' . esc($welcomeVideoUrl, 'attr') . '" data-video-title="Welcome video"' . ($transparentWelcomeVideo ? ' data-transparent-video="true"' : '') : '' ?>>
         <?php if ($hasWelcomeVideo): ?>
             <button class="m-play" type="button" data-play data-video-hide aria-label="Play welcome video"><i class="fa fa-play" aria-hidden="true"></i></button>
             <span class="m-welcome__label" data-video-hide>WELCOME FILM</span>

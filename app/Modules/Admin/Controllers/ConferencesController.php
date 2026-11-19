@@ -72,7 +72,7 @@ class ConferencesController extends BaseController
         }
 
         try {
-            $welcomeVideoUrl = $this->uploadWelcomeVideo();
+            $welcomeVideoUrl = $this->uploadWelcomeVideo($this->request->getPost('welcome_video_transparent') === '1');
         } catch (\RuntimeException $exception) {
             return redirect()->back()->withInput()->with('error', $exception->getMessage());
         }
@@ -136,7 +136,7 @@ class ConferencesController extends BaseController
 
         $welcomeVideoUrl = (string) ($conference['welcome_video_url'] ?? '');
         try {
-            $uploadedVideoUrl = $this->uploadWelcomeVideo();
+            $uploadedVideoUrl = $this->uploadWelcomeVideo($this->request->getPost('welcome_video_transparent') === '1');
             if ($uploadedVideoUrl !== null) {
                 $welcomeVideoUrl = $uploadedVideoUrl;
             }
@@ -221,11 +221,11 @@ class ConferencesController extends BaseController
     /**
      * @throws \RuntimeException
      */
-    private function uploadWelcomeVideo(): ?string
+    private function uploadWelcomeVideo(bool $transparent = false): ?string
     {
         $directVideoId = trim((string) $this->request->getPost('welcome_video_id'));
         if ($directVideoId !== '') {
-            return (new BunnyStreamService())->welcomeVideoEmbedUrl($directVideoId);
+            return (new BunnyStreamService())->welcomeVideoUrl($directVideoId, $transparent);
         }
 
         $file = $this->request->getFile('welcome_video');
@@ -233,10 +233,19 @@ class ConferencesController extends BaseController
             return null;
         }
 
-        return (new BunnyStreamService())->uploadWelcomeVideo(
+        $videoUrl = (new BunnyStreamService())->uploadWelcomeVideo(
             $file,
             trim((string) $this->request->getPost('title')) . ' welcome video'
         );
+
+        if (! $transparent) {
+            return $videoUrl;
+        }
+
+        $parts = explode('/', parse_url($videoUrl, PHP_URL_PATH) ?? '');
+        $videoGuid = $parts[count($parts) - 1] ?? '';
+
+        return (new BunnyStreamService())->transparentWelcomeVideoUrl($videoGuid);
     }
 
     private function postExceedsUploadLimit(): bool

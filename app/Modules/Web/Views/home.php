@@ -8,6 +8,7 @@ $ticketPrice = $ticket_price ?? null;
 $ticketCurrency = $ticket_currency ?? 'USD';
 $conferenceTitle = $conference['title'] ?? 'Accelerate';
 $welcomeVideoUrl = $welcome_video_url ?? '';
+$transparentWelcomeVideo = ! empty($welcome_video_is_transparent);
 ?>
 
 <?php if ($portalLocked): ?>
@@ -29,13 +30,13 @@ $welcomeVideoUrl = $welcome_video_url ?? '';
         <span style="font-size:36px;font-weight:600;letter-spacing:-.02em">Welcome to Accelerate</span>
     </div>
 
-    <div data-home-video data-video-src="<?php echo esc($welcomeVideoUrl, 'attr'); ?>" style="position:relative;width:min(900px,58vw,calc((100vh - 360px) * 1.7778));aspect-ratio:16 / 9;border-radius:16px;overflow:hidden;background:#0b030d;border:1px solid rgba(255,255,255,.14);box-shadow:0 30px 80px rgba(0,0,0,.45),0 0 0 8px rgba(255,255,255,.03)">
+    <div data-home-video data-video-src="<?php echo esc($welcomeVideoUrl, 'attr'); ?>"<?php echo $transparentWelcomeVideo ? ' data-transparent-video="true"' : ''; ?> style="position:relative;<?php echo $transparentWelcomeVideo ? 'width:min(420px,38vw,calc((100vh - 290px) * .5625));aspect-ratio:9 / 16;overflow:visible;background:transparent;border:0;box-shadow:none' : 'width:min(900px,58vw,calc((100vh - 360px) * 1.7778));aspect-ratio:16 / 9;border-radius:16px;overflow:hidden;background:#0b030d;border:1px solid rgba(255,255,255,.14);box-shadow:0 30px 80px rgba(0,0,0,.45),0 0 0 8px rgba(255,255,255,.03)'; ?>">
         <div data-home-video-cover style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
             <button type="button" data-home-video-play aria-label="Play welcome video" style="width:84px;height:84px;padding:0 0 0 6px;box-sizing:border-box;border:0;border-radius:50%;background:linear-gradient(90deg,#7d0686,#bd159e 50%,#7c0585);color:#fff;display:flex;align-items:center;justify-content:center;font-size:30px;cursor:pointer;box-shadow:0 0 40px rgba(216,25,142,.6)">
                 <i class="fa fa-play" aria-hidden="true"></i>
             </button>
         </div>
-        <span style="position:absolute;left:20px;bottom:16px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.16em;color:rgba(255,255,255,.6)">WELCOME VIDEO</span>
+        <?php if (! $transparentWelcomeVideo): ?><span style="position:absolute;left:20px;bottom:16px;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.16em;color:rgba(255,255,255,.6)">WELCOME VIDEO</span><?php endif; ?>
     </div>
 
     <a href="<?php echo base_url('attendees/lobby'); ?>" class="rc-btn" style="display:flex;align-items:center;gap:12px;height:52px;padding:0 34px;font-size:16px;letter-spacing:.1em;text-decoration:none">
@@ -53,6 +54,24 @@ document.querySelector("[data-home-video-play]")?.addEventListener("click", func
     const cover = document.querySelector("[data-home-video-cover]");
     const source = video?.dataset.videoSrc;
     if (!video || !cover || !source) return;
+
+    if (video.dataset.transparentVideo === 'true') {
+        const nativeVideo = document.createElement("video");
+        const nativeSource = document.createElement("source");
+        nativeSource.src = source;
+        nativeSource.type = "video/webm";
+        nativeVideo.append(nativeSource);
+        nativeVideo.autoplay = true;
+        nativeVideo.muted = true;
+        nativeVideo.loop = true;
+        nativeVideo.playsInline = true;
+        nativeVideo.preload = "auto";
+        nativeVideo.style.cssText = "display:block;width:100%;height:100%;object-fit:contain;background:transparent";
+        cover.remove();
+        video.prepend(nativeVideo);
+        nativeVideo.play().catch(() => {});
+        return;
+    }
 
     const sourceUrl = new URL(source);
     sourceUrl.searchParams.set("autoplay", "true");

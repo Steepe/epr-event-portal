@@ -342,6 +342,8 @@ body.m-app.is-locked { overflow: hidden; }
     box-shadow: 0 30px 80px rgba(0, 0, 0, .45), 0 0 0 6px rgba(255, 255, 255, .03);
 }
 .m-welcome__video iframe, .m-video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.m-welcome__video.is-transparent { width: min(72vw, 330px); aspect-ratio: 9 / 16; overflow: visible; border: 0; background: transparent; box-shadow: none; }
+.m-transparent-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: transparent; }
 .m-welcome__video.is-unavailable {
     display: flex; padding: 26px; align-items: center; justify-content: center;
     background:

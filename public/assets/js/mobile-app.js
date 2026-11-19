@@ -53,7 +53,24 @@
         });
     };
     EPR.playInto = function (holder, src) {
-        if (!holder || !src || holder.querySelector('iframe')) return;
+        if (!holder || !src || holder.querySelector('iframe, video')) return;
+        if (holder.getAttribute('data-transparent-video') === 'true') {
+            var video = document.createElement('video');
+            var source = document.createElement('source');
+            source.src = src;
+            source.type = 'video/webm';
+            video.appendChild(source);
+            video.autoplay = true;
+            video.muted = true;
+            video.loop = true;
+            video.playsInline = true;
+            video.preload = 'auto';
+            video.className = 'm-transparent-video';
+            $$('[data-video-hide]', holder).forEach(function (el) { el.hidden = true; });
+            holder.appendChild(video);
+            video.play().catch(function () {});
+            return;
+        }
         var url = src + (src.indexOf('?') === -1 ? '?' : '&') + 'autoplay=1';
         var frame = document.createElement('iframe');
         frame.src = url;

@@ -77,11 +77,7 @@ class BunnyStreamService
      */
     public function welcomeVideoEmbedUrl(string $videoGuid): string
     {
-        $videoGuid = trim($videoGuid);
-        if (! preg_match('/^[a-f0-9-]{16,64}$/i', $videoGuid)) {
-            throw new RuntimeException('Bunny Stream did not return a valid video ID.');
-        }
-
+        $videoGuid = $this->validatedVideoGuid($videoGuid);
         $this->assertConfigured();
 
         return sprintf(
@@ -89,6 +85,35 @@ class BunnyStreamService
             rawurlencode($this->libraryId()),
             rawurlencode($videoGuid)
         );
+    }
+
+    /**
+     * Returns the retained original WebM rather than Bunny's opaque player.
+     * This is needed for VP9 alpha-channel animations.
+     *
+     * @throws RuntimeException
+     */
+    public function transparentWelcomeVideoUrl(string $videoGuid): string
+    {
+        $videoGuid = $this->validatedVideoGuid($videoGuid);
+        $this->assertConfigured();
+
+        $pullZone = trim((string) env('bunny.streamPullZone'));
+        if (! preg_match('/^[a-z0-9][a-z0-9.-]*\.b-cdn\.net$/i', $pullZone)) {
+            throw new RuntimeException('Bunny Stream Pull Zone is not configured. Add bunny.streamPullZone to this server’s .env file.');
+        }
+
+        return 'https://' . $pullZone . '/' . rawurlencode($videoGuid) . '/original';
+    }
+
+    /**
+     * @throws RuntimeException
+     */
+    public function welcomeVideoUrl(string $videoGuid, bool $transparent): string
+    {
+        return $transparent
+            ? $this->transparentWelcomeVideoUrl($videoGuid)
+            : $this->welcomeVideoEmbedUrl($videoGuid);
     }
 
     /**
@@ -174,6 +199,19 @@ class BunnyStreamService
         } catch (\Throwable) {
             return false;
         }
+    }
+
+    /**
+     * @throws RuntimeException
+     */
+    private function validatedVideoGuid(string $videoGuid): string
+    {
+        $videoGuid = trim($videoGuid);
+        if (! preg_match('/^[a-f0-9-]{16,64}$/i', $videoGuid)) {
+            throw new RuntimeException('Bunny Stream did not return a valid video ID.');
+        }
+
+        return $videoGuid;
     }
 
     /**

@@ -41,6 +41,7 @@ class Home extends BaseController
             'welcome_video_url' => filter_var($welcomeVideoUrl, FILTER_VALIDATE_URL)
                 ? $welcomeVideoUrl
                 : '',
+            'welcome_video_is_transparent' => (bool) preg_match('#^https://[a-z0-9.-]+\.b-cdn\.net/[a-f0-9-]+/original$#i', $welcomeVideoUrl),
         ]);
     }
 

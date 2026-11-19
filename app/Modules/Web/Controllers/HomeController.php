@@ -48,9 +48,12 @@ class HomeController extends BaseController
             );
         }
 
+        $welcomeVideoUrl = (string) ($conference['welcome_video_url'] ?? self::DEFAULT_WELCOME_VIDEO_URL);
+
         $data = [
             'conference' => $conference,
-            'welcome_video_url' => $conference['welcome_video_url'] ?? self::DEFAULT_WELCOME_VIDEO_URL,
+            'welcome_video_url' => $welcomeVideoUrl,
+            'welcome_video_is_transparent' => (bool) preg_match('#^https://[a-z0-9.-]+\.b-cdn\.net/[a-f0-9-]+/original$#i', $welcomeVideoUrl),
             'ticket_price' => $ticketPrice,
             'ticket_currency' => $ticketCurrency,
             'is_paid' => $isPaid,
