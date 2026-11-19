@@ -68,7 +68,20 @@
             video.className = 'm-transparent-video';
             $$('[data-video-hide]', holder).forEach(function (el) { el.hidden = true; });
             holder.appendChild(video);
-            video.play().catch(function () {});
+            video.play().then(function () {
+                var soundButton = document.createElement('button');
+                soundButton.type = 'button';
+                soundButton.textContent = 'Turn sound on';
+                soundButton.setAttribute('aria-label', 'Turn welcome video sound on');
+                soundButton.style.cssText = 'position:absolute;right:10px;bottom:10px;z-index:2;border:1px solid rgba(255,255,255,.35);border-radius:999px;background:rgba(34,7,42,.84);color:#fff;padding:7px 10px;font:600 10px/1 system-ui';
+                soundButton.addEventListener('click', function () {
+                    video.muted = false;
+                    video.volume = 1;
+                    video.play().catch(function () {});
+                    soundButton.remove();
+                });
+                holder.appendChild(soundButton);
+            }).catch(function () {});
             return;
         }
         var url = src + (src.indexOf('?') === -1 ? '?' : '&') + 'autoplay=1';
@@ -257,6 +270,9 @@
         document.addEventListener('keydown', function (event) { if (event.key === 'Escape') EPR.closeSheet(); });
 
         initNotifications();
+        $$('[data-transparent-video][data-video-src]').forEach(function (holder) {
+            EPR.playInto(holder, holder.getAttribute('data-video-src'));
+        });
         localizeTimes();
 
         var flash = document.body.getAttribute('data-flash');

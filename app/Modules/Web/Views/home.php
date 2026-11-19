@@ -49,27 +49,54 @@ $transparentWelcomeVideo = ! empty($welcome_video_is_transparent);
 
 <?php echo module_view('Web', 'includes/scripts'); ?>
 <script>
-document.querySelector("[data-home-video-play]")?.addEventListener("click", function() {
-    const video = document.querySelector("[data-home-video]");
-    const cover = document.querySelector("[data-home-video-cover]");
-    const source = video?.dataset.videoSrc;
-    if (!video || !cover || !source) return;
+function startTransparentWelcomeVideo(video, cover, source, withSound = false) {
+    if (video.querySelector('video')) return;
 
-    if (video.dataset.transparentVideo === 'true') {
+    const start = () => {
         const nativeVideo = document.createElement("video");
         const nativeSource = document.createElement("source");
         nativeSource.src = source;
         nativeSource.type = "video/webm";
         nativeVideo.append(nativeSource);
         nativeVideo.autoplay = true;
-        nativeVideo.muted = true;
+        nativeVideo.muted = !withSound;
         nativeVideo.loop = true;
         nativeVideo.playsInline = true;
         nativeVideo.preload = "auto";
         nativeVideo.style.cssText = "display:block;width:100%;height:100%;object-fit:contain;background:transparent";
-        cover.remove();
         video.prepend(nativeVideo);
-        nativeVideo.play().catch(() => {});
+        nativeVideo.play().then(() => {
+            cover?.remove();
+            if (!withSound) {
+                const soundButton = document.createElement('button');
+                soundButton.type = 'button';
+                soundButton.textContent = 'Turn sound on';
+                soundButton.setAttribute('aria-label', 'Turn welcome video sound on');
+                soundButton.style.cssText = 'position:absolute;right:12px;bottom:12px;z-index:2;border:1px solid rgba(255,255,255,.35);border-radius:999px;background:rgba(34,7,42,.84);color:#fff;padding:8px 12px;font:600 11px/1 system-ui;cursor:pointer';
+                soundButton.addEventListener('click', () => {
+                    nativeVideo.muted = false;
+                    nativeVideo.volume = 1;
+                    nativeVideo.play().catch(() => {});
+                    soundButton.remove();
+                });
+                video.append(soundButton);
+            }
+        }).catch(() => {
+            nativeVideo.remove();
+        });
+    };
+
+    start();
+}
+
+document.querySelector("[data-home-video-play]")?.addEventListener("click", function() {
+    const video = document.querySelector("[data-home-video]");
+    const cover = document.querySelector("[data-home-video-cover]");
+    const source = video?.dataset.videoSrc;
+    if (!video || !source) return;
+
+    if (video.dataset.transparentVideo === 'true') {
+        startTransparentWelcomeVideo(video, cover, source, true);
         return;
     }
 
@@ -84,9 +111,18 @@ document.querySelector("[data-home-video-play]")?.addEventListener("click", func
     iframe.allow = "accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;";
     iframe.allowFullscreen = true;
     iframe.style.cssText = "position:absolute;inset:0;width:100%;height:100%;border:0";
-    cover.remove();
+    cover?.remove();
     video.prepend(iframe);
 });
+
+const transparentWelcomeVideo = document.querySelector('[data-home-video][data-transparent-video="true"]');
+if (transparentWelcomeVideo?.dataset.videoSrc) {
+    startTransparentWelcomeVideo(
+        transparentWelcomeVideo,
+        transparentWelcomeVideo.querySelector('[data-home-video-cover]'),
+        transparentWelcomeVideo.dataset.videoSrc
+    );
+}
 
 document.addEventListener("click", function(event) {
     const close = event.target.closest("[data-close-payment-notice]");
