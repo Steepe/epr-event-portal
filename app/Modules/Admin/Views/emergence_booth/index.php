@@ -39,6 +39,19 @@ $this->section('content');
 
   <section class="mt-6 rounded-lg border border-gray-700 bg-gray-800 p-5"><h2 class="font-semibold text-gray-100">Programme waitlists</h2><p class="mt-1 text-sm text-gray-400">Attendees who asked to be notified about a programme.</p><div class="mt-4 overflow-x-auto"><table class="w-full text-left text-sm text-gray-300"><thead class="text-xs uppercase text-gray-500"><tr><th class="p-2">Programme</th><th class="p-2">Attendee</th><th class="p-2">Country</th><th class="p-2">Joined</th></tr></thead><tbody><?php foreach (($programmeWaitlists ?? []) as $waitlist): ?><tr class="border-t border-gray-700"><td class="p-2 font-medium text-gray-200"><?php echo esc($waitlist['programme_title'] ?? 'Programme'); ?></td><td class="p-2"><?php echo esc(trim(($waitlist['firstname'] ?? '') . ' ' . ($waitlist['lastname'] ?? '')) ?: 'Attendee'); ?><br><span class="text-xs text-gray-500"><?php echo esc($waitlist['email'] ?? ''); ?><br><?php echo esc($waitlist['telephone'] ?? ''); ?></span></td><td class="p-2"><?php echo esc($waitlist['country'] ?? ''); ?></td><td class="p-2 text-xs"><?php echo esc($waitlist['created_at']); ?></td></tr><?php endforeach; ?><?php if (empty($programmeWaitlists)): ?><tr class="border-t border-gray-700"><td colspan="4" class="p-3 text-gray-500">No waitlist signups yet.</td></tr><?php endif; ?></tbody></table></div></section>
 
+  <section class="mt-6 rounded-lg border border-gray-700 bg-gray-800 p-5">
+    <h2 class="font-semibold text-gray-100">Callback topics</h2>
+    <p class="mt-1 text-sm text-gray-400">These are the options attendees can choose when they request a callback.</p>
+    <form method="post" action="<?php echo site_url('admin/emergence-booth/callback-topics'); ?>" class="mt-4 space-y-3" data-callback-topics><?php echo csrf_field(); ?>
+      <div class="grid gap-2 sm:grid-cols-2" data-callback-topic-list>
+        <?php foreach (($callbackTopics ?? []) as $topic): ?>
+          <div class="flex gap-2" data-callback-topic-row><input name="topics[]" value="<?php echo esc($topic); ?>" maxlength="100" required class="min-w-0 flex-1 rounded border border-gray-700 bg-gray-900 p-2 text-sm text-gray-200"><button type="button" data-remove-callback-topic class="rounded border border-gray-600 px-3 text-sm text-gray-300 hover:border-red-500 hover:text-red-300">Remove</button></div>
+        <?php endforeach; ?>
+      </div>
+      <div class="flex flex-wrap gap-3"><button type="button" data-add-callback-topic class="rounded border border-gray-600 px-4 py-2 text-sm text-gray-200 hover:border-blue-400">Add topic</button><button class="rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-500">Save callback topics</button></div>
+    </form>
+  </section>
+
   <section class="mt-6 rounded-lg border border-gray-700 bg-gray-800 p-5"><h2 class="font-semibold text-gray-100">Callback requests</h2><div class="mt-4 overflow-x-auto"><table class="w-full text-left text-sm text-gray-300"><thead class="text-xs uppercase text-gray-500"><tr><th class="p-2">Attendee</th><th class="p-2">Topic / note</th><th class="p-2">Received</th><th class="p-2">Status</th></tr></thead><tbody><?php foreach (($callbacks ?? []) as $callback): ?><tr class="border-t border-gray-700"><td class="p-2"><?php echo esc(trim(($callback['firstname'] ?? '') . ' ' . ($callback['lastname'] ?? '')) ?: 'Attendee'); ?><br><span class="text-xs text-gray-500"><?php echo esc($callback['email'] ?? ''); ?><br><?php echo esc($callback['telephone'] ?? ''); ?></span></td><td class="p-2"><strong><?php echo esc($callback['topic']); ?></strong><br><?php echo nl2br(esc($callback['note'])); ?></td><td class="p-2 text-xs"><?php echo esc($callback['created_at']); ?></td><td class="p-2"><form method="post" action="<?php echo site_url('admin/emergence-booth/callbacks/' . $callback['callback_request_id']); ?>" class="flex gap-2"><?php echo csrf_field(); ?><select name="status" class="rounded border border-gray-700 bg-gray-900 p-1 text-xs"><option value="new" <?php echo $callback['status'] === 'new' ? 'selected' : ''; ?>>New</option><option value="in_progress" <?php echo $callback['status'] === 'in_progress' ? 'selected' : ''; ?>>In progress</option><option value="completed" <?php echo $callback['status'] === 'completed' ? 'selected' : ''; ?>>Completed</option></select><button class="text-xs text-blue-400">Save</button></form></td></tr><?php endforeach; ?></tbody></table></div></section>
 <?php endif; ?>
 
@@ -91,6 +104,47 @@ $this->section('content');
       button.classList.remove('cursor-not-allowed', 'opacity-60');
     });
     request.send(new FormData(form));
+  });
+})();
+</script>
+
+<script>
+(() => {
+  const form = document.querySelector('[data-callback-topics]');
+  if (!form) return;
+
+  const list = form.querySelector('[data-callback-topic-list]');
+  const createRow = () => {
+    const row = document.createElement('div');
+    row.className = 'flex gap-2';
+    row.dataset.callbackTopicRow = '';
+    const input = document.createElement('input');
+    input.name = 'topics[]';
+    input.maxLength = 100;
+    input.required = true;
+    input.placeholder = 'Callback topic, e.g. Volunteering';
+    input.className = 'min-w-0 flex-1 rounded border border-gray-700 bg-gray-900 p-2 text-sm text-gray-200';
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.dataset.removeCallbackTopic = '';
+    remove.className = 'rounded border border-gray-600 px-3 text-sm text-gray-300 hover:border-red-500 hover:text-red-300';
+    remove.textContent = 'Remove';
+    row.append(input, remove);
+    list.append(row);
+    input.focus();
+  };
+
+  form.querySelector('[data-add-callback-topic]').addEventListener('click', createRow);
+  list.addEventListener('click', (event) => {
+    const remove = event.target.closest('[data-remove-callback-topic]');
+    if (!remove) return;
+    const rows = list.querySelectorAll('[data-callback-topic-row]');
+    if (rows.length === 1) {
+      rows[0].querySelector('input').value = '';
+      rows[0].querySelector('input').focus();
+      return;
+    }
+    remove.closest('[data-callback-topic-row]').remove();
   });
 })();
 </script>

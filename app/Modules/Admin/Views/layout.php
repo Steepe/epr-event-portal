@@ -241,5 +241,95 @@ $isSuperadmin = $adminRole === 'superadmin';
         menu.classList.toggle('hidden');
     }
 </script>
+
+<div id="admin-upload-progress" hidden aria-live="polite" style="position:fixed;inset:0;z-index:1000;background:rgba(3,7,18,.78);align-items:center;justify-content:center;padding:24px">
+    <div style="width:min(460px,100%);border:1px solid rgba(148,163,184,.35);border-radius:14px;background:#111827;padding:22px;box-shadow:0 24px 60px rgba(0,0,0,.45)">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;color:#f8fafc;font-size:14px;font-weight:600"><span id="admin-upload-status">Uploading file…</span><span id="admin-upload-percent">0%</span></div>
+        <div style="height:9px;overflow:hidden;border-radius:999px;background:#374151;margin-top:14px"><div id="admin-upload-fill" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="height:100%;width:0;border-radius:inherit;background:linear-gradient(90deg,#2563eb,#c026d3);transition:width .15s ease"></div></div>
+        <p id="admin-upload-detail" style="margin:10px 0 0;color:#cbd5e1;font-size:12px">Please keep this page open while the file is saved.</p>
+    </div>
+</div>
+
+<script>
+(() => {
+    const panel = document.getElementById('admin-upload-progress');
+    const fill = document.getElementById('admin-upload-fill');
+    const status = document.getElementById('admin-upload-status');
+    const percent = document.getElementById('admin-upload-percent');
+    const detail = document.getElementById('admin-upload-detail');
+
+    const show = () => {
+        panel.hidden = false;
+        panel.style.display = 'flex';
+    };
+    const hide = () => {
+        panel.hidden = true;
+        panel.style.display = 'none';
+    };
+    const setProgress = (value) => {
+        fill.style.width = `${value}%`;
+        fill.setAttribute('aria-valuenow', String(value));
+        percent.textContent = `${value}%`;
+    };
+
+    document.addEventListener('submit', (event) => {
+        if (event.defaultPrevented || !(event.target instanceof HTMLFormElement)) return;
+
+        const form = event.target;
+        const inputs = [...form.querySelectorAll('input[type="file"]')];
+        const selectedFiles = inputs.flatMap((input) => [...input.files]);
+        if (selectedFiles.length === 0) return;
+
+        event.preventDefault();
+        const submitButtons = [...form.querySelectorAll('button[type="submit"], input[type="submit"]')];
+        submitButtons.forEach((button) => {
+            button.disabled = true;
+            button.setAttribute('aria-disabled', 'true');
+            button.style.opacity = '.65';
+        });
+        status.textContent = `Uploading ${selectedFiles.length === 1 ? 'file' : `${selectedFiles.length} files`}…`;
+        detail.textContent = 'Please keep this page open while the file is saved.';
+        setProgress(0);
+        show();
+
+        const request = new XMLHttpRequest();
+        request.open((form.method || 'POST').toUpperCase(), form.action || window.location.href);
+        request.upload.addEventListener('progress', (upload) => {
+            if (!upload.lengthComputable) return;
+            const value = Math.min(100, Math.round((upload.loaded / upload.total) * 100));
+            setProgress(value);
+            if (value === 100) {
+                status.textContent = 'Processing upload…';
+                detail.textContent = 'The server is saving the file. This can take a moment for videos.';
+            }
+        });
+        request.addEventListener('load', () => {
+            if (request.status >= 200 && request.status < 400) {
+                status.textContent = 'Upload complete. Refreshing…';
+                setProgress(100);
+                window.location.assign(request.responseURL || window.location.href);
+                return;
+            }
+            status.textContent = 'Upload failed.';
+            detail.textContent = 'Please try again.';
+            submitButtons.forEach((button) => {
+                button.disabled = false;
+                button.removeAttribute('aria-disabled');
+                button.style.opacity = '';
+            });
+        });
+        request.addEventListener('error', () => {
+            status.textContent = 'Upload failed.';
+            detail.textContent = 'Check your connection and try again.';
+            submitButtons.forEach((button) => {
+                button.disabled = false;
+                button.removeAttribute('aria-disabled');
+                button.style.opacity = '';
+            });
+        });
+        request.send(new FormData(form));
+    });
+})();
+</script>
 </body>
 </html>

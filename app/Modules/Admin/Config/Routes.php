@@ -154,6 +154,7 @@ $routes->group('admin', ['namespace' => 'App\Modules\Admin\Controllers'], functi
         $routes->post('emergence-booth/resources/(:num)', 'EmergenceBoothController::saveResource/$1');
         $routes->post('emergence-booth/resources/(:num)/delete', 'EmergenceBoothController::deleteResource/$1');
         $routes->post('emergence-booth/callbacks/(:num)', 'EmergenceBoothController::updateCallback/$1');
+        $routes->post('emergence-booth/callback-topics', 'EmergenceBoothController::saveCallbackTopics');
         $routes->get('emergence-booth/chats', 'EmergenceBoothController::chats');
         $routes->get('emergence-booth/chats/(:num)', 'EmergenceBoothController::chatMessages/$1');
         $routes->post('emergence-booth/chats/(:num)', 'EmergenceBoothController::sendChat/$1');

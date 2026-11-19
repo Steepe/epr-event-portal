@@ -14,6 +14,8 @@ use App\Controllers\BaseController;
 
 class EmergenceBoothController extends BaseController
 {
+    private const DEFAULT_CALLBACK_TOPICS = ['Programmes', 'Partnership', 'Speaking', 'Media'];
+
     public function index(): string
     {
         $db = db_connect();
@@ -57,6 +59,7 @@ class EmergenceBoothController extends BaseController
             'programmes' => $programmes,
             'resources' => $db->table('tbl_emergence_booth_resources')->where('is_active', 1)->orderBy('sort_order')->orderBy('title')->get()->getResultArray(),
             'videoPlaylist' => $videoPlaylist,
+            'callbackTopics' => $this->callbackTopics(),
             'attendeeId' => $attendeeId,
         ]);
     }
@@ -69,7 +72,7 @@ class EmergenceBoothController extends BaseController
 
         $topic = trim((string) $this->request->getPost('topic'));
         $note = trim((string) $this->request->getPost('note'));
-        if (! in_array($topic, ['Programmes', 'Partnership', 'Speaking', 'Media'], true)) {
+        if (! in_array($topic, $this->callbackTopics(), true)) {
             return $this->response->setStatusCode(422)->setJSON(['message' => 'Choose a callback topic.']);
         }
 
@@ -176,6 +179,24 @@ class EmergenceBoothController extends BaseController
     {
         $row = db_connect()->table('tbl_emergence_booth_settings')->where('setting_key', $key)->get()->getRowArray();
         return (string) ($row['setting_value'] ?? '');
+    }
+
+    private function callbackTopics(): array
+    {
+        $decoded = json_decode($this->setting('callback_topics'), true);
+        if (! is_array($decoded)) {
+            return self::DEFAULT_CALLBACK_TOPICS;
+        }
+
+        $topics = [];
+        foreach ($decoded as $topic) {
+            $topic = mb_substr(trim((string) $topic), 0, 100);
+            if ($topic !== '') {
+                $topics[] = $topic;
+            }
+        }
+
+        return $topics === [] ? self::DEFAULT_CALLBACK_TOPICS : array_values(array_unique($topics));
     }
 
     private function videoPlaylist(): array

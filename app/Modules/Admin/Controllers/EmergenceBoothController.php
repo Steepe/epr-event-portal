@@ -8,6 +8,8 @@ use CodeIgniter\Exceptions\PageNotFoundException;
 
 class EmergenceBoothController extends BaseController
 {
+    private const DEFAULT_CALLBACK_TOPICS = ['Programmes', 'Partnership', 'Speaking', 'Media'];
+
     private const TABLES = [
         'tbl_emergence_booth_settings',
         'tbl_emergence_booth_members',
@@ -44,6 +46,7 @@ class EmergenceBoothController extends BaseController
             'programmes' => $programmes,
             'resources' => $db->table('tbl_emergence_booth_resources')->orderBy('sort_order')->orderBy('title')->get()->getResultArray(),
             'callbacks' => $this->callbacks(),
+            'callbackTopics' => $this->callbackTopics(),
             'programmeWaitlists' => $this->programmeWaitlists(),
             'videoUrl' => $this->setting('welcome_video_url'),
             'videoPlaylist' => $this->videoPlaylist(),
@@ -333,6 +336,33 @@ class EmergenceBoothController extends BaseController
         return redirect()->to(site_url('admin/emergence-booth'))->with('success', 'Callback request updated.');
     }
 
+    public function saveCallbackTopics()
+    {
+        if ($response = $this->notReadyResponse()) {
+            return $response;
+        }
+
+        $submitted = $this->request->getPost('topics');
+        $topics = [];
+        $seen = [];
+        foreach (is_array($submitted) ? $submitted : [] as $topic) {
+            $topic = mb_substr(trim((string) $topic), 0, 100);
+            $key = mb_strtolower($topic);
+            if ($topic === '' || isset($seen[$key])) {
+                continue;
+            }
+            $seen[$key] = true;
+            $topics[] = $topic;
+        }
+
+        if ($topics === []) {
+            return redirect()->back()->with('error', 'Add at least one callback topic.');
+        }
+
+        $this->saveSetting('callback_topics', json_encode($topics, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+        return redirect()->to(site_url('admin/emergence-booth'))->with('success', 'Callback topics saved.');
+    }
+
     public function chats()
     {
         if (! $this->isReady()) {
@@ -492,6 +522,24 @@ class EmergenceBoothController extends BaseController
     {
         $row = db_connect()->table('tbl_emergence_booth_settings')->where('setting_key', $key)->get()->getRowArray();
         return (string) ($row['setting_value'] ?? '');
+    }
+
+    private function callbackTopics(): array
+    {
+        $decoded = json_decode($this->setting('callback_topics'), true);
+        if (! is_array($decoded)) {
+            return self::DEFAULT_CALLBACK_TOPICS;
+        }
+
+        $topics = [];
+        foreach ($decoded as $topic) {
+            $topic = mb_substr(trim((string) $topic), 0, 100);
+            if ($topic !== '') {
+                $topics[] = $topic;
+            }
+        }
+
+        return $topics === [] ? self::DEFAULT_CALLBACK_TOPICS : array_values(array_unique($topics));
     }
 
     private function videoPlaylist(): array

@@ -7,7 +7,7 @@ $programmes = $programmes ?? [];
 $resources = $resources ?? [];
 $videoPlaylist = array_values(array_filter($videoPlaylist ?? [], static fn ($url): bool => is_string($url) && $url !== ''));
 $firstVideoUrl = $videoPlaylist[0] ?? '';
-$topics = ['Programmes', 'Partnership', 'Speaking', 'Media'];
+$topics = $callbackTopics ?? [];
 ?>
 
 <main class="rc-page rc-page-center" data-screen-label="Emergence Booth" style="padding-bottom:72px">
