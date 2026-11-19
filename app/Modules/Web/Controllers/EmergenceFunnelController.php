@@ -21,6 +21,7 @@ class EmergenceFunnelController extends BaseController
             'checkoutUrl' => $checkoutUrl,
             'portalUrl' => $portalUrl,
             'upsellPrice' => env('funnel.emergence.upsellPrice') ?: '$50',
+            'mailchimpTags' => implode(',', $this->mailchimpTags()),
             'countries' => $this->countries(),
             'showUpsell' => $this->envBoolean('funnel.emergence.showUpsell', false),
             'calendarEvent' => $this->calendarEvent($portalUrl),
@@ -124,6 +125,21 @@ class EmergenceFunnelController extends BaseController
         }
 
         return CountryList::forDropdown($countries);
+    }
+
+    private function mailchimpTags(): array
+    {
+        $tags = array_merge(
+            $this->splitTags(env('funnel.emergence.mailchimpTags') ?: 'emergence-registrant'),
+            $this->splitTags(env('funnel.emergence.conferenceTag') ?: 'conference-2026')
+        );
+
+        return array_values(array_unique(array_filter($tags)));
+    }
+
+    private function splitTags(string $tags): array
+    {
+        return array_map('trim', explode(',', $tags));
     }
 
     private function envBoolean(string $key, bool $default): bool
