@@ -18,8 +18,9 @@ $this->section('content');
     <div class="text-red-400 mb-3"><?php echo session()->getFlashdata('error'); ?></div>
   <?php endif; ?>
 
-  <form action="<?php echo site_url('admin/conferences/store'); ?>" method="post" class="space-y-4" enctype="multipart/form-data">
+  <form action="<?php echo site_url('admin/conferences/store'); ?>" method="post" class="space-y-4" enctype="multipart/form-data" data-bunny-welcome-video-form data-bunny-credentials-url="<?php echo esc(site_url('admin/conferences/welcome-video/credentials')); ?>">
     <?php echo csrf_field(); ?>
+    <input type="hidden" name="welcome_video_id" value="">
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
@@ -79,7 +80,7 @@ $this->section('content');
       <label class="block text-sm mb-1">Attendee Home Welcome Video</label>
       <input type="file" name="welcome_video" accept="video/mp4,video/webm,video/quicktime,.mp4,.m4v,.mov,.webm"
              class="bg-gray-800 border border-gray-700 rounded w-full p-2.5">
-      <p class="mt-1 text-xs text-gray-500">Optional. Upload an MP4, M4V, MOV, or WebM file (maximum 256 MB). It is securely uploaded to Bunny Stream and plays on <code>/attendees/home</code> when this conference is live.</p>
+      <p class="mt-1 text-xs text-gray-500">Optional. Upload an MP4, M4V, MOV, or WebM file directly to Bunny Stream. Large uploads resume automatically and play on <code>/attendees/home</code> when this conference is live.</p>
     </div>
 
       <div>
@@ -94,5 +95,7 @@ $this->section('content');
             class="mt-4 px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded">Save Conference</button>
   </form>
 </div>
+
+<?php echo module_view('Admin', 'conferences/welcome_video_uploader'); ?>
 
 <?php $this->endSection(); ?>

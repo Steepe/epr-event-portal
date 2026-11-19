@@ -195,11 +195,39 @@ class ConferencesController extends BaseController
         return redirect()->to(site_url('admin/conferences'))->with('success', 'Conference deleted.');
     }
 
+    public function welcomeVideoCredentials(): \CodeIgniter\HTTP\ResponseInterface
+    {
+        $title = trim((string) $this->request->getPost('title'));
+        if ($title === '') {
+            return $this->response->setStatusCode(422)->setJSON([
+                'error' => 'Enter the conference name before uploading its welcome video.',
+            ]);
+        }
+
+        try {
+            return $this->response->setJSON(
+                (new BunnyStreamService())->prepareDirectUpload(
+                    $title . ' welcome video',
+                    (string) $this->request->getPost('resume_video_id')
+                )
+            );
+        } catch (\RuntimeException $exception) {
+            return $this->response->setStatusCode(502)->setJSON([
+                'error' => $exception->getMessage(),
+            ]);
+        }
+    }
+
     /**
      * @throws \RuntimeException
      */
     private function uploadWelcomeVideo(): ?string
     {
+        $directVideoId = trim((string) $this->request->getPost('welcome_video_id'));
+        if ($directVideoId !== '') {
+            return (new BunnyStreamService())->welcomeVideoEmbedUrl($directVideoId);
+        }
+
         $file = $this->request->getFile('welcome_video');
         if ($file === null || $file->getError() === UPLOAD_ERR_NO_FILE) {
             return null;

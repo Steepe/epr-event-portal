@@ -47,6 +47,7 @@ $routes->group('admin', ['namespace' => 'App\Modules\Admin\Controllers'], functi
         $routes->get('conferences', 'ConferencesController::index');
         $routes->get('conferences/create', 'ConferencesController::create');
         $routes->post('conferences/store', 'ConferencesController::store');
+        $routes->post('conferences/welcome-video/credentials', 'ConferencesController::welcomeVideoCredentials');
         $routes->get('conferences/(:num)/edit', 'ConferencesController::edit/$1');
         $routes->post('conferences/(:num)/update', 'ConferencesController::update/$1');
         $routes->post('conferences/(:num)/delete', 'ConferencesController::delete/$1');

@@ -14,6 +14,7 @@ use RuntimeException;
 class BunnyStreamService
 {
     private const API_BASE = 'https://video.bunnycdn.com';
+    private const DIRECT_UPLOAD_SIGNATURE_TTL = 86400;
 
     /**
      * @throws RuntimeException
@@ -44,10 +45,49 @@ class BunnyStreamService
             throw $exception;
         }
 
+        return $this->welcomeVideoEmbedUrl((string) $video['guid']);
+    }
+
+    /**
+     * Creates (or re-signs) a Bunny Stream video for a browser-direct TUS upload.
+     * The returned signature is restricted to one video; the API key stays server-side.
+     *
+     * @return array{videoId: string, libraryId: string, expirationTime: int, signature: string}
+     * @throws RuntimeException
+     */
+    public function prepareDirectUpload(string $title, ?string $resumeVideoId = null): array
+    {
+        $this->assertConfigured();
+
+        $videoId = $this->canResumeVideo($resumeVideoId)
+            ? trim((string) $resumeVideoId)
+            : (string) $this->createVideo($title)['guid'];
+        $expirationTime = time() + self::DIRECT_UPLOAD_SIGNATURE_TTL;
+
+        return [
+            'videoId' => $videoId,
+            'libraryId' => $this->libraryId(),
+            'expirationTime' => $expirationTime,
+            'signature' => hash('sha256', $this->libraryId() . $this->apiKey() . $expirationTime . $videoId),
+        ];
+    }
+
+    /**
+     * @throws RuntimeException
+     */
+    public function welcomeVideoEmbedUrl(string $videoGuid): string
+    {
+        $videoGuid = trim($videoGuid);
+        if (! preg_match('/^[a-f0-9-]{16,64}$/i', $videoGuid)) {
+            throw new RuntimeException('Bunny Stream did not return a valid video ID.');
+        }
+
+        $this->assertConfigured();
+
         return sprintf(
             'https://iframe.mediadelivery.net/embed/%s/%s?loop=false&muted=false&preload=true&responsive=true',
             rawurlencode($this->libraryId()),
-            rawurlencode((string) $video['guid'])
+            rawurlencode($videoGuid)
         );
     }
 
@@ -113,6 +153,26 @@ class BunnyStreamService
             );
         } catch (RuntimeException) {
             // Do not conceal the original upload failure if Bunny cleanup fails.
+        }
+    }
+
+    private function canResumeVideo(?string $videoGuid): bool
+    {
+        $videoGuid = trim((string) $videoGuid);
+        if (! preg_match('/^[a-f0-9-]{16,64}$/i', $videoGuid)) {
+            return false;
+        }
+
+        try {
+            $response = $this->request(
+                'GET',
+                '/library/' . rawurlencode($this->libraryId()) . '/videos/' . rawurlencode($videoGuid)
+            );
+            $video = json_decode($response, true, 512, JSON_THROW_ON_ERROR);
+
+            return (int) ($video['status'] ?? $video['Status'] ?? -1) === 0;
+        } catch (\Throwable) {
+            return false;
         }
     }
 
