@@ -62,6 +62,25 @@ body.m-app.is-locked { overflow: hidden; }
 }
 .m-bg .rc-bg-canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; filter: saturate(1.35) brightness(1.16); }
 
+/* These two views use deliberately quiet backgrounds. The animated canvas is
+   useful in the live experience but competes with archive titles and the
+   welcome heading. */
+.m-app--welcome .m-bg,
+.m-app--past-conferences .m-bg {
+    background:
+        radial-gradient(ellipse 76% 42% at 50% 8%, rgba(164, 62, 121, .28), transparent 72%),
+        radial-gradient(ellipse 80% 62% at 50% 100%, rgba(82, 44, 104, .34), transparent 76%),
+        #261528;
+}
+.m-app--welcome .m-bg .rc-bg-canvas,
+.m-app--past-conferences .m-bg .rc-bg-canvas { display: none !important; }
+
+/* The CodeIgniter development toolbar must never sit over the mobile controls. */
+.m-app #debug-icon,
+.m-app #debug-bar,
+.m-app #debugbar_loader,
+.m-app .tab[id^="ci-"] { display: none !important; }
+
 /* ---------- Shell ---------- */
 .m-shell {
     position: relative;
@@ -314,7 +333,7 @@ body.m-app.is-locked { overflow: hidden; }
 .m-start__foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 15px; font-weight: 600; line-height: 1.2; }
 
 /* ---------- Welcome ---------- */
-.m-welcome { display: flex; padding: 24px 20px 48px; flex: 1; flex-direction: column; align-items: center; justify-content: center; gap: 26px; }
+.m-welcome { display: flex; padding: 18px 20px 36px; flex: 1; flex-direction: column; align-items: center; justify-content: flex-start; gap: 18px; }
 .m-welcome__head { display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; }
 .m-welcome__title { font-size: 28px; font-weight: 600; letter-spacing: -.02em; line-height: 1.15; }
 .m-welcome__video {
@@ -323,6 +342,19 @@ body.m-app.is-locked { overflow: hidden; }
     box-shadow: 0 30px 80px rgba(0, 0, 0, .45), 0 0 0 6px rgba(255, 255, 255, .03);
 }
 .m-welcome__video iframe, .m-video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.m-welcome__video.is-unavailable {
+    display: flex; padding: 26px; align-items: center; justify-content: center;
+    background:
+        radial-gradient(circle at 50% 45%, rgba(216, 25, 142, .2), transparent 47%),
+        linear-gradient(135deg, #180b1b, #080408);
+}
+.m-welcome__placeholder { display: block; width: min(60%, 220px); height: auto; opacity: .72; }
+.m-welcome__unavailable {
+    position: absolute; right: 0; bottom: 0; left: 0; padding: 12px 16px;
+    background: linear-gradient(0deg, rgba(8, 4, 8, .88), rgba(8, 4, 8, 0));
+    color: rgba(255, 255, 255, .72); font-family: var(--m-mono); font-size: 10px;
+    letter-spacing: .1em; text-align: center; text-transform: uppercase;
+}
 .m-play {
     position: absolute; top: 50%; left: 50%; display: flex; width: 68px; height: 68px; padding: 0 0 0 5px;
     align-items: center; justify-content: center; transform: translate(-50%, -50%);

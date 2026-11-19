@@ -25,6 +25,7 @@ $mobileBackUrl   = is_string($back) ? $back : site_url('mobile/lobby');
 
 // The shared background script picks its artwork from this label (archive and webinar screens use the aurora variant).
 $mobileScreen = (string) ($screenLabel ?? ($title ?? ''));
+$mobileScreenKey = trim((string) preg_replace('/[^a-z0-9]+/i', '-', strtolower($mobileScreen)), '-');
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -57,7 +58,7 @@ $mobileScreen = (string) ($screenLabel ?? ($title ?? ''));
         })();
     </script>
 </head>
-<body class="m-app" data-user="<?= $mobileUserId ?>" data-api="<?= esc(rtrim(site_url('api'), '/'), 'attr') ?>"<?php if ($mobileFlash): ?> data-flash="<?= esc($mobileFlash, 'attr') ?>" data-flash-type="<?= $mobileFlashType ?>"<?php endif; ?>>
+<body class="m-app<?= $mobileScreenKey !== '' ? ' m-app--' . esc($mobileScreenKey, 'attr') : '' ?>" data-user="<?= $mobileUserId ?>" data-api="<?= esc(rtrim(site_url('api'), '/'), 'attr') ?>"<?php if ($mobileFlash): ?> data-flash="<?= esc($mobileFlash, 'attr') ?>" data-flash-type="<?= $mobileFlashType ?>"<?php endif; ?>>
 <div class="m-bg rc-stage" aria-hidden="true"><i data-screen-label="<?= esc($mobileScreen, 'attr') ?>" hidden></i></div>
 <div class="m-shell m-shell--<?= esc($shell, 'attr') ?>">
 <?php if ($shell !== 'bare'): ?>

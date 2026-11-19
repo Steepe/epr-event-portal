@@ -24,7 +24,7 @@ $topics     = ['Programmes', 'Partnership', 'Speaking', 'Media'];
                 <button class="m-play m-play--64" type="button" data-booth-play data-video-hide aria-label="Play EPR films"><i class="fa fa-play" aria-hidden="true"></i></button>
             <?php endif; ?>
             <span class="m-video__tag" data-video-hide><i class="fa fa-film" aria-hidden="true"></i>EPR FILMS</span>
-            <div class="m-video__caption" data-video-hide>Why we build systems, not hype</div>
+            <div class="m-video__caption" data-video-hide><?= $videoUrl !== '' ? 'Why we build systems, not hype' : 'EPR films are being prepared.' ?></div>
         </div>
 
         <aside class="m-card m-panel m-panel--14">

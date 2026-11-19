@@ -3,13 +3,22 @@
 $firstName      = trim((string) session('firstname'));
 $conferenceYear = (string) ($conference['year'] ?? date('Y'));
 $pastIcons      = [];
+$archiveFallbacks = [
+    mobile_asset_url('images/innovate-icon.png'),
+    mobile_asset_url('images/dominate-icon.png'),
+    mobile_asset_url('images/unleash-icon.png'),
+];
 foreach (array_reverse($pastConferences ?? []) as $item) {
-    if (!empty($item['icon'])) {
-        $pastIcons[] = base_url('uploads/conferences/' . rawurlencode(basename((string) $item['icon'])));
+    $iconFile = basename((string) ($item['icon'] ?? ''));
+    if ($iconFile !== '' && is_file(FCPATH . 'uploads/conferences/' . $iconFile)) {
+        $pastIcons[] = base_url('uploads/conferences/' . rawurlencode($iconFile));
     }
 }
-if (count($pastIcons) < 3) {
-    $pastIcons = [mobile_asset_url('images/innovate-icon.png'), mobile_asset_url('images/dominate-icon.png'), mobile_asset_url('images/unleash-icon.png')];
+foreach ($archiveFallbacks as $fallback) {
+    if (count($pastIcons) >= 3) {
+        break;
+    }
+    $pastIcons[] = $fallback;
 }
 ?>
 
@@ -37,7 +46,7 @@ if (count($pastIcons) < 3) {
             <span class="m-start__nub m-start__nub--top"></span>
             <div class="m-start__visual m-start__icons">
                 <?php foreach (array_slice($pastIcons, 0, 3) as $index => $icon): ?>
-                    <img class="<?= $index === 2 ? 'is-light' : '' ?>" src="<?= esc($icon, 'attr') ?>" alt="">
+                    <img class="<?= $index === 2 ? 'is-light' : '' ?>" src="<?= esc($icon, 'attr') ?>" alt="" onerror="this.onerror=null;this.src='<?= esc($archiveFallbacks[$index], 'attr') ?>'">
                 <?php endforeach; ?>
             </div>
             <div class="m-start__foot"><span>Past Conferences</span><i class="fa fa-long-arrow-right" aria-hidden="true"></i></div>
