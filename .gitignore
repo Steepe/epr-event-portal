@@ -39,3 +39,11 @@ public/.DS_Store
 writable/logs/index.html
 /writable/debugbar/
 */.DS_Store
+/public/uploads/attendee_pictures
+/public/uploads/emergence_programmes
+/public/uploads/speakers
+/public/uploads/sponsors
+/public/uploads/sponsors_logo
+/public/uploads/emergence_toolkit
+/public/uploads/sponsors_logo
+.DS_Store

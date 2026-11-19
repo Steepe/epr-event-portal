@@ -31,7 +31,7 @@ $topics = $callbackTopics ?? [];
             <button type="button" class="rc-em-play" aria-label="Play EPR films" style="position:absolute;width:76px;height:76px;border:0;border-radius:50%;background:linear-gradient(90deg,#7d0686,#bd159e 50%,#7c0585);color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;cursor:pointer;box-shadow:0 0 0 10px rgba(216,25,142,.16),0 0 40px rgba(216,25,142,.55)"><i class="fa fa-play" aria-hidden="true"></i></button>
           <?php endif; ?>
           <span style="position:absolute;top:16px;left:16px;display:flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.16em;padding:6px 10px;border-radius:999px;background:rgba(18,5,15,.78)"><i class="fa fa-film" aria-hidden="true"></i>EPR FILMS</span>
-          <div style="position:absolute;left:0;right:0;bottom:0;padding:16px 20px;background:linear-gradient(0deg,rgba(10,2,12,.85),rgba(10,2,12,0))"><span style="font-size:14px;font-weight:600">Why we build systems, not hype</span></div>
+          <div style="position:absolute;left:0;right:0;bottom:0;padding:16px 20px;background:linear-gradient(0deg,rgba(10,2,12,.85),rgba(10,2,12,0))"><span style="font-size:14px;font-weight:600">Building the women who will build institutions</span></div>
         </div>
 
         <aside class="rc-panel" style="padding:22px;display:flex;flex-direction:column;gap:16px">
@@ -76,7 +76,7 @@ $topics = $callbackTopics ?? [];
           <?php endif; ?>
         </div>
 
-        <div class="rc-panel" style="padding:22px;display:flex;flex-direction:column;gap:14px">
+        <div id="callback-request" class="rc-panel" style="padding:22px;display:flex;flex-direction:column;gap:14px">
           <span class="rc-mono" style="font-size:11px;letter-spacing:.18em;color:rgba(255,255,255,.6)">REQUEST A CALLBACK</span>
           <form data-callback-form class="rc-em-form"><span style="font-size:13px;color:rgba(255,255,255,.75);line-height:1.5">Tell us what you would like to discuss. An EPR team member will follow up.</span><div style="display:flex;flex-wrap:wrap;gap:8px"><?php foreach ($topics as $index => $topic): ?><button type="button" class="rc-outline-pill rc-booth-topic" data-topic="<?php echo esc($topic, 'attr'); ?>" style="background:<?php echo $index === 0 ? 'rgba(157,15,130,.55)' : 'rgba(255,255,255,.10)'; ?>;border-color:<?php echo $index === 0 ? '#d8198e' : 'rgba(255,255,255,.3)'; ?>;color:#fff"><?php echo esc($topic); ?></button><?php endforeach; ?></div><textarea data-callback-note class="rc-input" rows="4" placeholder="Add a short note (optional)" style="height:auto;padding:12px 14px!important;resize:none"></textarea><button type="submit" class="rc-btn" style="height:46px;text-transform:none;letter-spacing:0;font-size:14px"><i class="fa fa-phone" aria-hidden="true"></i> Request a callback</button><span data-callback-status style="font-size:13px"></span></form>
         </div>

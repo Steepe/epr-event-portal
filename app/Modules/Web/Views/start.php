@@ -27,6 +27,7 @@ echo module_view('Web', 'includes/topbar');
     <div style="position:absolute;left:7vw;top:112px;display:flex;flex-direction:column;gap:8px">
         <span class="rc-kicker">Welcome back, <?php echo esc(session('firstname') ?: 'Ada'); ?></span>
         <span style="font-size:34px;font-weight:600;letter-spacing:-.02em;color:#fff">Where would you like to go?</span>
+        <a href="<?php echo site_url('attendees/platform-tour'); ?>" style="width:max-content;margin-top:5px;color:#efb11e;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;text-decoration:none">TAKE A GUIDED PLATFORM TOUR <i class="fa fa-play-circle" aria-hidden="true"></i></a>
     </div>
 
     <a data-node="past"

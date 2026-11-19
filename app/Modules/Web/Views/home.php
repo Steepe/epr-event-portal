@@ -42,6 +42,7 @@ $transparentWelcomeVideo = ! empty($welcome_video_is_transparent);
     <a href="<?php echo base_url('attendees/lobby'); ?>" class="rc-btn" style="display:flex;align-items:center;gap:12px;height:52px;padding:0 34px;font-size:16px;letter-spacing:.1em;text-decoration:none">
         Enter Lobby <i class="fa fa-long-arrow-right" aria-hidden="true"></i>
     </a>
+    <a href="<?php echo site_url('attendees/platform-tour'); ?>" style="color:#efb11e;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.14em;text-decoration:none">TAKE A GUIDED PLATFORM TOUR <i class="fa fa-play-circle" aria-hidden="true"></i></a>
 </main>
 
 </div>

@@ -3,7 +3,8 @@ echo module_view('Web', 'includes/header');
 echo module_view('Web', 'includes/topbar');
 
 $userPremium = (int) ($premium ?? 0);
-$dayIndex = 0;
+$requestedAgendaDay = (string) service('request')->getGet('day');
+$selectedAgendaDay = isset($sessionsByDate[$requestedAgendaDay]) ? $requestedAgendaDay : array_key_first($sessionsByDate ?? []);
 ?>
 
 <main class="rc-page rc-page-center" data-screen-label="Agenda">
@@ -19,13 +20,13 @@ $dayIndex = 0;
                 <div style="display:flex;gap:8px;padding:5px;border-radius:999px;background:rgba(22,8,26,.6);border:1px solid rgba(255,255,255,.12)">
                     <?php foreach ($sessionsByDate as $date => $sessions): ?>
                         <?php $target = 'day-' . preg_replace('/[^0-9]/', '', $date); ?>
+                        <?php $isSelectedDay = $date === $selectedAgendaDay; ?>
                         <button type="button"
                                 class="agenda-day-toggle"
                                 data-target="<?php echo $target; ?>"
-                                style="border:0;padding:9px 20px;border-radius:999px;font:inherit;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;background:<?php echo $dayIndex === 0 ? 'linear-gradient(90deg,#7d0686,#bd159e 50%,#7c0585)' : 'transparent'; ?>;color:<?php echo $dayIndex === 0 ? '#fff' : 'rgba(255,255,255,.75)'; ?>">
+                                style="border:0;padding:9px 20px;border-radius:999px;font:inherit;font-size:13px;font-weight:500;cursor:pointer;white-space:nowrap;background:<?php echo $isSelectedDay ? 'linear-gradient(90deg,#7d0686,#bd159e 50%,#7c0585)' : 'transparent'; ?>;color:<?php echo $isSelectedDay ? '#fff' : 'rgba(255,255,255,.75)'; ?>">
                             <?php echo date('M j', strtotime($date)); ?>
                         </button>
-                        <?php $dayIndex++; ?>
                     <?php endforeach; ?>
                 </div>
             <?php endif; ?>
@@ -35,9 +36,9 @@ $dayIndex = 0;
             <div class="rc-empty">No sessions found for this conference.</div>
         <?php else: ?>
             <div class="rc-agenda-list">
-                <?php $dayIndex = 0; foreach ($sessionsByDate as $date => $sessions): ?>
+                <?php foreach ($sessionsByDate as $date => $sessions): ?>
                     <?php $target = 'day-' . preg_replace('/[^0-9]/', '', $date); ?>
-                    <section id="<?php echo $target; ?>" class="agenda-day-panel" style="<?php echo $dayIndex === 0 ? '' : 'display:none'; ?>">
+                    <section id="<?php echo $target; ?>" class="agenda-day-panel" style="<?php echo $date === $selectedAgendaDay ? '' : 'display:none'; ?>">
                         <?php foreach ($sessions as $s): ?>
                             <?php
                             $start = (new DateTime($s['event_date'] . ' ' . $s['start_time'], new DateTimeZone('UTC')))->format('g:i A');
@@ -82,7 +83,6 @@ $dayIndex = 0;
                             </article>
                         <?php endforeach; ?>
                     </section>
-                    <?php $dayIndex++; ?>
                 <?php endforeach; ?>
             </div>
         <?php endif; ?>

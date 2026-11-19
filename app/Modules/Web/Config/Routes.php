@@ -46,6 +46,7 @@ $routes->get('emergence/checkout/complete', '\App\Modules\Web\Controllers\Checko
 $routes->group('attendees', ['namespace' => 'App\Modules\Web\Controllers', 'filter' => 'auth'], function ($routes) {
     $routes->get('home', 'HomeController::index');
     $routes->get('start', 'StartController::index');
+    $routes->get('platform-tour', 'PlatformTourController::index');
     $routes->get('lobby', 'LobbyController::index');
     $routes->get('agenda/(:num)', 'AgendaController::index/$1');
     $routes->get('pastConference/(:num)', 'AgendaController::view_past_conference/$1');
