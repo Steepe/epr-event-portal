@@ -117,14 +117,18 @@ class ChatController extends BaseController
             return $messages;
         }
 
+        // Session chat stores the signed-in account ID (tbl_users.id), which is
+        // tbl_attendees.attendee_id. It is not the internal tbl_attendees.id
+        // row number. Looking up by that row number can attach a message to a
+        // completely different attendee when the two ID sequences diverge.
         $attendees = db_connect()->table('tbl_attendees')
-            ->select('id, firstname, lastname')
-            ->whereIn('id', $attendeeIds)
+            ->select('attendee_id, firstname, lastname')
+            ->whereIn('attendee_id', $attendeeIds)
             ->get()
             ->getResultArray();
         $names = [];
         foreach ($attendees as $attendee) {
-            $names[(int) $attendee['id']] = trim(($attendee['firstname'] ?? '') . ' ' . ($attendee['lastname'] ?? ''));
+            $names[(int) $attendee['attendee_id']] = trim(($attendee['firstname'] ?? '') . ' ' . ($attendee['lastname'] ?? ''));
         }
 
         foreach ($messages as &$message) {
