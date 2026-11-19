@@ -24,6 +24,8 @@ class ChatServer implements MessageComponentInterface
     protected $clients;
     protected array $connections = [];
     protected array $connectionUsers = [];
+    protected array $sessionConnections = [];
+    protected array $connectionSessions = [];
     private ?\Redis $redis = null;
     private string $queue = 'portal_socket_events';
 
@@ -54,7 +56,10 @@ class ChatServer implements MessageComponentInterface
         switch ($data['type'] ?? null) {
             case 'register':
                 $userId = (int) ($data['user_id'] ?? 0);
-                if ($userId <= 0) {
+                $expires = (int) ($data['expires'] ?? 0);
+                $token = (string) ($data['token'] ?? '');
+                if (! RealtimeToken::verify($userId, $expires, $token)) {
+                    $conn->close();
                     return;
                 }
 
@@ -65,14 +70,14 @@ class ChatServer implements MessageComponentInterface
                 $this->markUserOnline($userId, $from->resourceId);
                 break;
 
-            case 'message':
-                $targetId = (int) $data['to'];
-                $this->sendToUser($targetId, [
-                        'type' => 'message',
-                        'from' => $data['from'] ?? null,
-                        'message' => $data['message'] ?? '',
-                        'timestamp' => date('H:i'),
-                ]);
+            case 'subscribe_session':
+                $sessionId = (int) ($data['session_id'] ?? 0);
+                if ($sessionId <= 0 || ! isset($this->connectionUsers[$from->resourceId])) {
+                    return;
+                }
+
+                $this->sessionConnections[$sessionId][$from->resourceId] = $from;
+                $this->connectionSessions[$from->resourceId][$sessionId] = true;
                 break;
 
             default:
@@ -95,6 +100,14 @@ class ChatServer implements MessageComponentInterface
 
             echo "User {$userId} disconnected\n";
         }
+
+        foreach (array_keys($this->connectionSessions[$conn->resourceId] ?? []) as $sessionId) {
+            unset($this->sessionConnections[$sessionId][$conn->resourceId]);
+            if (empty($this->sessionConnections[$sessionId])) {
+                unset($this->sessionConnections[$sessionId]);
+            }
+        }
+        unset($this->connectionSessions[$conn->resourceId]);
     }
 
     public function onError(ConnectionInterface $conn, \Exception $e)
@@ -142,6 +155,14 @@ class ChatServer implements MessageComponentInterface
                 continue;
             }
 
+            if (($event['type'] ?? '') === 'session_chat') {
+                $sessionId = (int) ($event['session_id'] ?? 0);
+                if ($sessionId > 0) {
+                    $this->sendToSession($sessionId, $event);
+                }
+                continue;
+            }
+
             $targetUserId = (int) ($event['to'] ?? $event['receiver_id'] ?? 0);
             if ($targetUserId <= 0) {
                 continue;
@@ -167,6 +188,22 @@ class ChatServer implements MessageComponentInterface
         }
     }
 
+    private function sendToSession(int $sessionId, array $payload): void
+    {
+        if ($sessionId <= 0 || empty($this->sessionConnections[$sessionId])) {
+            return;
+        }
+
+        $message = json_encode($payload);
+        if ($message === false) {
+            return;
+        }
+
+        foreach ($this->sessionConnections[$sessionId] as $connection) {
+            $connection->send($message);
+        }
+    }
+
     private function redis(): ?\Redis
     {
         if ($this->redis instanceof \Redis) {
@@ -179,14 +216,14 @@ class ChatServer implements MessageComponentInterface
 
         try {
             $redis = new \Redis();
-            $redis->connect(getenv('REDIS_HOST') ?: '127.0.0.1', (int) (getenv('REDIS_PORT') ?: 6379), 0.2);
+            $redis->connect((string) (env('redis.host') ?: '127.0.0.1'), (int) (env('redis.port') ?: 6379), 0.2);
 
-            $password = (string) (getenv('REDIS_PASSWORD') ?: '');
+            $password = (string) (env('redis.password') ?: '');
             if ($password !== '') {
                 $redis->auth($password);
             }
 
-            $database = (int) (getenv('REDIS_DATABASE') ?: 0);
+            $database = (int) (env('redis.database') ?: 0);
             if ($database > 0) {
                 $redis->select($database);
             }

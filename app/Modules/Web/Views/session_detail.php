@@ -183,6 +183,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const onlineCountUrl = <?php echo json_encode(base_url('attendees/sessions/' . $chatSessionId . '/online')); ?>;
     const renderedMessageIds = new Set();
     let latestMessageId = 0;
+    let chatSocket = null;
+    let chatPollingTimer = null;
+    let chatReconnectTimer = null;
 
     const ratingStars = Array.from(document.querySelectorAll("#rateSession [data-star]"));
     const ratingStatus = document.getElementById("ratingStatus");
@@ -320,6 +323,71 @@ document.addEventListener("DOMContentLoaded", () => {
             .catch(() => {});
     }
 
+    function startChatPolling() {
+        if (chatPollingTimer) {
+            return;
+        }
+        chatPollingTimer = window.setInterval(loadMessages, 3000);
+    }
+
+    function stopChatPolling() {
+        if (!chatPollingTimer) {
+            return;
+        }
+        window.clearInterval(chatPollingTimer);
+        chatPollingTimer = null;
+    }
+
+    function connectSessionChat() {
+        const realtime = window.EPR_PORTAL_REALTIME || {};
+        const wsUrl = realtime.wsUrl || "";
+        const token = realtime.wsToken || "";
+        const expires = Number(realtime.wsExpires || 0);
+        const userId = Number(realtime.userId || 0);
+
+        if (!sessionId || !wsUrl || !token || !expires || !userId || !("WebSocket" in window)) {
+            startChatPolling();
+            return;
+        }
+
+        try {
+            const socket = new WebSocket(wsUrl);
+            chatSocket = socket;
+
+            socket.addEventListener("open", function() {
+                if (chatSocket !== socket) return;
+                socket.send(JSON.stringify({ type: "register", user_id: userId, token: token, expires: expires }));
+                socket.send(JSON.stringify({ type: "subscribe_session", session_id: sessionId }));
+                loadMessages().finally(stopChatPolling);
+            });
+
+            socket.addEventListener("message", function(event) {
+                try {
+                    const payload = JSON.parse(event.data);
+                    if (payload.type === "session_chat" && Number(payload.session_id) === sessionId && payload.message) {
+                        appendMessage(payload.message);
+                    }
+                } catch (error) {
+                    // A non-chat realtime event is handled by the shared portal socket.
+                }
+            });
+
+            socket.addEventListener("close", function() {
+                if (chatSocket !== socket) return;
+                chatSocket = null;
+                startChatPolling();
+                window.clearTimeout(chatReconnectTimer);
+                chatReconnectTimer = window.setTimeout(connectSessionChat, 2000);
+            });
+
+            socket.addEventListener("error", function() {
+                socket.close();
+            });
+        } catch (error) {
+            startChatPolling();
+        }
+    }
+
     function sendMessage() {
         const text = input.value.trim();
         if (!text || !sessionId || sendButton?.disabled) {
@@ -335,8 +403,13 @@ document.addEventListener("DOMContentLoaded", () => {
             body: JSON.stringify({ message: text })
         })
             .then(response => response.ok ? response.json() : Promise.reject(new Error("chat-send-failed")))
-            .then(() => {
+            .then(payload => {
                 input.value = "";
+                const messageRecord = Array.isArray(payload?.data) ? payload.data[0] : payload?.data;
+                if (messageRecord) {
+                    appendMessage(messageRecord);
+                    return;
+                }
                 return loadMessages();
             })
             .catch(() => {
@@ -389,7 +462,11 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     loadMessages();
-    window.setInterval(loadMessages, 3000);
+    startChatPolling();
+    connectSessionChat();
+    window.addEventListener("beforeunload", function() {
+        if (chatSocket) chatSocket.close();
+    });
 });
 </script>
 </body>

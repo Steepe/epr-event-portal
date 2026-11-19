@@ -35,6 +35,8 @@ $lead      = $sessionSpeakers[0] ?? null;
 $leadRole  = $lead ? trim(($lead['speaker_title'] ?? '') . (!empty($lead['speaker_company']) ? ', ' . $lead['speaker_company'] : ''), ', ') : '';
 $leadPhoto = $lead && !empty($lead['speaker_photo']) ? base_url('uploads/speakers/' . rawurlencode($lead['speaker_photo'])) : mobile_asset_url('images/user.png');
 $sessionId = (int) ($event['sessions_id'] ?? 0);
+$chatWebsocketUrl = trim((string) env('websocket.url'));
+$chatRealtimeAuth = \App\Services\RealtimeToken::issue((int) (session('user_id') ?: session('attendee_id')));
 ?>
 
 <div class="m-screen m-screen--16" style="padding-top:18px">
@@ -127,6 +129,9 @@ document.addEventListener('DOMContentLoaded', function () {
     var sessionId = <?= $sessionId ?>;
     var attendeeId = <?= json_encode((string) (session('user_id') ?: session('attendee_id'))) ?>;
     var api = document.body.getAttribute('data-api');
+    var chatWsUrl = <?= json_encode($chatWebsocketUrl) ?>;
+    var chatWsToken = <?= json_encode($chatRealtimeAuth['token'] ?? '') ?>;
+    var chatWsExpires = <?= json_encode($chatRealtimeAuth['expires'] ?? 0) ?>;
 
     /* Likes are local to this signed-in attendee. Ratings are stored on the server. */
     var stateKey = 'epr-mobile-session:' + attendeeId + ':' + sessionId;
@@ -191,6 +196,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var form = document.getElementById('chatForm');
     var count = document.getElementById('chatCount');
     var seen = {}, people = {}, names = {};
+    var chatSocket = null, chatPollingTimer = null, chatReconnectTimer = null;
 
     function escapeHtml(value) {
         return String(value == null ? '' : value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
@@ -219,6 +225,47 @@ document.addEventListener('DOMContentLoaded', function () {
             .then(function (payload) { (Array.isArray(payload && payload.data) ? payload.data : []).forEach(render); })
             .catch(function () { /* keep the last rendered state */ });
     }
+    function startChatPolling() {
+        if (chatPollingTimer) return;
+        chatPollingTimer = window.setInterval(function () { if (!document.hidden) load(); }, 3000);
+    }
+    function stopChatPolling() {
+        if (!chatPollingTimer) return;
+        window.clearInterval(chatPollingTimer);
+        chatPollingTimer = null;
+    }
+    function connectSessionChat() {
+        if (!sessionId || !chatWsUrl || !chatWsToken || !chatWsExpires || !attendeeId || !window.WebSocket) {
+            startChatPolling();
+            return;
+        }
+        try {
+            var socket = new WebSocket(chatWsUrl);
+            chatSocket = socket;
+            socket.addEventListener('open', function () {
+                if (chatSocket !== socket) return;
+                socket.send(JSON.stringify({ type: 'register', user_id: Number(attendeeId), token: chatWsToken, expires: Number(chatWsExpires) }));
+                socket.send(JSON.stringify({ type: 'subscribe_session', session_id: sessionId }));
+                load().then(stopChatPolling);
+            });
+            socket.addEventListener('message', function (event) {
+                try {
+                    var payload = JSON.parse(event.data);
+                    if (payload.type === 'session_chat' && Number(payload.session_id) === sessionId && payload.message) render(payload.message);
+                } catch (error) { /* Ignore non-chat realtime events. */ }
+            });
+            socket.addEventListener('close', function () {
+                if (chatSocket !== socket) return;
+                chatSocket = null;
+                startChatPolling();
+                window.clearTimeout(chatReconnectTimer);
+                chatReconnectTimer = window.setTimeout(connectSessionChat, 2000);
+            });
+            socket.addEventListener('error', function () { socket.close(); });
+        } catch (error) {
+            startChatPolling();
+        }
+    }
     function tokenise(text) {
         Object.keys(names).sort(function (a, b) { return names[b].length - names[a].length; }).forEach(function (id) {
             if (!names[id]) return;
@@ -233,7 +280,8 @@ document.addEventListener('DOMContentLoaded', function () {
         input.value = '';
         EPR.post(api + '/chat/send/' + sessionId, { message: tokenise(text) }, true).then(function (res) {
             if (!res.ok) { EPR.toast((res.body && res.body.messages && res.body.messages.error) || 'Unable to send your message.', true); input.value = text; return; }
-            load();
+            var message = res.body && Array.isArray(res.body.data) ? res.body.data[0] : (res.body && res.body.data);
+            if (message) render(message); else load();
         }).catch(function () { EPR.toast('Unable to send your message.', true); input.value = text; });
     });
 
@@ -254,7 +302,9 @@ document.addEventListener('DOMContentLoaded', function () {
         })
         .catch(function () { /* mentions are optional */ })
         .then(load)
-        .then(function () { window.setInterval(function () { if (!document.hidden) load(); }, 3000); });
+        .then(function () { startChatPolling(); connectSessionChat(); });
+
+    window.addEventListener('beforeunload', function () { if (chatSocket) chatSocket.close(); });
 
     document.addEventListener('seg:change', function (event) { if (event.detail === 'sessChat') box.scrollTop = box.scrollHeight; });
 });

@@ -6,6 +6,7 @@ $conferenceId = $session->get('live-conference-id');
 $agendaUrl = $conferenceId ? base_url('attendees/agenda/' . $conferenceId) : base_url('attendees/lobby');
 $currentUserId = (int) ($session->get('user_id') ?: $session->get('attendee_id'));
 $websocketUrl = trim((string) env('websocket.url'));
+$websocketAuth = \App\Services\RealtimeToken::issue($currentUserId);
 // Realtime uses the API reconciliation fallback unless a reachable socket URL
 // is explicitly configured. This avoids repeated localhost socket failures in
 // browsers while preserving instant updates through the configured channel.
@@ -87,6 +88,8 @@ $displayUnreadCount = $unreadCount;
     window.EPR_PORTAL_REALTIME = {
         userId: <?php echo json_encode($currentUserId); ?>,
         wsUrl: <?php echo json_encode($websocketUrl); ?>,
+        wsToken: <?php echo json_encode($websocketAuth['token'] ?? ''); ?>,
+        wsExpires: <?php echo json_encode($websocketAuth['expires'] ?? 0); ?>,
         pendingConnectionsUrl: <?php echo json_encode(base_url('api/connections/pending')); ?>,
         notificationsUrl: <?php echo json_encode(base_url('attendees/notifications')); ?>,
         presenceUrl: <?php echo json_encode(base_url('attendees/presence')); ?>

@@ -23,6 +23,8 @@
         const config = window.EPR_PORTAL_REALTIME || {};
         const userId = Number(config.userId || 0);
         const wsUrl = config.wsUrl || "";
+        const wsToken = config.wsToken || "";
+        const wsExpires = Number(config.wsExpires || 0);
         const pendingConnectionsUrl = config.pendingConnectionsUrl || "";
         let socket = null;
         let reconnectTimer = null;
@@ -182,7 +184,7 @@
             // browser refresh. Duplicate connection IDs are ignored above.
             startPolling();
 
-            if (!wsUrl || !("WebSocket" in window)) {
+            if (!wsUrl || !wsToken || !wsExpires || !("WebSocket" in window)) {
                 return;
             }
 
@@ -195,7 +197,7 @@
 
             socket.addEventListener("open", function() {
                 reconnectDelay = 1200;
-                socket.send(JSON.stringify({ type: "register", user_id: userId }));
+                socket.send(JSON.stringify({ type: "register", user_id: userId, token: wsToken, expires: wsExpires }));
             });
 
             socket.addEventListener("message", function(message) {

@@ -10,6 +10,7 @@
 namespace App\Modules\Api\Controllers;
 
 use App\Controllers\BaseController;
+use App\Services\RealtimeNotifier;
 use CodeIgniter\API\ResponseTrait;
 use CodeIgniter\Database\BaseConnection;
 
@@ -55,9 +56,18 @@ class ChatController extends BaseController
             return $this->failServerError('Unable to send chat message. Please try again.');
         }
 
+        $messageWithAuthor = $this->withAuthorNames($chatMessage);
+        if (! empty($messageWithAuthor[0])) {
+            RealtimeNotifier::push([
+                'type' => 'session_chat',
+                'session_id' => $sessionId,
+                'message' => $messageWithAuthor[0],
+            ]);
+        }
+
         return $this->respondCreated([
             'status' => 'success',
-            'data' => $this->withAuthorNames($chatMessage),
+            'data' => $messageWithAuthor,
         ]);
     }
 
