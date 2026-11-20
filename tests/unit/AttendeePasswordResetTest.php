@@ -42,7 +42,9 @@ final class AttendeePasswordResetTest extends CIUnitTestCase
     {
         $this->mailer->method('send')->willReturn(true);
         $this->resets->sendLink('person@example.test');
-        preg_match('/token=([a-f0-9]{64})/', $this->body, $match);
+        // Attribute escaping safely encodes the query separator in HTML email,
+        // so decode the rendered message before extracting the reset token.
+        preg_match('/token=([a-f0-9]{64})/', html_entity_decode($this->body, ENT_QUOTES, 'UTF-8'), $match);
         $this->assertCount(2, $match);
         return $match[1];
     }
@@ -53,7 +55,7 @@ final class AttendeePasswordResetTest extends CIUnitTestCase
         $record = $this->connection->table('password_resets')->get()->getRowArray();
         $this->assertSame(hash('sha256', $token), $record['token']);
         $this->assertTrue($this->resets->isValid($token));
-        $this->assertStringContainsString('/attendees/reset-password?token=', $this->body);
+        $this->assertStringContainsString('/attendees/reset-password?token=', html_entity_decode($this->body, ENT_QUOTES, 'UTF-8'));
         $this->assertSame('html', $this->mailer->mailType);
         $this->resets->reset($token, 'NewPassword123', 'NewPassword123');
         $password = $this->connection->table('tbl_users')->get()->getRowArray()['password'];
