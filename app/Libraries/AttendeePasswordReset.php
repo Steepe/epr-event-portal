@@ -37,9 +37,10 @@ final class AttendeePasswordReset
             $mailer->setTo($issued['email']);
             $mailer->setMailType('html');
             $mailer->setSubject('Password Reset Request - EPRGlobal Events');
-            $mailer->setMessage('<p>Hello,</p><p>Use the link below to choose a new password for your EPRGlobal Events account.</p>'
-                . '<p><a href="' . htmlspecialchars($issued['link'], ENT_QUOTES, 'UTF-8') . '">Reset my password</a></p>'
-                . '<p>This link expires in one hour and can only be used once. If you did not request this, ignore this email.</p>');
+            $mailer->setMessage(view('emails/attendee_password_reset', [
+                'resetLink' => $issued['link'],
+                'supportEmail' => 'registration@eprglobal.com',
+            ]));
             $mailer->setAltMessage("Reset your EPRGlobal Events password: {$issued['link']}\n\nThis link expires in one hour. If you did not request it, ignore this email.");
             if (!$mailer->send()) {
                 throw new RuntimeException('Password reset email could not be sent.');

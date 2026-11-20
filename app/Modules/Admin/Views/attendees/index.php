@@ -35,9 +35,11 @@ $this->section('content');
 <?php endif; ?>
 
 <?php
-$activeFilters = ($conference ?? null) === '2026' || ($email ?? '') !== '' || ($country ?? '') !== '';
+$activeFilters = ($conference ?? null) === '2026' || ($firstName ?? '') !== '' || ($lastName ?? '') !== '' || ($email ?? '') !== '' || ($country ?? '') !== '';
 $filterQuery = array_filter([
   'conference' => $conference ?? null,
+  'first_name' => $firstName ?? '',
+  'last_name' => $lastName ?? '',
   'email' => $email ?? '',
   'country' => $country ?? '',
 ], static fn ($value) => $value !== null && $value !== '');
@@ -59,6 +61,16 @@ $exportLabel = $activeFilters ? 'Export filtered list' : 'Export all attendees';
       <option value="">All attendees</option>
       <option value="2026" <?php echo ($conference ?? null) === '2026' ? 'selected' : ''; ?>>Emergence Conference 2026</option>
     </select>
+  </label>
+  <label class="block text-sm text-gray-300">
+    <span class="mb-1 block text-gray-400">First name</span>
+    <input type="search" name="first_name" value="<?php echo esc($firstName ?? ''); ?>" placeholder="Search first name"
+           class="bg-gray-900 border border-gray-700 text-gray-200 text-sm rounded p-2.5">
+  </label>
+  <label class="block text-sm text-gray-300">
+    <span class="mb-1 block text-gray-400">Last name</span>
+    <input type="search" name="last_name" value="<?php echo esc($lastName ?? ''); ?>" placeholder="Search last name"
+           class="bg-gray-900 border border-gray-700 text-gray-200 text-sm rounded p-2.5">
   </label>
   <label class="block text-sm text-gray-300">
     <span class="mb-1 block text-gray-400">Email address</span>

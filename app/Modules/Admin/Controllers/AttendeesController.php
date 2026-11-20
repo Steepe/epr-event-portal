@@ -32,6 +32,8 @@ class AttendeesController extends BaseController
         return module_view('Admin', 'attendees/index', [
             'attendees' => $attendees,
             'conference' => $filters['conference'],
+            'firstName' => $filters['first_name'],
+            'lastName' => $filters['last_name'],
             'email' => $filters['email'],
             'country' => $filters['country'],
             'countries' => $this->countries(),
@@ -48,6 +50,8 @@ class AttendeesController extends BaseController
     {
         return $this->exportAttendees([
             'conference' => '2026',
+            'first_name' => '',
+            'last_name' => '',
             'email' => '',
             'country' => '',
         ]);
@@ -100,7 +104,7 @@ class AttendeesController extends BaseController
         $filename = $filters['conference'] === '2026'
             ? 'emergence-2026-registrants'
             : 'attendees';
-        if ($filters['email'] !== '' || $filters['country'] !== '') {
+        if ($filters['first_name'] !== '' || $filters['last_name'] !== '' || $filters['email'] !== '' || $filters['country'] !== '') {
             $filename .= '-filtered';
         }
 
@@ -111,11 +115,15 @@ class AttendeesController extends BaseController
 
     private function attendeeFilters(): array
     {
+        $firstName = trim((string) $this->request->getGet('first_name'));
+        $lastName = trim((string) $this->request->getGet('last_name'));
         $email = trim((string) $this->request->getGet('email'));
         $country = trim((string) $this->request->getGet('country'));
 
         return [
             'conference' => $this->request->getGet('conference') === '2026' ? '2026' : null,
+            'first_name' => mb_substr($firstName, 0, 100),
+            'last_name' => mb_substr($lastName, 0, 100),
             'email' => mb_substr($email, 0, 254),
             'country' => mb_substr($country, 0, 100),
         ];
@@ -134,6 +142,14 @@ class AttendeesController extends BaseController
 
         if ($filters['conference'] === '2026') {
             $query->where('tbl_users.registered_2026_at IS NOT NULL', null, false);
+        }
+
+        if ($filters['first_name'] !== '') {
+            $query->like('tbl_attendees.firstname', $filters['first_name']);
+        }
+
+        if ($filters['last_name'] !== '') {
+            $query->like('tbl_attendees.lastname', $filters['last_name']);
         }
 
         if ($filters['email'] !== '') {
