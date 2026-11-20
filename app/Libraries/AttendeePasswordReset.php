@@ -21,15 +21,55 @@ final class AttendeePasswordReset
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             throw new InvalidArgumentException('Please enter a valid email address.');
         }
-        $user = $this->db->table('tbl_users')->where('email', $email)->get()->getRowArray();
-        if (!$user) {
-            return; // Do not disclose whether an address has an account.
-        }
-
         $config = config('Email');
         if (!filter_var($config->fromEmail, FILTER_VALIDATE_EMAIL)) {
             throw new RuntimeException('Password reset email sender is not configured.');
         }
+        $issued = $this->issueLink($email);
+        if ($issued === null) {
+            return; // Do not disclose whether an address has an account.
+        }
+
+        $mailer = $this->mailer ?? \Config\Services::email();
+        try {
+            $mailer->clear(true);
+            $mailer->setFrom($config->fromEmail, $config->fromName ?: 'EPRGlobal Events');
+            $mailer->setTo($issued['email']);
+            $mailer->setMailType('html');
+            $mailer->setSubject('Password Reset Request - EPRGlobal Events');
+            $mailer->setMessage('<p>Hello,</p><p>Use the link below to choose a new password for your EPRGlobal Events account.</p>'
+                . '<p><a href="' . htmlspecialchars($issued['link'], ENT_QUOTES, 'UTF-8') . '">Reset my password</a></p>'
+                . '<p>This link expires in one hour and can only be used once. If you did not request this, ignore this email.</p>');
+            $mailer->setAltMessage("Reset your EPRGlobal Events password: {$issued['link']}\n\nThis link expires in one hour. If you did not request it, ignore this email.");
+            if (!$mailer->send()) {
+                throw new RuntimeException('Password reset email could not be sent.');
+            }
+        } catch (\Throwable $error) {
+            $this->db->table('password_resets')->where('token', $issued['token_hash'])->delete();
+            throw $error;
+        }
+    }
+
+    /** Creates a one-time password setup URL without sending a second email. */
+    public function issueLinkForEmail(string $email): ?string
+    {
+        $issued = $this->issueLink($email);
+
+        return $issued['link'] ?? null;
+    }
+
+    /** @return array{email:string, link:string, token_hash:string}|null */
+    private function issueLink(string $email): ?array
+    {
+        $email = trim($email);
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new InvalidArgumentException('Please enter a valid email address.');
+        }
+        $user = $this->db->table('tbl_users')->where('email', $email)->get()->getRowArray();
+        if (!$user) {
+            return null;
+        }
+
         $token = bin2hex(random_bytes(32));
         $tokenHash = hash('sha256', $token);
         $now = time();
@@ -42,25 +82,11 @@ final class AttendeePasswordReset
             throw new RuntimeException('Could not create password reset request.');
         }
 
-        $link = site_url('attendees/reset-password') . '?token=' . rawurlencode($token);
-        $mailer = $this->mailer ?? \Config\Services::email();
-        try {
-            $mailer->clear(true);
-            $mailer->setFrom($config->fromEmail, $config->fromName ?: 'EPRGlobal Events');
-            $mailer->setTo($user['email']);
-            $mailer->setMailType('html');
-            $mailer->setSubject('Password Reset Request - EPRGlobal Events');
-            $mailer->setMessage('<p>Hello,</p><p>Use the link below to choose a new password for your EPRGlobal Events account.</p>'
-                . '<p><a href="' . htmlspecialchars($link, ENT_QUOTES, 'UTF-8') . '">Reset my password</a></p>'
-                . '<p>This link expires in one hour and can only be used once. If you did not request this, ignore this email.</p>');
-            $mailer->setAltMessage("Reset your EPRGlobal Events password: {$link}\n\nThis link expires in one hour. If you did not request it, ignore this email.");
-            if (!$mailer->send()) {
-                throw new RuntimeException('Password reset email could not be sent.');
-            }
-        } catch (\Throwable $error) {
-            $this->db->table('password_resets')->where('token', $tokenHash)->delete();
-            throw $error;
-        }
+        return [
+            'email' => (string) $user['email'],
+            'link' => site_url('attendees/reset-password') . '?token=' . rawurlencode($token),
+            'token_hash' => $tokenHash,
+        ];
     }
 
     public function isValid(string $token): bool

@@ -102,6 +102,18 @@ final class AttendeePasswordResetTest extends CIUnitTestCase
         $this->assertSame(0, $this->connection->table('password_resets')->countAllResults());
     }
 
+    public function testIssueLinkForEmailCreatesAWorkingPasswordSetupLinkWithoutSendingMail(): void
+    {
+        $this->mailer->expects($this->never())->method('send');
+        $link = $this->resets->issueLinkForEmail('person@example.test');
+        $this->assertNotNull($link);
+        parse_str((string) parse_url($link, PHP_URL_QUERY), $query);
+        $this->assertIsString($query['token'] ?? null);
+        $this->assertTrue($this->resets->isValid($query['token']));
+        $this->assertSame(1, $this->connection->table('password_resets')->countAllResults());
+        $this->assertNull($this->resets->issueLinkForEmail('unknown@example.test'));
+    }
+
     public function testFailedDeliveryRemovesTheUnsentToken(): void
     {
         $this->mailer->method('send')->willReturn(false);
