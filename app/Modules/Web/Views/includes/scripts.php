@@ -476,3 +476,4 @@
         }
     }
 </script>
+<?php echo module_view('Web', 'includes/tawk'); ?>
