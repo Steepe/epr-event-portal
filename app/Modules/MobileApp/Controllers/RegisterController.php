@@ -122,7 +122,10 @@ class RegisterController extends BaseController
         $emailService->setMessage($message);
         $emailService->setMailType('html');
         $emailService->setReplyTo($to, $name);
-        //$emailService->send();
+        if (! $emailService->send()) {
+            // Registration itself remains successful if delivery is temporarily unavailable.
+            log_message('error', 'Mobile registration welcome email failed: ' . $emailService->printDebugger(['headers']));
+        }
 
 
 
