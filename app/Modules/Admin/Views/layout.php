@@ -117,6 +117,11 @@ $isSuperadmin = $adminRole === 'superadmin';
             <i class="bx bx-chat text-lg"></i> Messages
         </a>
 
+        <a href="<?php echo base_url('admin/store'); ?>"
+           class="flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-700">
+            <i class="bx bx-cart text-lg"></i> Emergence Store
+        </a>
+
         <!-- Payments -->
         <a href="<?php echo base_url('admin/payments'); ?>"
            class="flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-700">

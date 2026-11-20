@@ -142,6 +142,17 @@ $routes->group('admin', ['namespace' => 'App\Modules\Admin\Controllers'], functi
         $routes->get('payments', 'PaymentsController::index');
         $routes->get('audit-logs', 'AuditLogsController::index');
 
+        // Emergence Store
+        $routes->get('store', 'StoreController::index');
+        $routes->post('store/products', 'StoreController::saveProduct');
+        $routes->post('store/products/(:num)', 'StoreController::saveProduct/$1');
+        $routes->post('store/coupons', 'StoreController::saveCoupon');
+        $routes->post('store/coupons/(:num)', 'StoreController::saveCoupon/$1');
+        $routes->post('store/videos', 'StoreController::saveVideo');
+        $routes->post('store/videos/(:num)', 'StoreController::saveVideo/$1');
+        $routes->post('store/access/grant', 'StoreController::grant');
+        $routes->post('store/access/(:num)/revoke', 'StoreController::revoke/$1');
+
         // Emergence Booth
         $routes->get('emergence-booth', 'EmergenceBoothController::index');
         $routes->post('emergence-booth/video', 'EmergenceBoothController::saveVideo');

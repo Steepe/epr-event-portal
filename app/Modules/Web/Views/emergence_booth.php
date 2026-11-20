@@ -16,6 +16,7 @@ $topics = $callbackTopics ?? [];
       <span class="rc-kicker">EPR Global · Host Booth</span>
       <span class="rc-page-title">Emergence Booth</span>
       <span class="rc-page-sub">Meet the team, explore programmes and resources, or start a conversation.</span>
+      <a href="<?php echo site_url('attendees/store'); ?>" class="rc-btn" style="margin-top:8px;align-self:flex-start;text-decoration:none;height:42px;padding:0 18px;font-size:12px"><i class="fa fa-shopping-bag" aria-hidden="true"></i> Visit Emergence Store</a>
     </div>
 
     <?php if (!($ready ?? false)): ?>

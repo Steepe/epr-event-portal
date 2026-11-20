@@ -40,6 +40,8 @@ if ($current === 'sessions') {
     $navKey = 'networking_center';
 } elseif ($current === 'emergence_booth') {
     $navKey = 'emergence_booth';
+} elseif ($current === 'store') {
+    $navKey = 'store';
 }
 
 $showNav = in_array($current, [
@@ -52,6 +54,7 @@ $showNav = in_array($current, [
     'exhibitors',
     'sponsors',
     'emergence_booth',
+    'store',
     'notifications',
     'profile',
 ], true);
@@ -66,6 +69,7 @@ $showNavLogo = in_array($current, [
     'exhibitors',
     'sponsors',
     'emergence_booth',
+    'store',
     'notifications',
     'profile',
 ], true);
@@ -77,6 +81,7 @@ $navItems = [
     ['EXHIBITORS', 'exhibitors', base_url('attendees/exhibitors')],
     ['SPONSORS', 'sponsors', base_url('attendees/sponsors')],
     ['EMERGENCE BOOTH', 'emergence_booth', base_url('attendees/emergence_booth')],
+    ['STORE', 'store', base_url('attendees/store')],
 ];
 
 $notificationPreview = [];

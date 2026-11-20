@@ -24,6 +24,7 @@ $routes->group('attendees', ['namespace' => 'App\Modules\Web\Controllers'], func
     $routes->get('reset-password/(:segment)', 'ForgotPasswordController::resetForm/$1');
     $routes->post('webhooks/flutterwave', 'PaymentWebhookController::flutterwave');
     $routes->post('webhooks/paypal',    'PaymentWebhookController::paypal');
+    $routes->post('webhooks/stripe', 'StoreController::stripeWebhook');
 
     $routes->get('payments/success', 'PaymentsController::success');
     $routes->get('payments/cancelled', 'PaymentsController::cancelled');
@@ -45,6 +46,10 @@ $routes->get('emergence/checkout/complete', '\App\Modules\Web\Controllers\Checko
 
 $routes->group('attendees', ['namespace' => 'App\Modules\Web\Controllers', 'filter' => 'auth'], function ($routes) {
     $routes->get('home', 'HomeController::index');
+    $routes->get('store', 'StoreController::index');
+    $routes->post('store/checkout/(:num)', 'StoreController::checkout/$1');
+    $routes->get('store/success', 'StoreController::success');
+    $routes->get('store/replays/(:num)', 'StoreController::replayLibrary/$1');
     $routes->get('start', 'StartController::index');
     $routes->get('platform-tour', 'PlatformTourController::index');
     $routes->get('lobby', 'LobbyController::index');
