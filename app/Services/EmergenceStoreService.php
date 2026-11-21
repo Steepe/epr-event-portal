@@ -139,12 +139,21 @@ class EmergenceStoreService
             'paid_at' => $order['paid_at'] ?: date('Y-m-d H:i:s'),
             'updated_at' => date('Y-m-d H:i:s'),
         ]);
-        $this->grantEntitlement((int) $order['user_id'], (int) $order['product_id'], (int) $order['order_id']);
-        if ($markPaid && $db->affectedRows() === 1 && ! empty($order['coupon_id'])) {
-            $db->table('tbl_store_coupons')->where('coupon_id', (int) $order['coupon_id'])->set('redemption_count', 'redemption_count + 1', false)->update();
+        $newlyPaid = $markPaid && $db->affectedRows() === 1;
+        if ($newlyPaid) {
+            $this->grantEntitlement((int) $order['user_id'], (int) $order['product_id'], (int) $order['order_id']);
+            if (! empty($order['coupon_id'])) {
+                $db->table('tbl_store_coupons')->where('coupon_id', (int) $order['coupon_id'])->set('redemption_count', 'redemption_count + 1', false)->update();
+            }
         }
         $db->transComplete();
-        return $db->transStatus();
+        if (! $db->transStatus()) {
+            throw new RuntimeException('Unable to record the paid store order.');
+        }
+        if ($newlyPaid) {
+            $this->sendPurchaseConfirmation($order);
+        }
+        return true;
     }
 
     public function verifyStripeSignature(string $payload, string $header): bool
@@ -204,6 +213,45 @@ class EmergenceStoreService
         $this->grantEntitlement($userId, (int) $product['product_id']);
         if ($coupon) {
             db_connect()->table('tbl_store_coupons')->where('coupon_id', $coupon['coupon_id'])->set('redemption_count', 'redemption_count + 1', false)->update();
+        }
+    }
+
+    private function sendPurchaseConfirmation(array $order): void
+    {
+        try {
+            $recipient = db_connect()->table('tbl_users u')
+                ->select('u.email, p.firstname, p.lastname')
+                ->join('tbl_user_profiles p', 'p.user_id = u.id', 'left')
+                ->where('u.id', (int) $order['user_id'])->get()->getRowArray();
+            $product = $this->product((int) $order['product_id']);
+            if (! $recipient || ! filter_var($recipient['email'], FILTER_VALIDATE_EMAIL) || ! $product) {
+                throw new RuntimeException('Recipient or product was not found.');
+            }
+
+            $name = trim((string) ($recipient['firstname'] ?? '')) ?: 'there';
+            $amount = strtoupper((string) $order['currency']) . ' ' . number_format((float) $order['amount'], 2);
+            $accessUrl = site_url('attendees/store');
+            $email = service('email');
+            $email->clear(true);
+            $email->setFrom(env('email.fromEmail') ?: 'no-reply@eprglobal.com', env('email.fromName') ?: 'EPR Global Events');
+            $email->setTo((string) $recipient['email']);
+            $email->setSubject('Your EPR Global purchase is confirmed');
+            $email->setMailType('html');
+            $email->setMessage(view('emails/store_purchase', [
+                'name' => $name,
+                'productName' => (string) $product['name'],
+                'amount' => $amount,
+                'reference' => (string) $order['order_ref'],
+                'accessUrl' => $accessUrl,
+            ]));
+            if (! $email->send()) {
+                throw new RuntimeException('Mail transport rejected the message.');
+            }
+        } catch (\Throwable $exception) {
+            log_message('error', 'Store purchase confirmation failed for order {reference}: {error}', [
+                'reference' => (string) $order['order_ref'],
+                'error' => $exception->getMessage(),
+            ]);
         }
     }
 
