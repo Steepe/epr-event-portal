@@ -27,6 +27,8 @@
       <label class="block text-sm text-gray-300"><span class="mb-1 block text-gray-400">Subject</span><input name="subject" maxlength="255" required value="<?php echo esc(old('subject')); ?>" class="w-full rounded border border-gray-700 bg-gray-900 p-2.5 text-gray-100" placeholder="Message subject"></label>
     </div>
 
+    <label class="mt-4 block text-sm text-gray-300"><span class="mb-1 block text-gray-400">Email design</span><select name="email_template" id="email_template" class="w-full rounded border border-gray-700 bg-gray-900 p-2.5 text-gray-100"><option value="standard" <?php echo old('email_template') === 'standard' ? 'selected' : ''; ?>>Standard portal update</option><option value="emergence_access" <?php echo old('email_template') === 'emergence_access' ? 'selected' : ''; ?>>Emergence Conference access reminder</option></select><span class="mt-1 block text-xs text-gray-500">The access reminder includes a dedicated “Log in to the portal” button.</span></label>
+
     <div id="individual-fields" class="mt-4"><label class="block text-sm text-gray-300"><span class="mb-1 block text-gray-400">Attendee email address</span><input name="recipient_email" type="email" value="<?php echo esc(old('recipient_email')); ?>" class="w-full rounded border border-gray-700 bg-gray-900 p-2.5 text-gray-100" placeholder="name@example.com"></label></div>
     <div id="selected-fields" class="mt-4 hidden"><label class="block text-sm text-gray-300"><span class="mb-1 block text-gray-400">Select attendees</span><input id="attendee-search" type="search" class="mb-2 w-full rounded border border-gray-700 bg-gray-900 p-2.5 text-gray-100" placeholder="Search by name, email, or country"><select id="selected-attendees" name="selected_user_ids[]" multiple size="12" class="w-full rounded border border-gray-700 bg-gray-900 p-2.5 text-gray-100"><?php foreach (($attendees ?? []) as $attendee): ?><option value="<?php echo (int) $attendee['attendee_id']; ?>" data-search="<?php echo esc(strtolower(trim(($attendee['firstname'] ?? '') . ' ' . ($attendee['lastname'] ?? '') . ' ' . ($attendee['email'] ?? '') . ' ' . ($attendee['country'] ?? ''))), 'attr'); ?>"><?php echo esc(trim(($attendee['firstname'] ?? '') . ' ' . ($attendee['lastname'] ?? '')) ?: $attendee['email']); ?> · <?php echo esc($attendee['email']); ?><?php echo !empty($attendee['country']) ? ' · ' . esc($attendee['country']) : ''; ?></option><?php endforeach; ?></select></label><p class="mt-2 text-xs text-gray-400">Use Command/Ctrl-click to select more than one attendee.</p></div>
     <div id="filtered-fields" class="mt-4 hidden grid gap-4 md:grid-cols-2">
@@ -49,6 +51,10 @@
   </section>
   <script>
     const recipientType = document.getElementById('recipient_type');
+    const emailTemplate = document.getElementById('email_template');
+    const subject = document.querySelector('input[name="subject"]');
+    const body = document.querySelector('textarea[name="body"]');
+    const accessCopy = <?php echo json_encode("We look forward to welcoming you to the Emergence Conference 2026!\n\nIf you are receiving this email, you already have an account on our event portal. You do not need to register again.\n\nLog in with the email address and password used when creating your account.\n\nCan't find your password? Select Forgot Password on the login page. A password-reset link will be sent to your email address. Use that link to create a new password, then log in.\n\nPlease check your spam or junk folder if the password-reset email does not appear in your inbox.\n\nA quick reminder: access to today's Emergence Conference is exclusively through the EPR Global portal.\n\nWe look forward to seeing you there as we Accelerate: Building Sustainable Systems for Execution!\n\nWarm regards,\n\nThe Emergence Conference Team\nEPR Global", JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
     const setRecipientFields = () => {
       const value = recipientType.value;
       document.getElementById('individual-fields').classList.toggle('hidden', value !== 'individual');
@@ -59,6 +65,14 @@
       confirmation.classList.toggle('flex', value === 'all');
     };
     recipientType.addEventListener('change', setRecipientFields); setRecipientFields();
+    emailTemplate.addEventListener('change', function () {
+      if (this.value !== 'emergence_access') return;
+      if (subject.value !== '' || body.value !== '') {
+        if (!window.confirm('Load the recommended Emergence access email copy? This replaces the current subject and message.')) return;
+      }
+      subject.value = 'Today: How to Access the Emergence Conference';
+      body.value = accessCopy;
+    });
     document.getElementById('attendee-search').addEventListener('input', function () { const term = this.value.trim().toLowerCase(); document.querySelectorAll('#selected-attendees option').forEach(option => option.hidden = term !== '' && !option.dataset.search.includes(term)); });
   </script>
 <?php endif; ?>
