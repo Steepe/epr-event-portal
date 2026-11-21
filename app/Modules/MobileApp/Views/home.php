@@ -12,7 +12,7 @@ $hasWelcomeVideo = $welcomeVideoUrl !== '' && filter_var($welcomeVideoUrl, FILTE
         <h1 class="m-welcome__title">Welcome to <?= esc($conferenceTitle) ?></h1>
     </div>
 
-    <div class="m-welcome__video<?= $hasWelcomeVideo ? '' : ' is-unavailable' ?>"<?= $hasWelcomeVideo ? ' data-video-src="' . esc($welcomeVideoUrl, 'attr') . '" data-video-title="Welcome to ' . esc($conferenceTitle, 'attr') . '"' : '' ?>>
+    <div class="m-welcome__video m-welcome__video--portrait<?= $hasWelcomeVideo ? '' : ' is-unavailable' ?>"<?= $hasWelcomeVideo ? ' data-video-src="' . esc($welcomeVideoUrl, 'attr') . '" data-video-title="Welcome to ' . esc($conferenceTitle, 'attr') . '"' : '' ?>>
         <?php if ($hasWelcomeVideo): ?>
             <button class="m-play" type="button" data-play data-video-hide aria-label="Play welcome video"><i class="fa fa-play" aria-hidden="true"></i></button>
             <span class="m-welcome__label" data-video-hide>WELCOME FILM</span>
