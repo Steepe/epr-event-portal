@@ -10,12 +10,10 @@
 namespace App\Modules\Web\Controllers;
 
 use App\Controllers\BaseController;
-use CodeIgniter\API\ResponseTrait;
+use App\Services\AttendeeDirectoryService;
 
 class AttendeesController extends BaseController
 {
-    use ResponseTrait;
-
     public function index(): string|\CodeIgniter\HTTP\RedirectResponse
     {
         $session = session();
@@ -23,43 +21,38 @@ class AttendeesController extends BaseController
             return redirect()->to(base_url('attendees/login'));
         }
 
-        // 🔗 Fetch attendees from API
-        $apiKey  = env('api.securityKey');
-        $apiBase = rtrim(base_url('api'), '/');
-        $curl    = service('curlrequest', ['verify' => false]);
-
-        $query = $this->request->getGet('sort');
-        $search = $this->request->getGet('attendee_name');
-
-        $params = [];
-        if ($query) $params['sort'] = $query;
-        if ($search) $params['attendee_name'] = $search;
-        $params['current_user_id'] = (int) ($session->get('user_id') ?: $session->get('attendee_id'));
+        $search = (string) $this->request->getGet('attendee_name');
+        $letter = (string) $this->request->getGet('sort');
+        $onlineOnly = $this->request->getGet('filter') === 'online';
+        $page = max(1, (int) $this->request->getGet('page'));
 
         try {
-            $response = $curl->get("{$apiBase}/attendees", [
-                'headers' => ['X-API-KEY' => $apiKey],
-                'query'   => $params,
-                'timeout' => 3,
-                'connect_timeout' => 1,
-            ]);
-
-            $body = json_decode($response->getBody(), true);
-            $data = [
-                'attendees' => $body['data']['attendees'] ?? [],
-                'alphabet_count' => $body['data']['alphabet_count'] ?? [],
-                'page_title' => 'Attendees',
-            ];
+            $data = (new AttendeeDirectoryService())->page(
+                (int) ($session->get('user_id') ?: $session->get('attendee_id')),
+                $search,
+                $letter,
+                $onlineOnly,
+                $page
+            );
         } catch (\Throwable $e) {
             log_message('error', '[AttendeesController] '.$e->getMessage());
             $data = [
                 'attendees' => [],
-                'alphabet_count' => [],
-                'page_title' => 'Attendees',
+                'total' => 0,
+                'all_count' => 0,
+                'online_count' => 0,
+                'page' => 1,
+                'per_page' => 60,
+                'has_more' => false,
             ];
         }
 
-        return module_view('Web', 'attendees_list', $data);
+        return module_view('Web', 'attendees_list', $data + [
+            'page_title' => 'Attendees',
+            'search_value' => $search,
+            'letter_value' => $letter,
+            'online_only' => $onlineOnly,
+        ]);
     }
 
     public function profile(): string|\CodeIgniter\HTTP\RedirectResponse

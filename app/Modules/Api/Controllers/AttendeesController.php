@@ -28,99 +28,28 @@ class AttendeesController extends ResourceController
     public function index()
     {
         try {
-            $name = $this->request->getGet('attendee_name');
-            $sort = $this->request->getGet('sort');
-            $db = db_connect();
-            $hasPresenceTable = $db->tableExists('tbl_portal_user_presence');
-            $hasStatusTable = $db->tableExists('tbl_user_status');
-
-            $builder = $this->model
-                ->select("
-        tbl_attendees.id,
-        tbl_attendees.attendee_id,
-        tbl_attendees.firstname,
-        tbl_attendees.lastname,
-        tbl_attendees.company,
-        tbl_attendees.position,
-        tbl_attendees.country,
-        tbl_attendees.state,
-        tbl_attendees.city,
-        tbl_attendees.profile_picture,
-        tbl_attendees.facebook,
-        tbl_attendees.twitter,
-        tbl_attendees.instagram,
-        tbl_attendees.linkedin,
-        tbl_users.email
-    ")
-                ->join('tbl_users', 'tbl_users.id = tbl_attendees.attendee_id');
-
-            if ($hasPresenceTable) {
-                $builder
-                    ->select("
-                        CASE
-                            WHEN tbl_portal_user_presence.last_seen_at >= DATE_SUB(NOW(), INTERVAL 2 MINUTE)
-                            THEN 1
-                            ELSE 0
-                        END AS is_online,
-                        tbl_portal_user_presence.last_seen_at
-                    ", false)
-                    ->join('tbl_portal_user_presence', 'tbl_portal_user_presence.user_id = tbl_attendees.attendee_id', 'left');
-            } elseif ($hasStatusTable) {
-                $builder
-                    ->select("
-                        CASE
-                            WHEN tbl_user_status.is_online = 1
-                                AND tbl_user_status.last_seen >= DATE_SUB(NOW(), INTERVAL 5 MINUTE)
-                            THEN 1
-                            ELSE 0
-                        END AS is_online,
-                        tbl_user_status.last_seen
-                    ", false)
-                    ->join('tbl_user_status', 'tbl_user_status.user_id = tbl_attendees.attendee_id', 'left');
-            } else {
-                $builder->select('0 AS is_online, NULL AS last_seen', false);
-            }
-
-            if ($name) {
-                $builder->groupStart()
-                    ->like('tbl_attendees.firstname', $name)
-                    ->orLike('tbl_attendees.lastname', $name)
-                    ->orLike("CONCAT(tbl_attendees.firstname, ' ', tbl_attendees.lastname)", $name, 'both', false)
-                    ->orLike('tbl_attendees.company', $name)
-                    ->orLike('tbl_attendees.position', $name)
-                    ->groupEnd();
-            }
-
-            if ($sort) {
-                $builder->like('tbl_attendees.firstname', $sort, 'after');
-            }
-
-            $attendees = $builder
-                ->orderBy("LOWER(TRIM(COALESCE(tbl_attendees.firstname, '')))", 'ASC', false)
-                ->orderBy("LOWER(TRIM(COALESCE(tbl_attendees.lastname, '')))", 'ASC', false)
-                ->orderBy('tbl_attendees.attendee_id', 'ASC')
-                ->findAll();
-            $attendees = $this->applyRedisOnlineState($attendees);
-            $attendees = $this->applyConnectionState($attendees);
-            $attendees = $this->sortAlphabetically($attendees);
-
-            // Generate A–Z letters
-            $alphabetCount = [];
-            foreach (range('A', 'Z') as $letter) {
-                $alphabetCount[] = ['firstCharacter' => $letter];
-            }
+            $result = (new \App\Services\AttendeeDirectoryService())->page(
+                $this->resolveCurrentAttendeeId(),
+                (string) $this->request->getGet('attendee_name'),
+                (string) $this->request->getGet('sort'),
+                $this->request->getGet('filter') === 'online',
+                max(1, (int) $this->request->getGet('page'))
+            );
 
             return $this->respond([
-                'status'  => 200,
+                'status' => 200,
                 'message' => 'Attendees retrieved successfully.',
-                'data'    => [
-                    'attendees'      => $attendees,
-                    'alphabet_count' => $alphabetCount,
+                'data' => [
+                    'attendees' => $result['attendees'],
+                    'alphabet_count' => array_map(static fn (string $letter): array => ['firstCharacter' => $letter], range('A', 'Z')),
+                    'total' => $result['total'],
+                    'page' => $result['page'],
+                    'per_page' => $result['per_page'],
+                    'has_more' => $result['has_more'],
                 ],
             ]);
-
         } catch (\Throwable $e) {
-            log_message('error', '[API:AttendeesController] '.$e->getMessage());
+            log_message('error', '[API:AttendeesController] ' . $e->getMessage());
             return $this->failServerError('Unable to fetch attendees.');
         }
     }

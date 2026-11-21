@@ -8,9 +8,24 @@ $tabs = [
     ['COMMUNITIES', base_url('attendees/communities'), false],
 ];
 
-$searchValue = (string) service('request')->getGet('attendee_name');
+$searchValue = (string) ($search_value ?? '');
+$letterValue = (string) ($letter_value ?? '');
+$onlineOnly = (bool) ($online_only ?? false);
+$currentPage = max(1, (int) ($page ?? 1));
+$perPage = max(1, (int) ($per_page ?? 60));
+$matchingTotal = max(0, (int) ($total ?? 0));
+$firstResult = $matchingTotal > 0 ? ($currentPage - 1) * $perPage + 1 : 0;
+$lastResult = min($currentPage * $perPage, $matchingTotal);
+$pageUrl = static function (int $targetPage) use ($searchValue, $letterValue, $onlineOnly): string {
+    return base_url('attendees/attendees') . '?' . http_build_query(array_filter([
+        'attendee_name' => $searchValue,
+        'sort' => $letterValue,
+        'filter' => $onlineOnly ? 'online' : '',
+        'page' => max(1, $targetPage),
+    ], static fn ($value): bool => $value !== ''));
+};
 $currentUserId = (int) (session('user_id') ?: session('attendee_id'));
-$onlineCount = count(array_filter($attendees ?? [], static fn (array $attendee): bool => !empty($attendee['is_online']) && (int) $attendee['is_online'] === 1));
+$onlineCount = (int) ($online_count ?? 0);
 $attendeeFilters = ['All', 'Online now'];
 ?>
 
@@ -22,7 +37,7 @@ $attendeeFilters = ['All', 'Online now'];
                     <i class="fa fa-arrow-left" aria-hidden="true"></i>NETWORKING CENTER
                 </a>
                 <span class="rc-page-title">Attendees</span>
-                <span class="rc-page-sub"><span data-attendee-count><?php echo !empty($attendees) ? count($attendees) : 0; ?></span> people in your network · <?php echo $onlineCount; ?> online now</span>
+                <span class="rc-page-sub"><span data-attendee-count><?php echo (int) ($all_count ?? 0); ?></span> people in your network · <?php echo $onlineCount; ?> online now</span>
             </div>
 
             <div class="rc-net-tabs">
@@ -39,15 +54,18 @@ $attendeeFilters = ['All', 'Online now'];
             <form method="get" data-attendee-search-form style="position:relative;flex:1;min-width:240px;max-width:380px;display:flex">
                 <i class="fa fa-search" style="position:absolute;left:16px;top:50%;transform:translateY(-50%);color:rgba(255,255,255,.6)" aria-hidden="true"></i>
                 <input class="rc-input rc-attendee-search" type="text" name="attendee_name" value="<?php echo esc($searchValue, 'attr'); ?>" placeholder="Search by name, country" autocomplete="off" style="padding-left:42px;background:#1d0a21!important;border-radius:12px!important">
+                <?php if ($letterValue !== ''): ?><input type="hidden" name="sort" value="<?php echo esc($letterValue, 'attr'); ?>"><?php endif; ?>
+                <?php if ($onlineOnly): ?><input type="hidden" name="filter" value="online"><?php endif; ?>
             </form>
 
             <div class="rc-attendee-filters">
                 <?php foreach ($attendeeFilters as $filterIndex => $filter): ?>
-                    <button type="button" class="rc-attendee-filter<?php echo $filterIndex === 0 ? ' is-active' : ''; ?>" data-attendee-filter="<?php echo esc($filter, 'attr'); ?>"><?php echo esc($filter); ?></button>
+                    <button type="button" class="rc-attendee-filter<?php echo (($filterIndex === 1) === $onlineOnly) ? ' is-active' : ''; ?>" data-attendee-filter="<?php echo esc($filter, 'attr'); ?>"><?php echo esc($filter); ?></button>
                 <?php endforeach; ?>
             </div>
         </div>
 
+        <div data-attendee-results aria-live="polite">
         <?php if (!empty($attendees)): ?>
             <section class="rc-attendee-grid" data-attendee-grid>
                 <?php foreach ($attendees as $attendee): ?>
@@ -130,6 +148,8 @@ $attendeeFilters = ['All', 'Online now'];
                             <div class="rc-avatar-token">
                                 <span data-avatar-fallback style="display:none"><?php echo esc($firstLetter); ?></span>
                                 <img src="<?php echo $image; ?>"
+                                     loading="lazy"
+                                     decoding="async"
                                      alt="<?php echo esc($fullName); ?>"
                                      onerror="this.remove();this.parentNode.querySelector('[data-avatar-fallback]').style.display='inline';"
                                      style="width:100%;height:100%;object-fit:cover">
@@ -176,6 +196,15 @@ $attendeeFilters = ['All', 'Online now'];
         <?php else: ?>
             <div class="rc-empty">No attendees match that search.</div>
         <?php endif; ?>
+
+        <?php if ($matchingTotal > 0): ?>
+            <nav aria-label="Attendee pages" style="display:flex;justify-content:center;align-items:center;gap:14px;flex-wrap:wrap;padding:12px 0 28px;color:#fff">
+                <?php if ($currentPage > 1): ?><a class="rc-attendee-filter" href="<?php echo esc($pageUrl($currentPage - 1), 'attr'); ?>">Previous</a><?php endif; ?>
+                <span>Showing <?php echo $firstResult; ?>–<?php echo $lastResult; ?> of <?php echo $matchingTotal; ?></span>
+                <?php if (!empty($has_more)): ?><a class="rc-attendee-filter" href="<?php echo esc($pageUrl($currentPage + 1), 'attr'); ?>">Next</a><?php endif; ?>
+            </nav>
+        <?php endif; ?>
+        </div>
     </div>
 </main>
 
@@ -252,11 +281,10 @@ $attendeeFilters = ['All', 'Online now'];
 (function() {
     const searchForm = document.querySelector("[data-attendee-search-form]");
     const searchInput = document.querySelector(".rc-attendee-search");
-    const attendeeCards = Array.from(document.querySelectorAll("[data-attendee-card]"));
     const attendeeFilters = Array.from(document.querySelectorAll("[data-attendee-filter]"));
-    const attendeeCount = document.querySelector("[data-attendee-count]");
-    const attendeeEmpty = document.querySelector("[data-attendee-empty]");
-    let activeFilter = "All";
+    const resultsContainer = document.querySelector("[data-attendee-results]");
+    let searchTimer = null;
+    let resultsRequest = null;
 
     const profileDrawer = document.querySelector(".rc-profile-drawer");
     const profileBackdrop = document.querySelector(".rc-profile-backdrop");
@@ -670,56 +698,81 @@ $attendeeFilters = ['All', 'Online now'];
             });
     }
 
-    function applySearch() {
-        const query = (searchInput?.value || "").trim().toLowerCase();
-        let visible = 0;
-
-        attendeeCards.forEach(function(card) {
-            const searchMatches = !query || card.dataset.search.includes(query);
-            const filterMatches = activeFilter === "All"
-                || (activeFilter === "Online now" && card.dataset.profileOnline === "1");
-            const matches = searchMatches && filterMatches;
-            card.hidden = !matches;
-            if (matches) {
-                visible++;
-            }
-        });
-
-        if (attendeeCount) {
-            attendeeCount.textContent = visible;
-        }
-        if (attendeeEmpty) {
-            attendeeEmpty.hidden = visible !== 0;
-        }
-    }
-
     function isInteractiveTarget(target) {
         return !!target.closest("button, a, input, textarea, select, [data-rc-profile-close], [data-rc-dm-close]");
+    }
+
+    async function refreshResults(url) {
+        resultsRequest?.abort();
+        const request = new AbortController();
+        resultsRequest = request;
+        resultsContainer?.setAttribute("aria-busy", "true");
+
+        try {
+            const response = await fetch(url.toString(), { credentials: "same-origin", signal: request.signal });
+            if (!response.ok) throw new Error("attendee-search-failed");
+            const page = new DOMParser().parseFromString(await response.text(), "text/html");
+            const nextResults = page.querySelector("[data-attendee-results]");
+            if (!nextResults || !resultsContainer) throw new Error("attendee-results-missing");
+
+            resultsContainer.innerHTML = nextResults.innerHTML;
+            const nextSummary = page.querySelector(".rc-page-sub");
+            const summary = document.querySelector(".rc-page-sub");
+            if (nextSummary && summary) summary.innerHTML = nextSummary.innerHTML;
+            attendeeFilters.forEach(function(button) {
+                button.classList.toggle("is-active", (button.dataset.attendeeFilter === "Online now") === (url.searchParams.get("filter") === "online"));
+            });
+            window.history.replaceState(null, "", url.toString());
+        } catch (error) {
+            if (error.name !== "AbortError") window.location.assign(url.toString());
+        } finally {
+            if (resultsRequest === request) {
+                resultsRequest = null;
+                resultsContainer?.removeAttribute("aria-busy");
+            }
+        }
     }
 
     if (searchForm) {
         searchForm.addEventListener("submit", function(event) {
             event.preventDefault();
-            applySearch();
+            window.clearTimeout(searchTimer);
+            const url = new URL(window.location.href);
+            const query = (searchInput?.value || "").trim();
+            if (query) url.searchParams.set("attendee_name", query);
+            else url.searchParams.delete("attendee_name");
+            url.searchParams.delete("page");
+            refreshResults(url);
         });
     }
 
     if (searchInput) {
-        searchInput.addEventListener("input", applySearch);
-        applySearch();
+        searchInput.addEventListener("input", function() {
+            window.clearTimeout(searchTimer);
+            searchTimer = window.setTimeout(function() {
+                searchForm?.requestSubmit();
+            }, 450);
+        });
     }
 
     attendeeFilters.forEach(function(button) {
         button.addEventListener("click", function() {
-            activeFilter = button.dataset.attendeeFilter || "All";
-            attendeeFilters.forEach(function(item) {
-                item.classList.toggle("is-active", item === button);
-            });
-            applySearch();
+            const url = new URL(window.location.href);
+            if (button.dataset.attendeeFilter === "Online now") url.searchParams.set("filter", "online");
+            else url.searchParams.delete("filter");
+            url.searchParams.delete("page");
+            refreshResults(url);
         });
     });
 
     document.addEventListener("click", function(event) {
+        const pageLink = event.target.closest("[data-attendee-results] nav a");
+        if (pageLink) {
+            event.preventDefault();
+            refreshResults(new URL(pageLink.href));
+            return;
+        }
+
         const connectButton = event.target.closest(".rc-connect-toggle");
         if (connectButton) {
             const card = connectButton.closest("[data-attendee-card]");
