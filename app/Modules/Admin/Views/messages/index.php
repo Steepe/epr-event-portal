@@ -45,6 +45,7 @@
             <span><strong class="block font-medium text-gray-100"><?php echo esc(trim(($attendee['firstname'] ?? '') . ' ' . ($attendee['lastname'] ?? '')) ?: $attendee['email']); ?></strong><span class="block text-xs text-gray-400"><?php echo esc($attendee['email']); ?><?php echo !empty($attendee['country']) ? ' · ' . esc($attendee['country']) : ''; ?></span></span>
           </label>
         <?php endforeach; ?>
+        <p id="no-attendees-found" class="hidden p-3 text-center text-sm text-gray-400">No attendees match that search.</p>
       </div>
     </div>
     <div id="filtered-fields" class="mt-4 hidden grid gap-4 md:grid-cols-2">
@@ -97,19 +98,25 @@
       selectedAttendeeCount.textContent = `${count} selected`;
     };
     const visibleAttendeeCount = document.getElementById('visible-attendee-count');
+    const noAttendeesFound = document.getElementById('no-attendees-found');
     const applyAttendeeSearch = () => {
       const term = attendeeSearch.value.trim().toLowerCase();
       let visible = 0;
       attendeeRows.forEach(row => {
         const matches = term === '' || row.dataset.search.includes(term);
-        row.hidden = !matches;
-        if (matches) visible += 1;
+        row.style.display = matches ? 'flex' : 'none';
+        row.setAttribute('aria-hidden', matches ? 'false' : 'true');
+        if (matches) {
+          visible += 1;
+        }
       });
       visibleAttendeeCount.textContent = `${visible} shown`;
+      noAttendeesFound.classList.toggle('hidden', visible !== 0);
     };
     attendeeSearch.addEventListener('input', applyAttendeeSearch);
+    attendeeSearch.addEventListener('keyup', applyAttendeeSearch);
     attendeeSearch.addEventListener('search', applyAttendeeSearch);
-    document.getElementById('select-visible-attendees').addEventListener('click', () => { attendeeRows.filter(row => !row.hidden).forEach(row => { row.querySelector('input[type="checkbox"]').checked = true; }); updateSelectedAttendeeCount(); });
+    document.getElementById('select-visible-attendees').addEventListener('click', () => { attendeeRows.filter(row => row.style.display !== 'none').forEach(row => { row.querySelector('input[type="checkbox"]').checked = true; }); updateSelectedAttendeeCount(); });
     document.getElementById('clear-selected-attendees').addEventListener('click', () => { attendeeRows.forEach(row => { row.querySelector('input[type="checkbox"]').checked = false; }); updateSelectedAttendeeCount(); });
     attendeeRows.forEach(row => row.querySelector('input[type="checkbox"]').addEventListener('change', updateSelectedAttendeeCount));
     applyAttendeeSearch();
