@@ -30,7 +30,23 @@
     <label class="mt-4 block text-sm text-gray-300"><span class="mb-1 block text-gray-400">Email design</span><select name="email_template" id="email_template" class="w-full rounded border border-gray-700 bg-gray-900 p-2.5 text-gray-100"><option value="standard" <?php echo old('email_template') === 'standard' ? 'selected' : ''; ?>>Standard portal update</option><option value="emergence_access" <?php echo old('email_template') === 'emergence_access' ? 'selected' : ''; ?>>Emergence Conference access reminder</option></select><span class="mt-1 block text-xs text-gray-500">The access reminder includes a dedicated “Log in to the portal” button.</span></label>
 
     <div id="individual-fields" class="mt-4"><label class="block text-sm text-gray-300"><span class="mb-1 block text-gray-400">Attendee email address</span><input name="recipient_email" type="email" value="<?php echo esc(old('recipient_email')); ?>" class="w-full rounded border border-gray-700 bg-gray-900 p-2.5 text-gray-100" placeholder="name@example.com"></label></div>
-    <div id="selected-fields" class="mt-4 hidden"><label class="block text-sm text-gray-300"><span class="mb-1 block text-gray-400">Select attendees</span><input id="attendee-search" type="search" class="mb-2 w-full rounded border border-gray-700 bg-gray-900 p-2.5 text-gray-100" placeholder="Search by name, email, or country"><select id="selected-attendees" name="selected_user_ids[]" multiple size="12" class="w-full rounded border border-gray-700 bg-gray-900 p-2.5 text-gray-100"><?php foreach (($attendees ?? []) as $attendee): ?><option value="<?php echo (int) $attendee['attendee_id']; ?>" data-search="<?php echo esc(strtolower(trim(($attendee['firstname'] ?? '') . ' ' . ($attendee['lastname'] ?? '') . ' ' . ($attendee['email'] ?? '') . ' ' . ($attendee['country'] ?? ''))), 'attr'); ?>"><?php echo esc(trim(($attendee['firstname'] ?? '') . ' ' . ($attendee['lastname'] ?? '')) ?: $attendee['email']); ?> · <?php echo esc($attendee['email']); ?><?php echo !empty($attendee['country']) ? ' · ' . esc($attendee['country']) : ''; ?></option><?php endforeach; ?></select></label><p class="mt-2 text-xs text-gray-400">Use Command/Ctrl-click to select more than one attendee.</p></div>
+    <?php $selectedAttendeeIds = array_map('intval', (array) old('selected_user_ids')); ?>
+    <div id="selected-fields" class="mt-4 hidden rounded-lg border border-gray-700 bg-gray-900/50 p-4">
+      <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
+        <div><span class="block text-sm font-medium text-gray-200">Select attendees</span><span class="text-xs text-gray-400">Tick one or more people to receive this message.</span></div>
+        <span id="selected-attendee-count" class="rounded-full bg-blue-950 px-3 py-1 text-xs font-medium text-blue-200">0 selected</span>
+      </div>
+      <div class="mb-3 flex flex-wrap gap-2"><input id="attendee-search" type="search" class="min-w-[220px] flex-1 rounded border border-gray-700 bg-gray-900 p-2.5 text-sm text-gray-100" placeholder="Search by name, email, or country"><button id="select-visible-attendees" type="button" class="rounded border border-gray-600 px-3 py-2 text-xs font-medium text-gray-200 hover:bg-gray-700">Select visible</button><button id="clear-selected-attendees" type="button" class="rounded border border-gray-600 px-3 py-2 text-xs font-medium text-gray-200 hover:bg-gray-700">Clear selection</button></div>
+      <div id="selected-attendees" role="group" aria-label="Select attendees" class="max-h-80 space-y-1 overflow-y-auto rounded border border-gray-700 bg-gray-950 p-2">
+        <?php foreach (($attendees ?? []) as $attendee): ?>
+          <?php $attendeeId = (int) $attendee['attendee_id']; $searchText = strtolower(trim(($attendee['firstname'] ?? '') . ' ' . ($attendee['lastname'] ?? '') . ' ' . ($attendee['email'] ?? '') . ' ' . ($attendee['country'] ?? ''))); ?>
+          <label class="selected-attendee-row flex cursor-pointer items-start gap-3 rounded p-2 text-sm text-gray-200 hover:bg-gray-800" data-search="<?php echo esc($searchText, 'attr'); ?>">
+            <input class="mt-1 h-4 w-4 rounded border-gray-600 bg-gray-900 text-blue-600 focus:ring-blue-500" type="checkbox" name="selected_user_ids[]" value="<?php echo $attendeeId; ?>"<?php echo in_array($attendeeId, $selectedAttendeeIds, true) ? ' checked' : ''; ?>>
+            <span><strong class="block font-medium text-gray-100"><?php echo esc(trim(($attendee['firstname'] ?? '') . ' ' . ($attendee['lastname'] ?? '')) ?: $attendee['email']); ?></strong><span class="block text-xs text-gray-400"><?php echo esc($attendee['email']); ?><?php echo !empty($attendee['country']) ? ' · ' . esc($attendee['country']) : ''; ?></span></span>
+          </label>
+        <?php endforeach; ?>
+      </div>
+    </div>
     <div id="filtered-fields" class="mt-4 hidden grid gap-4 md:grid-cols-2">
       <label class="block text-sm text-gray-300"><span class="mb-1 block text-gray-400">Email address contains</span><input name="email" type="search" value="<?php echo esc(old('email')); ?>" class="w-full rounded border border-gray-700 bg-gray-900 p-2.5 text-gray-100" placeholder="e.g. company.com"></label>
       <label class="block text-sm text-gray-300"><span class="mb-1 block text-gray-400">Country</span><select name="country" class="w-full rounded border border-gray-700 bg-gray-900 p-2.5 text-gray-100"><option value="">All countries</option><?php foreach (($countries ?? []) as $country): ?><option value="<?php echo esc($country); ?>" <?php echo old('country') === $country ? 'selected' : ''; ?>><?php echo esc($country); ?></option><?php endforeach; ?></select></label>
@@ -73,7 +89,18 @@
       subject.value = 'Today: How to Access the Emergence Conference';
       body.value = accessCopy;
     });
-    document.getElementById('attendee-search').addEventListener('input', function () { const term = this.value.trim().toLowerCase(); document.querySelectorAll('#selected-attendees option').forEach(option => option.hidden = term !== '' && !option.dataset.search.includes(term)); });
+    const attendeeSearch = document.getElementById('attendee-search');
+    const attendeeRows = [...document.querySelectorAll('.selected-attendee-row')];
+    const selectedAttendeeCount = document.getElementById('selected-attendee-count');
+    const updateSelectedAttendeeCount = () => {
+      const count = attendeeRows.filter(row => row.querySelector('input[type="checkbox"]').checked).length;
+      selectedAttendeeCount.textContent = `${count} selected`;
+    };
+    attendeeSearch.addEventListener('input', function () { const term = this.value.trim().toLowerCase(); attendeeRows.forEach(row => row.hidden = term !== '' && !row.dataset.search.includes(term)); });
+    document.getElementById('select-visible-attendees').addEventListener('click', () => { attendeeRows.filter(row => !row.hidden).forEach(row => { row.querySelector('input[type="checkbox"]').checked = true; }); updateSelectedAttendeeCount(); });
+    document.getElementById('clear-selected-attendees').addEventListener('click', () => { attendeeRows.forEach(row => { row.querySelector('input[type="checkbox"]').checked = false; }); updateSelectedAttendeeCount(); });
+    attendeeRows.forEach(row => row.querySelector('input[type="checkbox"]').addEventListener('change', updateSelectedAttendeeCount));
+    updateSelectedAttendeeCount();
   </script>
 <?php endif; ?>
 
