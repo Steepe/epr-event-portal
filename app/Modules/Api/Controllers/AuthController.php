@@ -81,7 +81,13 @@ class AuthController extends BaseController
             if (!service('throttler')->check('attendee-reset-' . hash('sha256', $this->request->getIPAddress()), 5, 900)) {
                 return $this->respond(['status' => 'error', 'message' => 'Too many requests. Please try again in 15 minutes.'], 429);
             }
-            (new \App\Libraries\AttendeePasswordReset($this->db))->sendLink($data['email']);
+            $sent = (new \App\Libraries\AttendeePasswordReset($this->db))->sendLink($data['email']);
+            if (!$sent) {
+                return $this->respond([
+                    'status' => 'error',
+                    'message' => \App\Libraries\AttendeePasswordReset::ACCOUNT_NOT_FOUND_MESSAGE,
+                ], 404);
+            }
             return $this->respond(['status' => 'success', 'message' => \App\Libraries\AttendeePasswordReset::SENT_MESSAGE]);
         } catch (\InvalidArgumentException $error) {
             return $this->respond(['status' => 'error', 'message' => $error->getMessage()], 400);

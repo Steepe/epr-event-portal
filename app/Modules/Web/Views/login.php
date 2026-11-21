@@ -34,6 +34,7 @@
                     <a id="openReset" href="<?php echo site_url('attendees/forgot-password'); ?>" role="button">Forgot Password?</a>
                     <span>No account? <a href="<?php echo base_url('attendees/register'); ?>">Register</a></span>
                 </div>
+                <p class="rc-auth-support">Need help with your registration? Contact <a href="mailto:registration@eprglobal.com">registration@eprglobal.com</a>.</p>
             </div>
         </form>
 

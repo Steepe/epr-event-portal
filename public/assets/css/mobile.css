@@ -277,6 +277,9 @@ body.m-app.is-locked { overflow: hidden; }
 .m-auth__form { display: flex; flex-direction: column; gap: 16px; }
 .m-auth__links { display: flex; margin-top: 4px; justify-content: space-between; gap: 12px; color: rgba(255, 255, 255, .85); font-size: 13px; }
 .m-app .m-auth__links > a { color: inherit; }
+.m-auth__support { margin: 2px 0 0; color: rgba(255, 255, 255, .72); font-size: 12px; line-height: 1.5; text-align: center; }
+.m-auth__support a { color: #efb11e; font-weight: 700; text-decoration: none; }
+.m-auth__support a:hover { text-decoration: underline; }
 .m-auth__note { color: #ddd; font-size: 13px; line-height: 1.5; }
 .m-alert { padding: 10px 12px; border: 1px solid rgba(239, 177, 30, .6); border-radius: 10px; background: rgba(239, 177, 30, .14); color: #fff4cc; font-size: 12px; line-height: 1.45; }
 .m-status { min-height: 18px; color: var(--m-gold); font-size: 12px; text-align: center; }

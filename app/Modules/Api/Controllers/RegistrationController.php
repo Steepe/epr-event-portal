@@ -37,8 +37,9 @@ class RegistrationController extends BaseController
             return $this->failValidationErrors('Missing required fields.');
         }
 
+        $data['email'] = strtolower(trim((string) $data['email']));
         if ($this->users->where('email', $data['email'])->first()) {
-            return $this->failResourceExists('Email already registered.');
+            return $this->failResourceExists('An account has already been created with this email address. Please sign in or reset your password.');
         }
 
         $uuid           = Uuid::uuid4()->toString();

@@ -26,6 +26,7 @@
             <a href="<?= site_url('mobile/forgot-password') ?>" data-open-sheet="reset">Forgot Password?</a>
             <span>No account? <a href="<?= site_url('mobile/register') ?>">Register</a></span>
         </div>
+        <p class="m-auth__support">Need help with your registration? <a href="mailto:registration@eprglobal.com">Contact our support team</a>.</p>
     </section>
 </div>
 

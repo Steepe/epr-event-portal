@@ -17,6 +17,17 @@
 
             <div class="rc-auth-card rc-register-card">
                 <div class="rc-card-title">Create your account</div>
+                <div id="accountExistsNotice" class="rc-account-notice" role="alert" hidden>
+                    <div class="rc-account-notice__icon" aria-hidden="true">!</div>
+                    <div>
+                        <strong>An account already exists with this email.</strong>
+                        <p id="accountExistsMessage">Sign in to continue, or reset your password if you cannot remember it.</p>
+                        <div class="rc-account-notice__actions">
+                            <a href="<?php echo site_url('attendees/login'); ?>">Sign in</a>
+                            <a href="<?php echo site_url('attendees/forgot-password'); ?>">Reset password</a>
+                        </div>
+                    </div>
+                </div>
 
                 <input class="rc-input" type="text" id="firstname" name="firstname" placeholder="Enter First Name" required>
                 <input class="rc-input" type="text" id="lastname" name="lastname" placeholder="Enter Last Name" required>
@@ -55,6 +66,7 @@
                 <button type="submit" class="rc-btn rc-span-all">Register</button>
 
                 <p class="rc-register-note">Already have an account? <a href="<?php echo base_url('attendees/login'); ?>">Sign In</a></p>
+                <p class="rc-auth-support rc-span-all">Need help with your registration? Contact <a href="mailto:registration@eprglobal.com">registration@eprglobal.com</a>.</p>
             </div>
         </form>
     </div>
@@ -70,6 +82,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const toast = document.getElementById("toast");
     const password = document.getElementById("password");
     const confirmPassword = document.getElementById("conf_password");
+    const email = document.getElementById("email");
+    const accountExistsNotice = document.getElementById("accountExistsNotice");
+    const accountExistsMessage = document.getElementById("accountExistsMessage");
 
     function showToast(message, type = "success") {
         toast.className = "rc-toast is-open" + (type === "error" || type === "danger" ? " is-error" : "");
@@ -83,13 +98,21 @@ document.addEventListener("DOMContentLoaded", () => {
         );
     }
 
+    function showAccountExists(message) {
+        accountExistsMessage.textContent = message || "Sign in to continue, or reset your password if you cannot remember it.";
+        accountExistsNotice.hidden = false;
+        accountExistsNotice.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+
     password.addEventListener("change", validatePassword);
     confirmPassword.addEventListener("keyup", validatePassword);
+    email.addEventListener("input", () => { accountExistsNotice.hidden = true; });
 
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
         validatePassword();
         if (!form.reportValidity()) return;
+        accountExistsNotice.hidden = true;
 
         const formData = Object.fromEntries(new FormData(form));
         const btn = form.querySelector("button[type='submit']");
@@ -113,7 +136,11 @@ document.addEventListener("DOMContentLoaded", () => {
                     window.location.href = "<?php echo base_url('attendees/login'); ?>";
                 }, 1800);
             } else {
-                showToast(result.message || "Registration failed. Please try again.", "error");
+                if (response.status === 409) {
+                    showAccountExists(result.message);
+                } else {
+                    showToast(result.message || "Registration failed. Please try again.", "error");
+                }
             }
         } catch (err) {
             showToast("Connection error. Please try again later.", "error");

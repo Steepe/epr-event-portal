@@ -9,13 +9,20 @@ use RuntimeException;
 
 final class AttendeePasswordReset
 {
-    public const SENT_MESSAGE = 'If an account exists for that email, a password reset link has been sent. Please check your inbox and spam folder.';
+    public const SENT_MESSAGE = 'A password reset link has been sent. Please check your inbox and spam folder.';
+    public const ACCOUNT_NOT_FOUND_MESSAGE = 'We could not find an account with that email address. Please check the address or create an account.';
 
     public function __construct(private BaseConnection $db, private ?Email $mailer = null)
     {
     }
 
-    public function sendLink(string $email): void
+    /**
+     * Sends a reset link and reports whether an attendee account was found.
+     *
+     * The caller intentionally uses this result to give the portal user a
+     * clear registration path when their email address has no account.
+     */
+    public function sendLink(string $email): bool
     {
         $email = trim($email);
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -27,7 +34,7 @@ final class AttendeePasswordReset
         }
         $issued = $this->issueLink($email);
         if ($issued === null) {
-            return; // Do not disclose whether an address has an account.
+            return false;
         }
 
         $mailer = $this->mailer ?? \Config\Services::email();
@@ -45,6 +52,7 @@ final class AttendeePasswordReset
             if (!$mailer->send()) {
                 throw new RuntimeException('Password reset email could not be sent.');
             }
+            return true;
         } catch (\Throwable $error) {
             $this->db->table('password_resets')->where('token', $issued['token_hash'])->delete();
             throw $error;

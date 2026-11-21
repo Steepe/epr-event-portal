@@ -100,7 +100,7 @@ final class AttendeePasswordResetTest extends CIUnitTestCase
     public function testUnknownEmailDoesNotSendOrCreateToken(): void
     {
         $this->mailer->expects($this->never())->method('send');
-        $this->resets->sendLink('unknown@example.test');
+        $this->assertFalse($this->resets->sendLink('unknown@example.test'));
         $this->assertSame(0, $this->connection->table('password_resets')->countAllResults());
     }
 

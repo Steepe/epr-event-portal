@@ -31,6 +31,7 @@
         </select>
         <button class="m-register__submit m-wide" type="submit">Register</button>
         <p class="m-register__signin m-wide">Already have an account? <a href="<?= site_url('mobile/login') ?>">Sign In</a></p>
+        <p class="m-auth__support m-wide">Need help with your registration? <a href="mailto:registration@eprglobal.com">Contact our support team</a>.</p>
     </form>
 </div>
 
