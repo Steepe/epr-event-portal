@@ -15,12 +15,12 @@
           </tr>
           <tr>
             <td style="padding:34px 38px 10px;">
-              <h1 style="margin:0;font-size:26px;line-height:34px;color:#54205e;font-weight:700;">Reset your password</h1>
+              <h1 style="margin:0;font-size:26px;line-height:34px;color:#54205e;font-weight:700;"><?= !empty($adminInitiated) ? 'Set a new password' : 'Reset your password' ?></h1>
             </td>
           </tr>
           <tr>
             <td style="padding:6px 38px 18px;font-size:16px;line-height:25px;color:#4e4351;">
-              We received a request to reset the password for your EPR Global Events account.
+              <?= !empty($adminInitiated) ? 'An EPR Global administrator has reset your portal password. Use the secure link below to create a new password before you sign in again.' : 'We received a request to reset the password for your EPR Global Events account.' ?>
             </td>
           </tr>
           <tr>
@@ -35,7 +35,7 @@
           </tr>
           <tr>
             <td style="padding:0 38px 34px;font-size:14px;line-height:22px;color:#6d606f;">
-              If you did not request a password reset, you can safely ignore this email. Need help? Contact <a href="mailto:<?= esc($supportEmail, 'attr') ?>" style="color:#771a7d;text-decoration:underline;"><?= esc($supportEmail) ?></a>.
+              <?= !empty($adminInitiated) ? 'If you were not expecting this message, please contact' : 'If you did not request a password reset, you can safely ignore this email. Need help? Contact' ?> <a href="mailto:<?= esc($supportEmail, 'attr') ?>" style="color:#771a7d;text-decoration:underline;"><?= esc($supportEmail) ?></a>.
             </td>
           </tr>
           <tr>

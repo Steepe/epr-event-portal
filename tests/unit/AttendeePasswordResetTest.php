@@ -127,6 +127,22 @@ final class AttendeePasswordResetTest extends CIUnitTestCase
         }
     }
 
+    public function testAdminResetEmailUsesTheAdministratorMessageAndInvalidatesEarlierLinks(): void
+    {
+        $this->mailer->method('send')->willReturn(true);
+        $this->connection->table('password_resets')->insert([
+            'email' => 'person@example.test',
+            'token' => str_repeat('d', 64),
+            'created_at' => date('Y-m-d H:i:s'),
+            'expires_at' => date('Y-m-d H:i:s', time() + 3600),
+        ]);
+
+        $this->assertTrue($this->resets->sendAdminResetLink('person@example.test'));
+        $this->assertStringContainsString('administrator has reset your portal password', html_entity_decode($this->body, ENT_QUOTES, 'UTF-8'));
+        $this->assertSame(1, $this->connection->table('password_resets')->countAllResults());
+        $this->assertFalse($this->resets->isValid(str_repeat('d', 64)));
+    }
+
     public function testLegacyLinksWithEitherTimestampStillWork(): void
     {
         foreach (['created_at' => date('Y-m-d H:i:s'), 'expires_at' => date('Y-m-d H:i:s', time() + 3600)] as $column => $value) {

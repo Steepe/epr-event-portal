@@ -141,6 +141,13 @@ $exportLabel = $activeFilters ? 'Export filtered list' : 'Export all attendees';
                         class="text-red-500 hover:text-red-300">
                   <i class="bx bx-trash text-lg"></i>
                 </button>
+
+                <form method="post" action="<?php echo site_url('admin/attendees/' . $attendee['id'] . '/reset'); ?>" onsubmit="return confirm('Send a password-creation email to this attendee? Their current password will stop working after the email is sent.');">
+                  <?php echo csrf_field(); ?>
+                  <button type="submit" class="text-amber-300 hover:text-amber-200" title="Send password reset email" aria-label="Send password reset email to <?php echo esc($attendee['email'] ?? 'attendee', 'attr'); ?>">
+                    <i class="bx bx-key text-lg"></i>
+                  </button>
+                </form>
               </div>
             </td>
           </tr>

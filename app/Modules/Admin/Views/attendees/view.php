@@ -57,4 +57,13 @@ $this->section('content');
   </dl>
 </div>
 
+<section class="mt-6 rounded-lg border border-amber-700/60 bg-gray-800 p-5">
+  <h2 class="font-semibold text-amber-200">Password reset</h2>
+  <p class="mt-1 text-sm text-gray-400">Send a one-time password-creation link to <?php echo esc($attendee['email']); ?>. Once sent, their current password will no longer work and they must set a new password before they can sign in again.</p>
+  <form method="post" action="<?php echo site_url('admin/attendees/' . $attendee['id'] . '/reset'); ?>" class="mt-4" onsubmit="return confirm('Send a password-creation email and invalidate this attendee’s current password?');">
+    <?php echo csrf_field(); ?>
+    <button type="submit" class="rounded bg-amber-500 px-4 py-2 text-sm font-medium text-gray-950 hover:bg-amber-400">Send password reset email</button>
+  </form>
+</section>
+
 <?php $this->endSection(); ?>

@@ -24,6 +24,29 @@ final class AttendeePasswordReset
      */
     public function sendLink(string $email): bool
     {
+        return $this->sendEmail($email, false);
+    }
+
+    /**
+     * Sends the administrator-initiated password-creation email.
+     *
+     * Any previous reset links are invalidated first, so an administrator can
+     * be confident that this is the only active password-creation link.
+     */
+    public function sendAdminResetLink(string $email): bool
+    {
+        $email = trim($email);
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new InvalidArgumentException('The attendee does not have a valid email address.');
+        }
+
+        $this->db->table('password_resets')->where('email', $email)->delete();
+
+        return $this->sendEmail($email, true);
+    }
+
+    private function sendEmail(string $email, bool $adminInitiated): bool
+    {
         $email = trim($email);
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             throw new InvalidArgumentException('Please enter a valid email address.');
@@ -43,12 +66,13 @@ final class AttendeePasswordReset
             $mailer->setFrom($config->fromEmail, $config->fromName ?: 'EPRGlobal Events');
             $mailer->setTo($issued['email']);
             $mailer->setMailType('html');
-            $mailer->setSubject('Password Reset Request - EPRGlobal Events');
+            $mailer->setSubject($adminInitiated ? 'Set a new password for your EPR Global Events account' : 'Password Reset Request - EPRGlobal Events');
             $mailer->setMessage(view('emails/attendee_password_reset', [
                 'resetLink' => $issued['link'],
                 'supportEmail' => 'registration@eprglobal.com',
+                'adminInitiated' => $adminInitiated,
             ]));
-            $mailer->setAltMessage("Reset your EPRGlobal Events password: {$issued['link']}\n\nThis link expires in one hour. If you did not request it, ignore this email.");
+            $mailer->setAltMessage(($adminInitiated ? 'An EPR Global administrator has reset your portal password. Set a new password: ' : 'Reset your EPRGlobal Events password: ') . "{$issued['link']}\n\nThis link expires in one hour and can only be used once.");
             if (!$mailer->send()) {
                 throw new RuntimeException('Password reset email could not be sent.');
             }

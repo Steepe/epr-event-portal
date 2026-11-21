@@ -10,6 +10,7 @@
 namespace App\Modules\Admin\Controllers;
 
 use App\Controllers\BaseController;
+use App\Libraries\AttendeePasswordReset;
 use App\Modules\Admin\Models\AttendeesModel;
 
 class AttendeesController extends BaseController
@@ -197,6 +198,52 @@ class AttendeesController extends BaseController
             return $this->response->setJSON(['status' => 'deleted']);
         }
         return $this->response->setJSON(['status' => 'error']);
+    }
+
+    /**
+     * Invalidates an attendee's existing password and emails the only active,
+     * one-time link they can use to create their replacement password.
+     */
+    public function resetPassword(int $id)
+    {
+        $db = db_connect();
+        $attendee = $db->table('tbl_attendees a')
+            ->select('a.id, a.attendee_id, a.firstname, a.lastname, u.email')
+            ->join('tbl_users u', 'u.id = a.attendee_id', 'inner')
+            ->where('a.id', $id)
+            ->get()
+            ->getRowArray();
+
+        if (! $attendee || empty($attendee['email']) || empty($attendee['attendee_id'])) {
+            return redirect()->to(site_url('admin/attendees'))
+                ->with('error', 'This attendee does not have a portal account with a valid email address.');
+        }
+
+        try {
+            $sent = (new AttendeePasswordReset($db))->sendAdminResetLink((string) $attendee['email']);
+            if (! $sent) {
+                throw new \RuntimeException('The attendee account could not be found.');
+            }
+
+            // Do this only after the email service has accepted the message.
+            // The random value is never disclosed; the one-time email link is
+            // the only way to create the next usable password.
+            $db->table('tbl_users')->where('id', (int) $attendee['attendee_id'])->update([
+                'password' => password_hash(bin2hex(random_bytes(32)), PASSWORD_DEFAULT),
+                'updated_at' => date('Y-m-d H:i:s'),
+            ]);
+            if ($db->affectedRows() !== 1) {
+                throw new \RuntimeException('The reset email was sent, but the previous password could not be invalidated.');
+            }
+
+            return redirect()->to(site_url('admin/attendees'))
+                ->with('success', 'Password reset email sent to ' . $attendee['email'] . '. Their old password no longer works; they must create a new password from the email before signing in.');
+        } catch (\Throwable $error) {
+            log_message('error', 'Admin attendee password reset failed ({type}).', ['type' => get_class($error)]);
+
+            return redirect()->to(site_url('admin/attendees'))
+                ->with('error', 'The password reset email could not be completed. Please try again.');
+        }
     }
 
     public function view($id = null)
