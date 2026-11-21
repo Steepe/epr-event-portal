@@ -20,13 +20,15 @@
 
                 <div class="rc-field">
                     <i class="fa fa-envelope" aria-hidden="true"></i>
-                    <input class="rc-input" type="email" id="email" name="email" placeholder="Enter Email" required>
+                    <input class="rc-input" type="email" id="email" name="email" placeholder="Enter Email" autocomplete="email" required>
                 </div>
 
                 <div class="rc-field">
                     <i class="fa fa-lock" aria-hidden="true"></i>
-                    <input class="rc-input" type="password" id="password" name="password" placeholder="Enter Password" required>
+                    <input class="rc-input" type="password" id="password" name="password" placeholder="Enter Password" autocomplete="current-password" required>
                 </div>
+
+                <label class="rc-login-remember"><input type="checkbox" name="remember" value="1"> <span>Remember me on this device</span></label>
 
                 <button type="submit" class="rc-btn">Login</button>
 
@@ -178,5 +180,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 });
 </script>
+<style>.rc-login-remember{display:flex;align-items:center;gap:8px;margin:-2px 0 16px;color:rgba(255,255,255,.76);font-size:13px;cursor:pointer}.rc-login-remember input{width:16px;height:16px;accent-color:#d8198e;cursor:pointer}</style>
 </body>
 </html>

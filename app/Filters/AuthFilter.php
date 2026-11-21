@@ -20,6 +20,10 @@ class AuthFilter implements FilterInterface
     {
         // Check if attendee session exists
         if (!session()->has('attendee_id')) {
+            (new \App\Services\AttendeeRememberMe())->restore();
+        }
+
+        if (!session()->has('attendee_id')) {
             // Redirect to login page
             return redirect()->to(base_url('attendees/login'))->with('error', 'Please log in to access this page.');
         }

@@ -16,7 +16,7 @@ class Auth extends BaseController
 {
     public function login()
     {
-        if (session()->get('user_id')) {
+        if (session()->get('user_id') || (new \App\Services\AttendeeRememberMe())->restore()) {
             return redirect()->to(site_url('mobile/welcome'));
         }
 
@@ -71,6 +71,10 @@ class Auth extends BaseController
 
         session()->set($sessionData);
 
+        if ($this->request->getPost('remember') === '1') {
+            (new \App\Services\AttendeeRememberMe())->issue($user, $attendee ?? []);
+        }
+
         // 🔹 Update last login
         $userModel->update($user['id'], ['last_login_at' => date('Y-m-d H:i:s')]);
 
@@ -80,6 +84,7 @@ class Auth extends BaseController
 
     public function logout()
     {
+        (new \App\Services\AttendeeRememberMe())->clearCurrentDevice();
         session()->destroy();
         return redirect()->to(site_url('mobile/login'));
     }

@@ -7,6 +7,7 @@ $explore   = [
     ['fa-star', 'Earn Points', 'mobile/points'],
     ['fa-eye', 'Envision', 'mobile/envision'],
     ['fa-history', 'Past Conferences', 'mobile/past-conferences'],
+    ['fa-shopping-bag', 'Emergence Store', 'mobile/store'],
     ['fa-video-camera', 'Webinars', 'mobile/webinars'],
     ['fa-diamond', 'Sponsors', 'mobile/sponsors'],
     ['fa-building', 'Exhibitions', 'mobile/exhibitors'],

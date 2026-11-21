@@ -20,6 +20,10 @@ class MobileAuthFilter implements FilterInterface
     {
         // 🔒 Check login session
         if (!session()->get('isLoggedIn')) {
+            (new \App\Services\AttendeeRememberMe())->restore();
+        }
+
+        if (!session()->get('isLoggedIn')) {
             // Background requests (chat, forms sent by script) get an error they can show, not a login page.
             if ($request->isAJAX() || str_contains($request->getHeaderLine('Accept'), 'application/json')) {
                 return service('response')->setStatusCode(401)->setJSON(['message' => 'Please sign in again.']);

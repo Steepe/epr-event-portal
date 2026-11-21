@@ -16,6 +16,10 @@ class LoginController extends BaseController
 {
     public function index()
     {
+        if (session()->has('attendee_id') || (new \App\Services\AttendeeRememberMe())->restore()) {
+            return redirect()->to(site_url('attendees/start'));
+        }
+
         return module_view('Web', 'login');
     }
 
@@ -23,6 +27,7 @@ class LoginController extends BaseController
     {
         $session = session();
         PresenceController::clearForUser((int) $session->get('user_id'));
+        (new \App\Services\AttendeeRememberMe())->clearCurrentDevice();
 
         // Destroy all session data
         $session->destroy();

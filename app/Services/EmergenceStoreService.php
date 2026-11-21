@@ -50,7 +50,7 @@ class EmergenceStoreService
         return ['amount' => $amount, 'currency' => strtoupper((string) $product['currency']), 'coupon' => $coupon];
     }
 
-    public function createCheckout(array $product, int $userId, string $couponCode = ''): string
+    public function createCheckout(array $product, int $userId, string $couponCode = '', ?string $successUrl = null, ?string $cancelUrl = null): string
     {
         $secret = trim((string) env('stripe.secretKey'));
         if ($secret === '') {
@@ -80,8 +80,8 @@ class EmergenceStoreService
         $minorAmount = (int) round($quote['amount'] * $this->minorUnitMultiplier($quote['currency']));
         $params = [
             'mode' => 'payment',
-            'success_url' => site_url('attendees/store/success?session_id={CHECKOUT_SESSION_ID}'),
-            'cancel_url' => site_url('attendees/store?cancelled=1'),
+            'success_url' => $successUrl ?: site_url('attendees/store/success?session_id={CHECKOUT_SESSION_ID}'),
+            'cancel_url' => $cancelUrl ?: site_url('attendees/store?cancelled=1'),
             'client_reference_id' => $reference,
             'metadata[order_ref]' => $reference,
             'metadata[product_id]' => (string) $product['product_id'],

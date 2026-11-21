@@ -77,6 +77,10 @@ $routes->group('mobile', ['namespace' => 'App\Modules\MobileApp\Controllers', 'f
     $routes->get('explore', 'Explore::index');
     $routes->get('notifications', 'Notifications::index');
     $routes->get('upgrade', 'Upgrade::index');
+    $routes->get('store', 'StoreController::index');
+    $routes->post('store/checkout/(:num)', 'StoreController::checkout/$1');
+    $routes->get('store/success', 'StoreController::success');
+    $routes->get('store/replays/(:num)', 'StoreController::replays/$1');
 
     $routes->get('profile', 'Profile::index');
     $routes->post('profile/update', 'Profile::update');

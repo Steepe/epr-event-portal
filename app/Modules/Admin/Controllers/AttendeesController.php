@@ -235,6 +235,7 @@ class AttendeesController extends BaseController
             if ($db->affectedRows() !== 1) {
                 throw new \RuntimeException('The reset email was sent, but the previous password could not be invalidated.');
             }
+            (new \App\Services\AttendeeRememberMe())->revokeAllForUser((int) $attendee['attendee_id']);
 
             return redirect()->to(site_url('admin/attendees'))
                 ->with('success', 'Password reset email sent to ' . $attendee['email'] . '. Their old password no longer works; they must create a new password from the email before signing in.');

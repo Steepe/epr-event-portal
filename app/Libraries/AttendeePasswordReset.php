@@ -171,6 +171,10 @@ final class AttendeePasswordReset
             if ($this->db->affectedRows() !== 1) {
                 throw new RuntimeException('Could not update the account password.');
             }
+            $user = $this->db->table('tbl_users')->select('id')->where('email', $record['email'])->get()->getRowArray();
+            if ($user) {
+                (new \App\Services\AttendeeRememberMe())->revokeAllForUser((int) $user['id']);
+            }
             $this->db->table('password_resets')->where('email', $record['email'])->delete();
             if (!$this->db->transStatus()) {
                 throw new RuntimeException('Could not save the password reset.');

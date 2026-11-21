@@ -20,6 +20,7 @@
                 <i class="fa fa-lock" aria-hidden="true"></i>
                 <input class="m-input m-input--48" type="password" name="password" placeholder="Enter Password" autocomplete="current-password" required>
             </div>
+            <label style="display:flex;align-items:center;gap:8px;color:rgba(255,255,255,.78);font-size:13px;cursor:pointer"><input type="checkbox" name="remember" value="1" style="width:16px;height:16px;accent-color:#d8198e"> <span>Remember me on this device</span></label>
             <button class="m-btn" type="submit">Login</button>
         </form>
         <div class="m-auth__links">

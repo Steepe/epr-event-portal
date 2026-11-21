@@ -25,6 +25,8 @@ class MobileRedirect implements FilterInterface
         'attendees/reset-password'     => 'mobile/reset-password',
         'attendees/start'              => 'mobile/welcome',
         'attendees/home'               => 'mobile/home',
+        'attendees/store'              => 'mobile/store',
+        'attendees/store/success'      => 'mobile/store/success',
         'attendees/lobby'              => 'mobile/lobby',
         'attendees/networking_center'  => 'mobile/networking-center',
         'attendees/attendees'          => 'mobile/networking-center',
@@ -50,6 +52,7 @@ class MobileRedirect implements FilterInterface
         '#^attendees/pastConference/(\d+)$#'       => 'mobile/pastConference/$1',
         '#^attendees/exhibitors/\d+$#'             => 'mobile/exhibitors',
         '#^attendees/upgrade/\d+$#'                => 'mobile/upgrade',
+        '#^attendees/store/replays/(\d+)$#'        => 'mobile/store/replays/$1',
         '#^attendees/reset-password/([A-Za-z0-9]+)$#' => 'mobile/reset-password/$1',
     ];
 

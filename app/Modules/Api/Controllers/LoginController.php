@@ -96,6 +96,10 @@ class LoginController extends ResourceController
             'profile_pic' => $attendeeArray['profile_picture'],
         ]);
 
+        if (filter_var($data['remember'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
+            (new \App\Services\AttendeeRememberMe())->issue($userArray, $attendeeArray);
+        }
+
         // Update last login
         $this->users->update($userArray['id'], [
             'last_login_at' => date('Y-m-d H:i:s')
