@@ -95,7 +95,7 @@ $notificationPreview = [];
 $displayUnreadCount = $unreadCount;
 ?>
 
-<body class="rc-body">
+<body class="rc-body<?php echo $current === 'store' ? ' rc-store-page' : ''; ?>">
 <script>
     window.EPR_PORTAL_REALTIME = {
         userId: <?php echo json_encode($currentUserId); ?>,
