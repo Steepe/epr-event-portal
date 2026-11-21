@@ -186,6 +186,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let chatSocket = null;
     let chatPollingTimer = null;
     let chatReconnectTimer = null;
+    let chatReconnectDelay = 2000;
 
     const ratingStars = Array.from(document.querySelectorAll("#rateSession [data-star]"));
     const ratingStatus = document.getElementById("ratingStatus");
@@ -349,17 +350,20 @@ document.addEventListener("DOMContentLoaded", () => {
         const expires = Number(realtime.wsExpires || 0);
         const userId = Number(realtime.userId || 0);
 
-        if (!sessionId || !wsUrl || !token || !expires || !userId || !("WebSocket" in window)) {
+        if (!sessionId || !wsUrl || !token || !expires || expires <= Date.now() / 1000 || !userId || !("WebSocket" in window)) {
             startChatPolling();
             return;
         }
+        if (document.hidden || (chatSocket && chatSocket.readyState !== WebSocket.CLOSED)) return;
 
+        let openedAt = 0;
         try {
             const socket = new WebSocket(wsUrl);
             chatSocket = socket;
 
             socket.addEventListener("open", function() {
                 if (chatSocket !== socket) return;
+                openedAt = Date.now();
                 socket.send(JSON.stringify({ type: "register", user_id: userId, token: token, expires: expires }));
                 socket.send(JSON.stringify({ type: "subscribe_session", session_id: sessionId }));
                 loadMessages().finally(stopChatPolling);
@@ -380,8 +384,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (chatSocket !== socket) return;
                 chatSocket = null;
                 startChatPolling();
+                chatReconnectDelay = openedAt && Date.now() - openedAt >= 30000 ? 2000 : Math.min(chatReconnectDelay * 2, 60000);
                 window.clearTimeout(chatReconnectTimer);
-                chatReconnectTimer = window.setTimeout(connectSessionChat, 2000);
+                if (!document.hidden && expires > Date.now() / 1000) {
+                    chatReconnectTimer = window.setTimeout(connectSessionChat, chatReconnectDelay + Math.random() * 1000);
+                }
             });
 
             socket.addEventListener("error", function() {
@@ -389,8 +396,18 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         } catch (error) {
             startChatPolling();
+            window.clearTimeout(chatReconnectTimer);
+            chatReconnectTimer = window.setTimeout(connectSessionChat, chatReconnectDelay + Math.random() * 1000);
+            chatReconnectDelay = Math.min(chatReconnectDelay * 2, 60000);
         }
     }
+
+    document.addEventListener("visibilitychange", function() {
+        if (!document.hidden && (!chatSocket || chatSocket.readyState === WebSocket.CLOSED)) {
+            window.clearTimeout(chatReconnectTimer);
+            connectSessionChat();
+        }
+    });
 
     function sendMessage() {
         const text = input.value.trim();

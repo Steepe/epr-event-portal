@@ -3,21 +3,26 @@
 
 namespace App\Traits;
 
-use App\Services\UserService;
-use App\Services\MessageService;
-
 trait AttendeeTrait
 {
     /**
-     * ✅ Get full attendee details via API
+     * Load the signed-in attendee without making a second HTTP request to this server.
      */
     protected function getAttendeeData(): ?array
     {
-        $attendeeId = session('user_id') ?: session('attendee_id');
-        if (!$attendeeId) return null;
+        $userId = (int) (session('user_id') ?: session('attendee_id'));
+        if ($userId <= 0) return null;
 
-        $userService = new UserService();
-        $attendee = $userService->getUser($attendeeId);
+        $attendee = db_connect()->table('tbl_users u')
+            ->select('u.id, u.email, u.role, a.firstname, a.lastname, a.country, a.profile_picture, a.company, a.position')
+            ->join('tbl_attendees a', 'a.attendee_id = u.id', 'left')
+            ->where('u.id', $userId)
+            ->where('u.deleted_at', null)
+            ->orderBy('a.id', 'DESC')
+            ->get(1)
+            ->getRowArray();
+
+        if ($attendee === null) return null;
 
         // 🖼️ Ensure profile picture fallback
         if (!empty($attendee['profile_picture'])) {
@@ -30,27 +35,34 @@ trait AttendeeTrait
     }
 
     /**
-     * 📅 Get sessions the attendee added to their agenda
+     * Get the attendee's recorded session IDs locally.
      */
     protected function getAttendeeSessions(): array
     {
-        $attendeeId = session('user_id') ?: session('attendee_id');
-        if (!$attendeeId) return [];
+        $userId = (int) (session('user_id') ?: session('attendee_id'));
+        if ($userId <= 0) return [];
 
-        $userService = new UserService();
-        return $userService->getUserSessions($attendeeId);
+        $rows = db_connect()->table('tbl_attendee_sessions')
+            ->select('session_id')
+            ->where('user_id', $userId)
+            ->get()
+            ->getResultArray();
+
+        return array_column($rows, 'session_id');
     }
 
     /**
-     * 📩 Get unread message count via API
+     * Count unread direct messages locally.
      */
     protected function getUnreadMessagesCount(): int
     {
-        $attendeeId = session('user_id') ?: session('attendee_id');
-        if (!$attendeeId) return 0;
+        $userId = (int) (session('user_id') ?: session('attendee_id'));
+        if ($userId <= 0) return 0;
 
-        $messageService = new MessageService();
-        return $messageService->getUnreadCount($attendeeId);
+        return (int) db_connect()->table('tbl_messages')
+            ->where('receiver_id', $userId)
+            ->where('is_read', 0)
+            ->countAllResults();
     }
 
     /**

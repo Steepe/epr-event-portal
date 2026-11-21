@@ -10,22 +10,16 @@
 namespace App\Modules\Web\Controllers;
 
 use App\Controllers\BaseController;
-use CodeIgniter\API\ResponseTrait;
 
 class SpeakersController extends BaseController
 {
-    use ResponseTrait;
-
     public function index(): string|\CodeIgniter\HTTP\RedirectResponse
     {
         $session = session();
-
-        $apiKey  = env('api.securityKey');
-        $apiBase = rtrim(base_url('api'), '/');
-        $curl    = service('curlrequest', ['verify' => false]);
+        $db = db_connect();
         $conferenceId = (int) $session->get('live-conference-id');
         if ($conferenceId <= 0) {
-            $liveConference = db_connect()->table('tbl_conferences')
+            $liveConference = $db->table('tbl_conferences')
                 ->select('conference_id')
                 ->where('status', 'live')
                 ->orderBy('start_date', 'DESC')
@@ -37,54 +31,38 @@ class SpeakersController extends BaseController
         $speakers = [];
 
         try {
-            $response = $curl->get("{$apiBase}/speakers?conference_id={$conferenceId}", [
-                'headers' => ['X-API-KEY' => $apiKey],
-            ]);
+            $speakers = $db->table('tbl_speakers')->orderBy('speaker_name', 'ASC')->get()->getResultArray();
+            $speakerIds = array_map('intval', array_column($speakers, 'speaker_id'));
+            if ($speakerIds !== []) {
+                $sessionQuery = $db->table('tbl_session_speakers ss')
+                    ->select('ss.speaker_id, s.sessions_id, s.sessions_name, s.event_date, s.start_time')
+                    ->join('tbl_conference_sessions s', 's.sessions_id = ss.sessions_id', 'left')
+                    ->whereIn('ss.speaker_id', $speakerIds);
+                if ($conferenceId > 0) {
+                    $sessionQuery->where('s.conference_id', $conferenceId);
+                }
+                $sessionsBySpeaker = [];
+                foreach ($sessionQuery->orderBy('s.event_date', 'ASC')->orderBy('s.start_time', 'ASC')->get()->getResultArray() as $row) {
+                    $speakerId = (int) $row['speaker_id'];
+                    unset($row['speaker_id']);
+                    $sessionsBySpeaker[$speakerId][] = $row;
+                }
 
-            $body = json_decode($response->getBody(), true);
+                $offersBySpeaker = [];
+                foreach ($db->table('tbl_speaker_offers')->whereIn('speaker_id', $speakerIds)->orderBy('id', 'DESC')->get()->getResultArray() as $offer) {
+                    $offersBySpeaker[(int) $offer['speaker_id']][] = $offer;
+                }
 
-            if (isset($body['status']) && $body['status'] === 'success') {
-                $speakers = $body['data'] ?? [];
-            } else {
-                log_message('warning', '[SpeakersController] API returned invalid: ' . json_encode($body));
+                foreach ($speakers as &$speaker) {
+                    $speakerId = (int) $speaker['speaker_id'];
+                    $speaker['sessions'] = $sessionsBySpeaker[$speakerId] ?? [];
+                    $speaker['offers'] = $offersBySpeaker[$speakerId] ?? [];
+                }
+                unset($speaker);
             }
-
         } catch (\Throwable $e) {
             log_message('error', '[SpeakersController] Failed to load speakers: ' . $e->getMessage());
         }
-
-
-        /** ---------------------------------------------------------
-         *  🔥 Fetch offers for each speaker (API-driven)
-         * ---------------------------------------------------------- */
-        foreach ($speakers as &$speaker) {
-
-            $speakerId = $speaker['speaker_id'] ?? null;
-            if (!$speakerId) {
-                $speaker['offers'] = [];
-                continue;
-            }
-
-            try {
-                $offerRes = $curl->get("{$apiBase}/speakers/{$speakerId}/offers", [
-                    'headers' => ['X-API-KEY' => $apiKey],
-                ]);
-
-                $offerBody = json_decode($offerRes->getBody(), true);
-
-                if (!empty($offerBody['status']) && $offerBody['status'] === 'success') {
-                    $speaker['offers'] = $offerBody['data'] ?? [];
-                } else {
-                    $speaker['offers'] = [];
-                }
-
-            } catch (\Throwable $e) {
-                log_message('error', "[SpeakersController] Failed loading offers for speaker {$speakerId}: " . $e->getMessage());
-                $speaker['offers'] = [];
-            }
-        }
-
-
         // Render page
         $data = [
             'speakers'   => $speakers,

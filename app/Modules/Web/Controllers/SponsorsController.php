@@ -11,26 +11,13 @@
 namespace App\Modules\Web\Controllers;
 
 use App\Controllers\BaseController;
-use CodeIgniter\API\ResponseTrait;
 
 class SponsorsController extends BaseController
 {
-    use ResponseTrait;
-
     public function index()
     {
-        $apiKey  = env('api.securityKey');
-        $apiBase = rtrim(base_url('api'), '/');
-
-        $curl = service('curlrequest', ['verify' => false]);
-
         try {
-            $response = $curl->get("{$apiBase}/sponsors", [
-                'headers' => ['X-API-KEY' => $apiKey],
-            ]);
-
-            $body = json_decode($response->getBody(), true);
-            $sponsors = $body['data'] ?? [];
+            $sponsors = db_connect()->table('tbl_sponsors')->get()->getResultArray();
 
             return module_view('Web', 'sponsors', ['sponsors' => $sponsors]);
         } catch (\Throwable $e) {

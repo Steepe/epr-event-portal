@@ -29,7 +29,7 @@
         const pendingConnectionsUrl = config.pendingConnectionsUrl || "";
         let socket = null;
         let reconnectTimer = null;
-        let reconnectDelay = 1200;
+        let reconnectDelay = 2000;
         let pollingTimer = null;
         const receivedConnectionIds = new Set();
         document.querySelectorAll("[data-connection-id]").forEach(function(row) {
@@ -189,20 +189,28 @@
                 return;
             }
 
-            if (!wsUrl || !wsToken || !wsExpires || !("WebSocket" in window)) {
+            if (document.hidden || (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING))) {
+                return;
+            }
+
+            if (!wsUrl || !wsToken || !wsExpires || wsExpires <= Date.now() / 1000 || !("WebSocket" in window)) {
                 startPolling();
                 return;
             }
 
+            let openedAt = 0;
             try {
                 socket = new WebSocket(wsUrl);
             } catch (error) {
                 startPolling();
+                window.clearTimeout(reconnectTimer);
+                reconnectTimer = window.setTimeout(connectRealtime, reconnectDelay + Math.random() * 1000);
+                reconnectDelay = Math.min(reconnectDelay * 2, 60000);
                 return;
             }
 
             socket.addEventListener("open", function() {
-                reconnectDelay = 1200;
+                openedAt = Date.now();
                 stopPolling();
                 socket.send(JSON.stringify({ type: "register", user_id: userId, token: wsToken, expires: wsExpires }));
             });
@@ -215,12 +223,22 @@
             });
 
             socket.addEventListener("close", function() {
+                socket = null;
                 startPolling();
+                reconnectDelay = openedAt && Date.now() - openedAt >= 30000 ? 2000 : Math.min(reconnectDelay * 2, 60000);
                 window.clearTimeout(reconnectTimer);
-                reconnectTimer = window.setTimeout(connectRealtime, reconnectDelay);
-                reconnectDelay = Math.min(reconnectDelay * 1.6, 10000);
+                if (!document.hidden && wsExpires > Date.now() / 1000) {
+                    reconnectTimer = window.setTimeout(connectRealtime, reconnectDelay + Math.random() * 1000);
+                }
             });
         }
+
+        document.addEventListener("visibilitychange", function() {
+            if (!document.hidden && (!socket || socket.readyState === WebSocket.CLOSED)) {
+                window.clearTimeout(reconnectTimer);
+                connectRealtime();
+            }
+        });
 
         if (document.readyState === "loading") {
             document.addEventListener("DOMContentLoaded", connectRealtime, { once: true });

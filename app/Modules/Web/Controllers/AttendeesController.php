@@ -39,7 +39,9 @@ class AttendeesController extends BaseController
         try {
             $response = $curl->get("{$apiBase}/attendees", [
                 'headers' => ['X-API-KEY' => $apiKey],
-                'query'   => $params
+                'query'   => $params,
+                'timeout' => 3,
+                'connect_timeout' => 1,
             ]);
 
             $body = json_decode($response->getBody(), true);

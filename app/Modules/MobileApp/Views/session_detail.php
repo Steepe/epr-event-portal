@@ -200,7 +200,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var form = document.getElementById('chatForm');
     var count = document.getElementById('chatCount');
     var seen = {}, people = {}, names = {};
-    var chatSocket = null, chatPollingTimer = null, chatReconnectTimer = null;
+    var chatSocket = null, chatPollingTimer = null, chatReconnectTimer = null, chatReconnectDelay = 2000;
 
     function escapeHtml(value) {
         return String(value == null ? '' : value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
@@ -239,15 +239,18 @@ document.addEventListener('DOMContentLoaded', function () {
         chatPollingTimer = null;
     }
     function connectSessionChat() {
-        if (!sessionId || !chatWsUrl || !chatWsToken || !chatWsExpires || !attendeeId || !window.WebSocket) {
+        if (!sessionId || !chatWsUrl || !chatWsToken || !chatWsExpires || Number(chatWsExpires) <= Date.now() / 1000 || !attendeeId || !window.WebSocket) {
             startChatPolling();
             return;
         }
+        if (document.hidden || (chatSocket && chatSocket.readyState !== WebSocket.CLOSED)) return;
+        var openedAt = 0;
         try {
             var socket = new WebSocket(chatWsUrl);
             chatSocket = socket;
             socket.addEventListener('open', function () {
                 if (chatSocket !== socket) return;
+                openedAt = Date.now();
                 socket.send(JSON.stringify({ type: 'register', user_id: Number(attendeeId), token: chatWsToken, expires: Number(chatWsExpires) }));
                 socket.send(JSON.stringify({ type: 'subscribe_session', session_id: sessionId }));
                 load().then(stopChatPolling);
@@ -262,14 +265,26 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (chatSocket !== socket) return;
                 chatSocket = null;
                 startChatPolling();
+                chatReconnectDelay = openedAt && Date.now() - openedAt >= 30000 ? 2000 : Math.min(chatReconnectDelay * 2, 60000);
                 window.clearTimeout(chatReconnectTimer);
-                chatReconnectTimer = window.setTimeout(connectSessionChat, 2000);
+                if (!document.hidden && Number(chatWsExpires) > Date.now() / 1000) {
+                    chatReconnectTimer = window.setTimeout(connectSessionChat, chatReconnectDelay + Math.random() * 1000);
+                }
             });
             socket.addEventListener('error', function () { socket.close(); });
         } catch (error) {
             startChatPolling();
+            window.clearTimeout(chatReconnectTimer);
+            chatReconnectTimer = window.setTimeout(connectSessionChat, chatReconnectDelay + Math.random() * 1000);
+            chatReconnectDelay = Math.min(chatReconnectDelay * 2, 60000);
         }
     }
+    document.addEventListener('visibilitychange', function () {
+        if (!document.hidden && (!chatSocket || chatSocket.readyState === WebSocket.CLOSED)) {
+            window.clearTimeout(chatReconnectTimer);
+            connectSessionChat();
+        }
+    });
     function tokenise(text) {
         Object.keys(names).sort(function (a, b) { return names[b].length - names[a].length; }).forEach(function (id) {
             if (!names[id]) return;
