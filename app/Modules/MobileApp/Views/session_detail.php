@@ -16,10 +16,14 @@ $isLiveNow = $start && $end && $now >= $start && $now < $end;
 $dateLong  = !empty($event['event_date']) ? date('F j, Y', strtotime($event['event_date'])) : '';
 
 $canAccess = (int) ($event['access_level'] ?? 1) !== 2 || (int) ($premium ?? 0) === 1;
+$streamProvider = ($event['stream_provider'] ?? 'livepush') === 'zoom' ? 'zoom' : 'livepush';
 $livepushId = trim((string) ($event['livepush_id'] ?? ''));
 $vimeoId    = trim((string) ($event['vimeo_id'] ?? ''));
 $videoSrc  = '';
-if ($isLiveConf && preg_match('/^[A-Za-z0-9_-]+$/', $livepushId)) {
+$zoomJoinUrl = '';
+if ($streamProvider === 'zoom' && preg_match('/^\d{9,16}$/', (string) ($event['zoom_meeting_number'] ?? ''))) {
+    $zoomJoinUrl = site_url('attendees/sessions/' . (int) ($event['sessions_id'] ?? 0) . '/zoom');
+} elseif ($isLiveConf && preg_match('/^[A-Za-z0-9_-]+$/', $livepushId)) {
     $videoSrc = 'https://watch.livepush.io/live/' . rawurlencode($livepushId);
 } elseif (! $isLiveConf && $vimeoId !== '') {
     if (ctype_digit($vimeoId)) {
@@ -52,8 +56,8 @@ $chatRealtimeAuth = \App\Services\RealtimeToken::issue((int) (session('user_id')
     </div>
 
     <div class="m-video">
-        <?php if ($canAccess && $videoSrc !== ''): ?>
-            <iframe src="<?= esc($videoSrc, 'attr') ?>" title="<?= esc($event['sessions_name'] ?? 'Session video', 'attr') ?>" allow="autoplay; fullscreen; picture-in-picture" allowfullscreen></iframe>
+        <?php if ($canAccess && ($videoSrc !== '' || $zoomJoinUrl !== '')): ?>
+            <iframe src="<?= esc($zoomJoinUrl !== '' ? $zoomJoinUrl : $videoSrc, 'attr') ?>" title="<?= esc($event['sessions_name'] ?? 'Session video', 'attr') ?>" allow="<?= $zoomJoinUrl !== '' ? 'camera; microphone; display-capture; fullscreen; autoplay; clipboard-write' : 'autoplay; fullscreen; picture-in-picture' ?>" allowfullscreen></iframe>
         <?php else: ?>
             <img class="m-video__speaker" src="<?= esc($leadPhoto, 'attr') ?>" alt="" onerror="this.onerror=null;this.src='<?= mobile_asset_url('images/user.png') ?>'">
             <?php if ($isLiveNow): ?><div class="m-video__tag" style="padding:0;background:transparent"><span class="m-live m-live--sq">LIVE</span></div><?php endif; ?>

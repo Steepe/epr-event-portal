@@ -38,6 +38,10 @@ class Home extends BaseController
 
         return module_view('MobileApp', 'home', [
             'conference' => $conference,
+            // This short, portrait welcome is intentionally mobile-specific.
+            // Desktop continues to use the conference welcome film configured
+            // by Admin.
+            'mobile_home_video_url' => base_url('assets/videos/mobile-home-welcome.mp4'),
             'welcome_video_url' => filter_var($welcomeVideoUrl, FILTER_VALIDATE_URL)
                 ? $welcomeVideoUrl
                 : '',

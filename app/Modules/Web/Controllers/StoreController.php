@@ -4,6 +4,7 @@ namespace App\Modules\Web\Controllers;
 
 use App\Controllers\BaseController;
 use App\Services\EmergenceStoreService;
+use App\Services\StoreOfferCatalog;
 use CodeIgniter\Exceptions\PageNotFoundException;
 
 class StoreController extends BaseController
@@ -11,10 +12,12 @@ class StoreController extends BaseController
     public function index()
     {
         $store = new EmergenceStoreService();
+        $products = $store->ready() ? $store->activeProducts() : [];
+        $entitledProductIds = $store->ready() ? $this->entitledProductIds((int) session('user_id')) : [];
+
         return module_view('Web', 'store/index', [
             'ready' => $store->ready(),
-            'products' => $store->ready() ? $store->activeProducts() : [],
-            'entitledProductIds' => $store->ready() ? $this->entitledProductIds((int) session('user_id')) : [],
+            'offers' => StoreOfferCatalog::offers($products, $entitledProductIds),
         ]);
     }
 

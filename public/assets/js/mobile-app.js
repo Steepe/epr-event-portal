@@ -84,6 +84,19 @@
             }).catch(function () {});
             return;
         }
+        if (/\.(?:mp4|webm)(?:[?#]|$)/i.test(src)) {
+            var localVideo = document.createElement('video');
+            localVideo.src = src;
+            localVideo.controls = true;
+            localVideo.playsInline = true;
+            localVideo.preload = 'metadata';
+            localVideo.className = 'm-inline-video';
+            localVideo.setAttribute('aria-label', holder.getAttribute('data-video-title') || 'Video');
+            $$('[data-video-hide]', holder).forEach(function (el) { el.hidden = true; });
+            holder.appendChild(localVideo);
+            localVideo.play().catch(function () { /* The native controls remain available. */ });
+            return;
+        }
         var url = src + (src.indexOf('?') === -1 ? '?' : '&') + 'autoplay=1';
         var frame = document.createElement('iframe');
         frame.src = url;

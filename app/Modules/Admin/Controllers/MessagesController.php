@@ -44,18 +44,13 @@ class MessagesController extends BaseController
         $subject = $this->limitedPost('subject', 255);
         $body = $this->limitedPost('body', 10000);
         $recipientType = (string) $this->request->getPost('recipient_type');
-        $emailTemplate = (string) $this->request->getPost('email_template');
         $validTypes = ['individual', 'selected', 'filtered', 'emergence_2026', 'all'];
-        $validTemplates = ['standard', 'emergence_access'];
 
         if ($subject === '' || $body === '') {
             return redirect()->back()->withInput()->with('error', 'A subject and message are required.');
         }
         if (! in_array($recipientType, $validTypes, true)) {
             return redirect()->back()->withInput()->with('error', 'Choose who should receive this message.');
-        }
-        if (! in_array($emailTemplate, $validTemplates, true)) {
-            return redirect()->back()->withInput()->with('error', 'Choose a valid email design.');
         }
         if ($recipientType === 'all' && $this->request->getPost('confirm_all') !== '1') {
             return redirect()->back()->withInput()->with('error', 'Confirm that you want to email every portal attendee.');
@@ -65,7 +60,8 @@ class MessagesController extends BaseController
             'recipient_email' => $this->limitedPost('recipient_email', 254),
             'email' => $this->limitedPost('email', 254),
             'country' => $this->limitedPost('country', 100),
-            'email_template' => $emailTemplate,
+            // All admin broadcast emails use the approved Emergence design.
+            'email_template' => 'emergence_access',
             'selected_user_ids' => array_values(array_unique(array_filter(array_map('intval', (array) $this->request->getPost('selected_user_ids')), static fn (int $id): bool => $id > 0))),
         ];
         if ($recipientType === 'individual' && ! filter_var($filters['recipient_email'], FILTER_VALIDATE_EMAIL)) {
@@ -108,7 +104,7 @@ class MessagesController extends BaseController
             ]);
             $deliveryId = (int) $db->insertID();
 
-            if ($this->sendEmail($recipient, $subject, $body, $emailTemplate)) {
+            if ($this->sendEmail($recipient, $subject, $body)) {
                 $db->table(self::DELIVERY_TABLE)->where('delivery_id', $deliveryId)->update([
                     'email_status' => 'sent',
                     'sent_at' => date('Y-m-d H:i:s'),
@@ -174,7 +170,7 @@ class MessagesController extends BaseController
         return array_values(array_filter($recipients, static fn (array $recipient): bool => filter_var($recipient['email'] ?? '', FILTER_VALIDATE_EMAIL) !== false));
     }
 
-    private function sendEmail(array $recipient, string $subject, string $body, string $emailTemplate): bool
+    private function sendEmail(array $recipient, string $subject, string $body): bool
     {
         try {
             $email = service('email');
@@ -186,10 +182,7 @@ class MessagesController extends BaseController
             $email->setTo($recipient['email']);
             $email->setSubject($subject);
             $email->setMailType('html');
-            $view = $emailTemplate === 'emergence_access'
-                ? 'App\\Modules\\Admin\\Views\\emails\\emergence_access'
-                : 'App\\Modules\\Admin\\Views\\emails\\portal_message';
-            $email->setMessage(view($view, [
+            $email->setMessage(view('App\\Modules\\Admin\\Views\\emails\\emergence_access', [
                 'name' => trim((string) (($recipient['firstname'] ?? '') . ' ' . ($recipient['lastname'] ?? ''))) ?: 'there',
                 'subject' => $subject,
                 'body' => $body,

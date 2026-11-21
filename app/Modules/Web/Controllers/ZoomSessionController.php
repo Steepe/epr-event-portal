@@ -82,14 +82,17 @@ class ZoomSessionController extends BaseController
                 'meetingNumber' => $meetingNumber,
                 'passWord'      => (string) ($session['zoom_passcode'] ?? ''),
                 'userName'      => $this->attendeeName(),
-                'userEmail'     => (string) session('email'),
+                'userEmail'     => (string) (session('email') ?: session('user_email')),
                 'isWebinar'     => (bool) ($session['zoom_is_webinar'] ?? false),
             ]);
     }
 
     private function authorisedZoomSession(int $sessionId): ?array
     {
-        if (! session('logged_in')) {
+        // The native mobile portal historically used isLoggedIn while the web
+        // portal uses logged_in. Accept either for an authenticated attendee,
+        // so current mobile sessions can use Zoom without requiring a logout.
+        if (! session('logged_in') && ! session('isLoggedIn')) {
             return null;
         }
 

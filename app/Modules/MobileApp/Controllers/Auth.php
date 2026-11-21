@@ -57,8 +57,14 @@ class Auth extends BaseController
             'user_id'     => $user['id'],
             'user_email'  => $user['email'],
             'user_role'   => $user['role'],
+            // Keep the browser and mobile portal sessions compatible. Some
+            // shared attendee features, including the Zoom Meeting SDK, use
+            // these canonical session keys.
+            'email'       => $user['email'],
+            'role'        => $user['role'],
             'uuid'        => $user['uuid'] ?? null,
             'isLoggedIn'  => true,
+            'logged_in'   => true,
             'attendee_id'=>  $user['id'],
             'firstname'   => $attendee['firstname'] ?? '',
             'lastname'    => $attendee['lastname'] ?? '',
