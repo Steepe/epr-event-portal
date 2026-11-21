@@ -868,7 +868,7 @@ $attendeeFilters = ['All', 'Online now'];
         if (activeThread) {
             loadThread();
         }
-    }, 3000);
+    }, 10000);
 })();
 </script>
 </body>

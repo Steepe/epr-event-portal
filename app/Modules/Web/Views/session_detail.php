@@ -275,7 +275,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     refreshOnlineCount();
-    window.setInterval(refreshOnlineCount, 20000);
+    window.setInterval(refreshOnlineCount, 60000);
 
     function appendMessage(message) {
         const messageId = Number(message.id || 0);
@@ -327,7 +327,11 @@ document.addEventListener("DOMContentLoaded", () => {
         if (chatPollingTimer) {
             return;
         }
-        chatPollingTimer = window.setInterval(loadMessages, 3000);
+        chatPollingTimer = window.setInterval(function() {
+            if (!document.hidden) {
+                loadMessages();
+            }
+        }, 8000);
     }
 
     function stopChatPolling() {

@@ -116,7 +116,7 @@ document.addEventListener('DOMContentLoaded', function () {
     messages.scrollTop = messages.scrollHeight;
   }
   function loadChat() { if (memberId) request(<?php echo json_encode(site_url('attendees/emergence_booth/chat/')); ?> + memberId).then(data => renderChat(data.data || [])).catch(() => {}); }
-  document.querySelectorAll('.rc-booth-chat').forEach(button => button.addEventListener('click', function () { memberId = this.dataset.memberId; lastSignature = ''; chatName.textContent = 'Chat with ' + this.dataset.memberName; panel.hidden = false; loadChat(); clearInterval(poller); poller = setInterval(loadChat, 2000); }));
+  document.querySelectorAll('.rc-booth-chat').forEach(button => button.addEventListener('click', function () { memberId = this.dataset.memberId; lastSignature = ''; chatName.textContent = 'Chat with ' + this.dataset.memberName; panel.hidden = false; loadChat(); clearInterval(poller); poller = setInterval(loadChat, 10000); }));
   const requestedMemberId = new URLSearchParams(window.location.search).get('chat');
   if (requestedMemberId) document.querySelector('.rc-booth-chat[data-member-id="' + CSS.escape(requestedMemberId) + '"]')?.click();
   document.querySelector('[data-booth-chat-close]').addEventListener('click', () => { panel.hidden = true; clearInterval(poller); });

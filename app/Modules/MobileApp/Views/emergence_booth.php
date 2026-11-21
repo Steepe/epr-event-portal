@@ -165,7 +165,7 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('memberChatName').textContent = 'Chat with ' + button.getAttribute('data-member-name');
             list.textContent = ''; input.value = '';
             EPR.openSheet('memberChat');
-            load(); clearInterval(poller); poller = setInterval(load, 2000);
+            load(); clearInterval(poller); poller = setInterval(load, 10000);
             return;
         }
         var topic = event.target.closest('[data-topic]');

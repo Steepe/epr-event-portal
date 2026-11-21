@@ -399,7 +399,7 @@ document.addEventListener('DOMContentLoaded', function () {
             chatList.textContent = ''; chatInput.value = '';
             var badge = q('.m-community__unread', chatButton); if (badge) badge.remove();
             EPR.openSheet('communityChat');
-            loadChat(); clearInterval(chatPoller); chatPoller = setInterval(loadChat, 3000);
+            loadChat(); clearInterval(chatPoller); chatPoller = setInterval(loadChat, 10000);
             return;
         }
         var qrButton = event.target.closest('[data-community-qr]');

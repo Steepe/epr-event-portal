@@ -139,7 +139,7 @@
         }
 
         function pollPendingConnections() {
-            if (!userId || !pendingConnectionsUrl) {
+            if (!userId || !pendingConnectionsUrl || document.visibilityState === "hidden") {
                 return;
             }
 
@@ -172,7 +172,16 @@
             }
 
             pollPendingConnections();
-            pollingTimer = window.setInterval(pollPendingConnections, 5000);
+            pollingTimer = window.setInterval(pollPendingConnections, 20000);
+        }
+
+        function stopPolling() {
+            if (!pollingTimer) {
+                return;
+            }
+
+            window.clearInterval(pollingTimer);
+            pollingTimer = null;
         }
 
         function connectRealtime() {
@@ -180,12 +189,8 @@
                 return;
             }
 
-            // Keep this lightweight reconciliation active even while a socket
-            // is open: it covers a dropped or missed socket event without a
-            // browser refresh. Duplicate connection IDs are ignored above.
-            startPolling();
-
             if (!wsUrl || !wsToken || !wsExpires || !("WebSocket" in window)) {
+                startPolling();
                 return;
             }
 
@@ -198,6 +203,7 @@
 
             socket.addEventListener("open", function() {
                 reconnectDelay = 1200;
+                stopPolling();
                 socket.send(JSON.stringify({ type: "register", user_id: userId, token: wsToken, expires: wsExpires }));
             });
 
@@ -282,7 +288,7 @@
         }
 
         heartbeat();
-        window.setInterval(heartbeat, 45000);
+        window.setInterval(heartbeat, 60000);
         document.addEventListener("visibilitychange", function() {
             if (document.visibilityState === "visible") {
                 heartbeat();

@@ -21,6 +21,8 @@ class HomeController extends BaseController
             return redirect()->to(base_url('attendees/login'));
         }
 
-        return (new PlatformTourController())->home();
+        // The guided avatar experience is intentionally paused during the live
+        // conference. Send attendees straight to the lightweight Lobby instead.
+        return redirect()->to(site_url('attendees/lobby'));
     }
 }

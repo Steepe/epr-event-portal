@@ -231,7 +231,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     function startChatPolling() {
         if (chatPollingTimer) return;
-        chatPollingTimer = window.setInterval(function () { if (!document.hidden) load(); }, 3000);
+        chatPollingTimer = window.setInterval(function () { if (!document.hidden) load(); }, 8000);
     }
     function stopChatPolling() {
         if (!chatPollingTimer) return;
