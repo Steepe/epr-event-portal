@@ -112,7 +112,7 @@ class StoreOfferCatalog
                 continue;
             }
             $haystack = strtolower((string) ($product['slug'] ?? '') . ' ' . (string) ($product['name'] ?? ''));
-            if (str_contains($haystack, 'blueprint')) {
+            if (str_contains($haystack, 'blueprint') || (str_contains($haystack, 'execution') && str_contains($haystack, 'coaching'))) {
                 return $product;
             }
         }
