@@ -187,6 +187,11 @@
                 });
                 return;
             }
+            var notificationLink = target.closest('[data-notif-url]');
+            if (notificationLink && !target.closest('button')) {
+                window.location.assign(notificationLink.getAttribute('data-notif-url'));
+                return;
+            }
             var pref = target.closest('[data-pref]');
             if (pref) {
                 var prefs = readStore('epr-mobile-notif-prefs', {});

@@ -4,6 +4,7 @@ echo module_view('Web', 'includes/topbar');
 
 $pendingConnections = $pendingConnections ?? [];
 $portalMessages = $portalMessages ?? [];
+$boothReplies = $boothReplies ?? [];
 $notifications = array_map(static function (array $message): array {
     return [
         'id' => 'admin-' . (int) $message['delivery_id'],
@@ -17,6 +18,22 @@ $notifications = array_map(static function (array $message): array {
         'url' => '#',
     ];
 }, $portalMessages);
+foreach ($boothReplies as $reply) {
+    $createdAt = (string) ($reply['created_at'] ?? '');
+    $isToday = $createdAt !== '' && date('Y-m-d', strtotime($createdAt)) === date('Y-m-d');
+    $memberName = trim((string) ($reply['display_name'] ?? '')) ?: 'the EPR Global team';
+    $notifications[] = [
+        'id' => 'booth-' . (int) $reply['booth_message_id'],
+        'cat' => 'Booths',
+        'group' => $isToday ? 'TODAY' : 'EARLIER',
+        'unread' => empty($reply['read_at']),
+        'title' => 'New message from ' . $memberName,
+        'body' => trim(preg_replace('/\s+/', ' ', (string) ($reply['message'] ?? '')) ?? ''),
+        'time' => $createdAt !== '' ? strtoupper(date('d M Y', strtotime($createdAt))) : '',
+        'icon' => 'fa-comment',
+        'url' => site_url('attendees/emergence_booth?chat=' . (int) $reply['booth_member_id']),
+    ];
+}
 
 $categories = [
     'Sessions' => ['fa-play-circle', '#d8198e', '#fff'],

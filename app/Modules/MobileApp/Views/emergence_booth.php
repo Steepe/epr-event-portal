@@ -135,6 +135,8 @@ document.addEventListener('DOMContentLoaded', function () {
         playNext();
     });
 
+    var requestedMemberId = new URLSearchParams(window.location.search).get('chat');
+
     function render(rows) {
         var next = JSON.stringify(rows);
         if (next === signature) return;
@@ -186,6 +188,10 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
     sheet.addEventListener('sheet:close', function () { clearInterval(poller); memberId = null; });
+    if (requestedMemberId) {
+        var requestedMember = document.querySelector('[data-member-chat="' + CSS.escape(requestedMemberId) + '"]');
+        if (requestedMember) requestedMember.click();
+    }
 
     document.getElementById('memberChatForm').addEventListener('submit', function (event) {
         event.preventDefault();

@@ -29,6 +29,13 @@ if ($currentUserId > 0) {
                 ->where('status', 'pending')
                 ->countAllResults();
         }
+        if ($db->tableExists('tbl_emergence_booth_messages')) {
+            $unreadCount += (int) $db->table('tbl_emergence_booth_messages')
+                ->where('attendee_id', $currentUserId)
+                ->where('sender_type', 'admin')
+                ->where('read_at IS NULL', null, false)
+                ->countAllResults();
+        }
     } catch (\Throwable $e) {
         log_message('debug', '[Topbar] Unable to load connection notification count: ' . $e->getMessage());
     }

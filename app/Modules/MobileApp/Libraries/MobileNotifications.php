@@ -70,6 +70,33 @@ class MobileNotifications
                 }
             }
 
+            if ($db->tableExists('tbl_emergence_booth_messages') && $db->tableExists('tbl_emergence_booth_members')) {
+                $replies = $db->table('tbl_emergence_booth_messages m')
+                    ->select('m.booth_message_id, m.booth_member_id, m.message, m.read_at, m.created_at, b.display_name')
+                    ->join('tbl_emergence_booth_members b', 'b.booth_member_id = m.booth_member_id', 'left')
+                    ->where('m.attendee_id', $userId)
+                    ->where('m.sender_type', 'admin')
+                    ->orderBy('m.booth_message_id', 'DESC')
+                    ->limit(50)
+                    ->get()
+                    ->getResultArray();
+
+                foreach ($replies as $reply) {
+                    $memberName = trim((string) ($reply['display_name'] ?? '')) ?: 'the EPR Global team';
+                    $body = trim(preg_replace('/\s+/', ' ', (string) ($reply['message'] ?? '')) ?? '');
+                    $items[] = self::item(
+                        'booth-' . (int) $reply['booth_message_id'],
+                        'Booths',
+                        empty($reply['read_at']),
+                        'New message from ' . $memberName,
+                        $body . ' — open the Emergence Booth to reply.',
+                        $reply['created_at'] ?? null,
+                        null,
+                        site_url('mobile/emergence-booth?chat=' . (int) $reply['booth_member_id'])
+                    );
+                }
+            }
+
             // Replies from a Country Manager that have not been opened yet, newest per community.
             if ($db->tableExists('tbl_country_communities') && $db->tableExists('tbl_country_community_messages')) {
                 $replies = $db->table('tbl_country_community_messages m')
@@ -106,7 +133,7 @@ class MobileNotifications
         return count(array_filter(self::all(), static fn (array $item): bool => $item['unread']));
     }
 
-    private static function item(string $id, string $category, bool $unread, string $title, string $body, ?string $createdAt, ?int $connectionId = null): array
+    private static function item(string $id, string $category, bool $unread, string $title, string $body, ?string $createdAt, ?int $connectionId = null, ?string $url = null): array
     {
         $timestamp = $createdAt ? strtotime($createdAt) : false;
 
@@ -118,6 +145,7 @@ class MobileNotifications
             'title'         => $title,
             'body'          => $body,
             'connection_id' => $connectionId,
+            'url'           => $url,
             'group'         => $timestamp && date('Y-m-d', $timestamp) === date('Y-m-d') ? 'TODAY' : 'EARLIER',
             'time'          => self::timeLabel($timestamp ?: null),
         ];

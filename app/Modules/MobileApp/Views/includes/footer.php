@@ -34,7 +34,7 @@ $mobileUnread = count(array_filter($mobileNotifs, static fn (array $item): bool 
     </div>
     <?php foreach ($mobileNotifs as $index => $item): ?>
         <?php // Only the latest three are shown; the rest stay in the page so the unread badge counts them. ?>
-        <a class="m-snrow <?= $item['unread'] ? 'is-unread' : '' ?>" href="<?= site_url('mobile/notifications') ?>" data-notif="<?= esc($item['id'], 'attr') ?>" data-cat="<?= esc($item['cat'], 'attr') ?>" data-unread="<?= $item['unread'] ? '1' : '0' ?>"<?= $index > 2 ? ' hidden' : '' ?>>
+        <a class="m-snrow <?= $item['unread'] ? 'is-unread' : '' ?>" href="<?= esc($item['url'] ?: site_url('mobile/notifications'), 'attr') ?>" data-notif="<?= esc($item['id'], 'attr') ?>" data-cat="<?= esc($item['cat'], 'attr') ?>" data-unread="<?= $item['unread'] ? '1' : '0' ?>"<?= $index > 2 ? ' hidden' : '' ?>>
             <span class="m-nicon m-nicon--<?= esc($item['cat'], 'attr') ?>"><i class="fa <?= esc($item['icon'], 'attr') ?>" aria-hidden="true"></i></span>
             <span class="m-snrow__body">
                 <b><?= esc($item['title']) ?></b>

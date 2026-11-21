@@ -47,7 +47,7 @@ $preferences = [
             <span class="m-label"><?= $groupName ?></span>
             <div class="m-card m-card--clip">
                 <?php foreach ($groups[$groupName] as $item): ?>
-                    <div class="m-nrow <?= $item['unread'] ? 'is-unread' : '' ?>" data-notif="<?= esc($item['id'], 'attr') ?>" data-cat="<?= esc($item['cat'], 'attr') ?>" data-unread="<?= $item['unread'] ? '1' : '0' ?>"<?= $item['connection_id'] ? ' data-connection="' . (int) $item['connection_id'] . '"' : '' ?>>
+                    <div class="m-nrow <?= $item['unread'] ? 'is-unread' : '' ?>" data-notif="<?= esc($item['id'], 'attr') ?>" data-cat="<?= esc($item['cat'], 'attr') ?>" data-unread="<?= $item['unread'] ? '1' : '0' ?>"<?= $item['connection_id'] ? ' data-connection="' . (int) $item['connection_id'] . '"' : '' ?><?= !empty($item['url']) ? ' data-notif-url="' . esc($item['url'], 'attr') . '"' : '' ?>>
                         <span class="m-nicon m-nicon--<?= esc($item['cat'], 'attr') ?>"><i class="fa <?= esc($item['icon'], 'attr') ?>" aria-hidden="true"></i></span>
                         <div class="m-nrow__body">
                             <div class="m-nrow__title"><b><?= esc($item['title']) ?></b></div>
