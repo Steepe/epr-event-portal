@@ -3,7 +3,6 @@
 namespace App\Modules\Web\Controllers;
 
 use App\Controllers\BaseController;
-use App\Services\PortalAccessService;
 
 class PlatformTourController extends BaseController
 {
@@ -20,7 +19,12 @@ class PlatformTourController extends BaseController
             return redirect()->to(site_url('attendees/login'));
         }
 
-        $conference = (new PortalAccessService())->liveConference();
+        $conference = db_connect()->table('tbl_conferences')
+            ->where('year', 2026)
+            ->whereIn('status', ['live', 'past'])
+            ->orderBy('conference_id', 'DESC')
+            ->get()
+            ->getRowArray();
         if (! $conference) {
             return redirect()->to(site_url('attendees/start'));
         }
