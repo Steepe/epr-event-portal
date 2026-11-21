@@ -210,7 +210,7 @@ class EmergenceBoothController extends BaseController
                 $playlist[] = $legacy;
             }
         }
-        return array_slice($playlist, 0, 4);
+        return array_slice($playlist, 0, 6);
     }
 
     private function isReady(): bool

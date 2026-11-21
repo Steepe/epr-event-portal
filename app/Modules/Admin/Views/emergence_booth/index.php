@@ -8,19 +8,23 @@ $this->section('content');
   <?php if ($ready ?? false): ?><a href="<?php echo site_url('admin/emergence-booth/chats'); ?>" class="rounded bg-fuchsia-700 px-4 py-2 text-sm font-medium text-white hover:bg-fuchsia-600"><i class="bx bx-chat"></i> Booth chats</a><?php endif; ?>
 </div>
 
-<?php foreach (['error' => 'red', 'success' => 'green'] as $flash => $colour): ?>
-  <?php if (session()->getFlashdata($flash)): ?><div class="mb-4 rounded border border-<?php echo $colour; ?>-700 bg-gray-800 p-3 text-<?php echo $colour; ?>-300"><?php echo esc(session()->getFlashdata($flash)); ?></div><?php endif; ?>
-<?php endforeach; ?>
+<?php if ($error = session()->getFlashdata('error')): ?>
+  <section class="mb-4 flex gap-3 rounded-lg border border-red-500/70 bg-red-950/35 p-4 text-red-100" role="alert">
+    <span class="flex h-7 w-7 flex-none items-center justify-center rounded-full bg-red-500/20 font-bold text-red-300" aria-hidden="true">!</span>
+    <div><h2 class="font-semibold">We couldn’t complete that upload or update.</h2><p class="mt-1 text-sm leading-6 text-red-100/90"><?php echo esc($error); ?></p><p class="mt-2 text-xs text-red-200/75">No playlist changes were saved. Review the message above, then try again.</p></div>
+  </section>
+<?php endif; ?>
+<?php if ($success = session()->getFlashdata('success')): ?><div class="mb-4 rounded border border-green-700 bg-gray-800 p-3 text-green-300"><?php echo esc($success); ?></div><?php endif; ?>
 
 <?php if (!($ready ?? false)): ?>
   <div class="rounded-lg border border-amber-600 bg-gray-800 p-6 text-amber-200"><strong>One database migration is needed before the booth can be configured.</strong><p class="mt-2 text-sm text-gray-300">After this code is deployed, run <code class="rounded bg-gray-900 px-1.5 py-0.5">php spark migrate</code> manually when you are ready. Nothing has been run automatically.</p></div>
 <?php else: ?>
   <div class="grid gap-6 xl:grid-cols-2">
     <section class="rounded-lg border border-gray-700 bg-gray-800 p-5">
-      <h2 class="font-semibold text-gray-100">EPR Films playlist</h2><p class="mt-1 text-sm text-gray-400">Upload up to four Bunny Stream videos. They are displayed on the attendee booth in the order listed below.</p>
-      <?php $availableVideoSlots = max(0, 4 - count($videoPlaylist ?? [])); ?>
-      <?php if ($availableVideoSlots > 0): ?><form id="booth-video-upload-form" method="post" action="<?php echo site_url('admin/emergence-booth/video'); ?>" enctype="multipart/form-data" class="mt-4 space-y-3"><?php echo csrf_field(); ?><label class="block text-sm text-gray-300">Choose up to <?php echo $availableVideoSlots; ?> video<?php echo $availableVideoSlots === 1 ? '' : 's'; ?><input type="file" name="booth_videos[]" accept="video/mp4,video/webm,video/quicktime,.mp4,.m4v,.mov,.webm" multiple required class="mt-1 block w-full rounded border border-gray-700 bg-gray-900 p-2 text-sm text-gray-300"></label><p class="text-xs text-gray-500">Select multiple files at once. Each video can be up to 256 MB; they will play in the order selected.</p><div id="booth-video-upload-progress" class="hidden" aria-live="polite"><div class="mb-1 flex justify-between text-xs text-gray-300"><span id="booth-video-upload-status">Uploading videos…</span><span id="booth-video-upload-percent">0%</span></div><div class="h-2 overflow-hidden rounded-full bg-gray-700"><div id="booth-video-upload-fill" class="h-full w-0 rounded-full bg-blue-500 transition-all duration-150" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div></div><button type="submit" class="rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-500">Add selected videos to Bunny playlist</button></form><?php else: ?><p class="mt-4 text-sm text-amber-300">The playlist is full. Remove a video below before adding another.</p><?php endif; ?>
-      <ol class="mt-4 space-y-2 text-sm text-gray-300"><?php foreach (($videoPlaylist ?? []) as $index => $url): ?><li class="flex items-center gap-2 rounded border border-gray-700 bg-gray-900 p-2"><span class="text-gray-500"><?php echo (int) $index + 1; ?>.</span><a class="min-w-0 flex-1 truncate text-blue-400 hover:underline" target="_blank" rel="noopener" href="<?php echo esc($url); ?>">View Bunny video</a><form method="post" action="<?php echo site_url('admin/emergence-booth/video/' . $index . '/delete'); ?>"><?php echo csrf_field(); ?><button class="text-xs text-red-400 hover:text-red-300" type="submit">Remove</button></form></li><?php endforeach; ?><?php if (empty($videoPlaylist)): ?><li class="text-gray-500">No videos queued yet.</li><?php endif; ?></ol>
+      <h2 class="font-semibold text-gray-100">EPR Films playlist</h2><p class="mt-1 text-sm text-gray-400">Upload up to six Bunny Stream videos. They play on the attendee booth in the order listed below, then continuously loop back to the first video.</p>
+      <?php $availableVideoSlots = max(0, 6 - count($videoPlaylist ?? [])); ?>
+      <?php if ($availableVideoSlots > 0): ?><form id="booth-video-upload-form" method="post" action="<?php echo site_url('admin/emergence-booth/video'); ?>" enctype="multipart/form-data" class="mt-4 space-y-3"><?php echo csrf_field(); ?><label class="block text-sm text-gray-300">Choose up to <?php echo $availableVideoSlots; ?> video<?php echo $availableVideoSlots === 1 ? '' : 's'; ?><input type="file" name="booth_videos[]" accept="video/mp4,video/webm,video/quicktime,.mp4,.m4v,.mov,.webm" multiple required data-max-videos="<?php echo $availableVideoSlots; ?>" class="mt-1 block w-full rounded border border-gray-700 bg-gray-900 p-2 text-sm text-gray-300"></label><p class="text-xs text-gray-500">Select multiple files at once. Each video can be up to 256 MB; they will play in the order selected.</p><div id="booth-video-upload-error" class="hidden rounded-lg border border-red-500/70 bg-red-950/35 p-3 text-sm text-red-100" role="alert"><strong class="block font-semibold">Upload could not be completed.</strong><span id="booth-video-upload-error-message" class="mt-1 block leading-5"></span></div><div id="booth-video-upload-progress" class="hidden" aria-live="polite"><div class="mb-1 flex justify-between text-xs text-gray-300"><span id="booth-video-upload-status">Uploading videos…</span><span id="booth-video-upload-percent">0%</span></div><div class="h-2 overflow-hidden rounded-full bg-gray-700"><div id="booth-video-upload-fill" class="h-full w-0 rounded-full bg-blue-500 transition-all duration-150" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div></div><button type="submit" class="rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-500">Add selected videos to Bunny playlist</button></form><?php else: ?><p class="mt-4 text-sm text-amber-300">The playlist is full. Remove a video below before adding another.</p><?php endif; ?>
+      <ol class="mt-4 space-y-2 text-sm text-gray-300"><?php foreach (($videoPlaylist ?? []) as $index => $url): ?><li class="flex flex-wrap items-center gap-2 rounded border border-gray-700 bg-gray-900 p-2"><span class="text-gray-500">#<?php echo (int) $index + 1; ?></span><a class="min-w-0 flex-1 truncate text-blue-400 hover:underline" target="_blank" rel="noopener" href="<?php echo esc($url); ?>">View Bunny video</a><form method="post" action="<?php echo site_url('admin/emergence-booth/video/' . $index . '/move'); ?>" class="flex gap-1"><?php echo csrf_field(); ?><button class="rounded border border-gray-600 px-2 py-1 text-xs text-gray-200 hover:border-blue-400 disabled:cursor-not-allowed disabled:opacity-40" type="submit" name="direction" value="up" <?php echo $index === 0 ? 'disabled' : ''; ?> aria-label="Move video <?php echo (int) $index + 1; ?> up">↑</button><button class="rounded border border-gray-600 px-2 py-1 text-xs text-gray-200 hover:border-blue-400 disabled:cursor-not-allowed disabled:opacity-40" type="submit" name="direction" value="down" <?php echo $index === count($videoPlaylist) - 1 ? 'disabled' : ''; ?> aria-label="Move video <?php echo (int) $index + 1; ?> down">↓</button></form><form method="post" action="<?php echo site_url('admin/emergence-booth/video/' . $index . '/delete'); ?>"><?php echo csrf_field(); ?><button class="text-xs text-red-400 hover:text-red-300" type="submit">Remove</button></form></li><?php endforeach; ?><?php if (empty($videoPlaylist)): ?><li class="text-gray-500">No videos queued yet.</li><?php endif; ?></ol>
     </section>
 
     <section class="rounded-lg border border-gray-700 bg-gray-800 p-5">
@@ -64,12 +68,37 @@ $this->section('content');
   const fill = document.getElementById('booth-video-upload-fill');
   const status = document.getElementById('booth-video-upload-status');
   const percent = document.getElementById('booth-video-upload-percent');
+  const errorBox = document.getElementById('booth-video-upload-error');
+  const errorMessage = document.getElementById('booth-video-upload-error-message');
+  const fileInput = form.querySelector('input[type="file"]');
   const button = form.querySelector('button[type="submit"]');
+
+  const enableButton = () => {
+    button.disabled = false;
+    button.classList.remove('cursor-not-allowed', 'opacity-60');
+  };
+  const showUploadError = (message) => {
+    errorMessage.textContent = message;
+    errorBox.classList.remove('hidden');
+    progress.classList.add('hidden');
+    enableButton();
+    errorBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  };
 
   form.addEventListener('submit', (event) => {
     event.preventDefault();
-    if (!form.querySelector('input[type="file"]').files.length) return;
+    const files = fileInput.files;
+    if (!files.length) {
+      showUploadError('Choose at least one MP4, M4V, MOV, or WebM video before uploading.');
+      return;
+    }
+    const availableSlots = Number(fileInput.dataset.maxVideos || 0);
+    if (availableSlots && files.length > availableSlots) {
+      showUploadError(`You selected ${files.length} videos, but this playlist has room for ${availableSlots}. Remove a selection and try again.`);
+      return;
+    }
 
+    errorBox.classList.add('hidden');
     progress.classList.remove('hidden');
     button.disabled = true;
     button.classList.add('cursor-not-allowed', 'opacity-60');
@@ -94,14 +123,14 @@ $this->section('content');
         window.location.assign(request.responseURL || form.action);
         return;
       }
-      status.textContent = 'Upload failed. Please try again.';
-      button.disabled = false;
-      button.classList.remove('cursor-not-allowed', 'opacity-60');
+      if (request.status === 413) {
+        showUploadError('The server rejected this upload because the selected file or combined upload is too large. Try a smaller video, or ask the server administrator to increase upload_max_filesize and post_max_size.');
+        return;
+      }
+      showUploadError('The server could not complete this upload. Please try again. If the problem continues, try one video at a time or contact technical support.');
     });
     request.addEventListener('error', () => {
-      status.textContent = 'Upload failed. Check your connection and try again.';
-      button.disabled = false;
-      button.classList.remove('cursor-not-allowed', 'opacity-60');
+      showUploadError('Your connection was interrupted before the upload finished. Check your internet connection and try again.');
     });
     request.send(new FormData(form));
   });

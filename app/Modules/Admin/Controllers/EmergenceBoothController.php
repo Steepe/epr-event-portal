@@ -9,6 +9,7 @@ use CodeIgniter\Exceptions\PageNotFoundException;
 class EmergenceBoothController extends BaseController
 {
     private const DEFAULT_CALLBACK_TOPICS = ['Programmes', 'Partnership', 'Speaking', 'Media'];
+    private const MAX_PLAYLIST_VIDEOS = 6;
 
     private const TABLES = [
         'tbl_emergence_booth_settings',
@@ -61,9 +62,9 @@ class EmergenceBoothController extends BaseController
 
         try {
             $playlist = $this->videoPlaylist();
-            $availableSlots = 4 - count($playlist);
+            $availableSlots = self::MAX_PLAYLIST_VIDEOS - count($playlist);
             if ($availableSlots <= 0) {
-                return redirect()->back()->with('error', 'The booth playlist can contain up to four videos. Remove a video before adding another.');
+                return redirect()->back()->with('error', 'The booth playlist can contain up to six videos. Remove a video before adding another.');
             }
 
             $files = array_values(array_filter(
@@ -109,6 +110,26 @@ class EmergenceBoothController extends BaseController
         $this->saveSetting('video_playlist', json_encode(array_values($playlist), JSON_UNESCAPED_SLASHES));
         $this->saveSetting('welcome_video_url', $playlist[0] ?? '');
         return redirect()->to(site_url('admin/emergence-booth'))->with('success', 'Booth video removed from the playlist.');
+    }
+
+    public function moveVideo(int $index)
+    {
+        if ($response = $this->notReadyResponse()) {
+            return $response;
+        }
+
+        $playlist = $this->videoPlaylist();
+        $direction = (string) $this->request->getPost('direction');
+        $destination = $direction === 'up' ? $index - 1 : ($direction === 'down' ? $index + 1 : $index);
+        if (! array_key_exists($index, $playlist) || ! array_key_exists($destination, $playlist)) {
+            return redirect()->back()->with('error', 'That playlist move is not available.');
+        }
+
+        [$playlist[$index], $playlist[$destination]] = [$playlist[$destination], $playlist[$index]];
+        $this->saveSetting('video_playlist', json_encode(array_values($playlist), JSON_UNESCAPED_SLASHES));
+        $this->saveSetting('welcome_video_url', $playlist[0] ?? '');
+
+        return redirect()->to(site_url('admin/emergence-booth'))->with('success', 'Booth video order updated.');
     }
 
     public function saveMember()
@@ -553,7 +574,7 @@ class EmergenceBoothController extends BaseController
                 $playlist[] = $legacy;
             }
         }
-        return array_slice($playlist, 0, 4);
+        return array_slice($playlist, 0, self::MAX_PLAYLIST_VIDEOS);
     }
 
     private function saveSetting(string $key, string $value): void

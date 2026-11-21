@@ -136,7 +136,7 @@ class EmergenceBoothController extends BaseController
             }
         }
 
-        return array_slice($playlist, 0, 4);
+        return array_slice($playlist, 0, 6);
     }
 
 }

@@ -156,6 +156,7 @@ $routes->group('admin', ['namespace' => 'App\Modules\Admin\Controllers'], functi
         // Emergence Booth
         $routes->get('emergence-booth', 'EmergenceBoothController::index');
         $routes->post('emergence-booth/video', 'EmergenceBoothController::saveVideo');
+        $routes->post('emergence-booth/video/(:num)/move', 'EmergenceBoothController::moveVideo/$1');
         $routes->post('emergence-booth/video/(:num)/delete', 'EmergenceBoothController::removeVideo/$1');
         $routes->post('emergence-booth/members', 'EmergenceBoothController::saveMember');
         $routes->post('emergence-booth/members/(:num)/delete', 'EmergenceBoothController::deleteMember/$1');
