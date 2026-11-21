@@ -59,7 +59,10 @@ class ChatServer implements MessageComponentInterface
                 $expires = (int) ($data['expires'] ?? 0);
                 $token = (string) ($data['token'] ?? '');
                 if (! RealtimeToken::verify($userId, $expires, $token)) {
-                    $conn->close();
+                    // $from is the socket passed to this handler. Using an
+                    // undefined connection here caused realtime:serve to
+                    // crash whenever it rejected a registration request.
+                    $from->close();
                     return;
                 }
 

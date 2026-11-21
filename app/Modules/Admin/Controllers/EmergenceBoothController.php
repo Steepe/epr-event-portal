@@ -10,6 +10,7 @@ class EmergenceBoothController extends BaseController
 {
     private const DEFAULT_CALLBACK_TOPICS = ['Programmes', 'Partnership', 'Speaking', 'Media'];
     private const MAX_PLAYLIST_VIDEOS = 6;
+    private const MAX_VIDEO_BYTES = 512 * 1024 * 1024;
 
     private const TABLES = [
         'tbl_emergence_booth_settings',
@@ -84,6 +85,9 @@ class EmergenceBoothController extends BaseController
 
             $bunny = new BunnyStreamService();
             foreach ($files as $file) {
+                if ($file->getSize() > self::MAX_VIDEO_BYTES) {
+                    throw new \RuntimeException('Each booth video must be 512 MB or smaller.');
+                }
                 $playlist[] = $bunny->uploadWelcomeVideo($file, 'Emergence Booth Video ' . (count($playlist) + 1));
             }
             $this->saveSetting('video_playlist', json_encode($playlist, JSON_UNESCAPED_SLASHES));
@@ -93,6 +97,111 @@ class EmergenceBoothController extends BaseController
         }
 
         return redirect()->to(site_url('admin/emergence-booth'))->with('success', sprintf('%d booth video%s added to the Bunny Stream playlist.', count($files), count($files) === 1 ? '' : 's'));
+    }
+
+    /**
+     * Supplies a time-limited signature for one browser-to-Bunny TUS upload.
+     * The Bunny API key remains on this server; video bytes never pass through PHP.
+     */
+    public function videoUploadCredentials(): \CodeIgniter\HTTP\ResponseInterface
+    {
+        if (! $this->isReady()) {
+            return $this->response->setStatusCode(409)->setJSON([
+                'error' => 'The Emergence Booth is not ready yet. Please refresh the page and try again.',
+            ]);
+        }
+
+        if (count($this->videoPlaylist()) >= self::MAX_PLAYLIST_VIDEOS) {
+            return $this->response->setStatusCode(422)->setJSON([
+                'error' => 'The booth playlist already contains six videos. Remove one before uploading another.',
+            ]);
+        }
+
+        if ((int) $this->request->getPost('file_size') > self::MAX_VIDEO_BYTES) {
+            return $this->response->setStatusCode(422)->setJSON([
+                'error' => 'Each booth video must be 512 MB or smaller.',
+            ]);
+        }
+
+        try {
+            $credentials = (new BunnyStreamService())->prepareDirectUpload(
+                $this->limitedPost('title', 255) ?: 'Emergence Booth Video',
+                $this->limitedPost('resume_video_id', 100)
+            );
+            $credentials['csrfHash'] = csrf_hash();
+
+            return $this->response->setJSON($credentials);
+        } catch (\RuntimeException $exception) {
+            return $this->response->setStatusCode(502)->setJSON([
+                'error' => $exception->getMessage(),
+            ]);
+        }
+    }
+
+    /**
+     * Adds successfully uploaded Bunny videos to the ordered booth playlist.
+     *
+     * @return \CodeIgniter\HTTP\ResponseInterface
+     */
+    public function saveDirectVideos(): \CodeIgniter\HTTP\ResponseInterface
+    {
+        if (! $this->isReady()) {
+            return $this->response->setStatusCode(409)->setJSON([
+                'error' => 'The Emergence Booth is not ready yet. Please refresh the page and try again.',
+            ]);
+        }
+
+        $submitted = $this->request->getPost('video_ids');
+        $videoIds = [];
+        foreach (is_array($submitted) ? $submitted : [] as $videoId) {
+            $videoId = trim((string) $videoId);
+            if ($videoId !== '' && ! in_array($videoId, $videoIds, true)) {
+                $videoIds[] = $videoId;
+            }
+        }
+        if ($videoIds === []) {
+            return $this->response->setStatusCode(422)->setJSON([
+                'error' => 'No completed Bunny videos were received. Please select the video again and retry.',
+            ]);
+        }
+
+        $playlist = $this->videoPlaylist();
+        $availableSlots = self::MAX_PLAYLIST_VIDEOS - count($playlist);
+        if (count($videoIds) > $availableSlots) {
+            return $this->response->setStatusCode(422)->setJSON([
+                'error' => sprintf('This playlist has room for %d more video%s.', $availableSlots, $availableSlots === 1 ? '' : 's'),
+            ]);
+        }
+
+        try {
+            $bunny = new BunnyStreamService();
+            $added = 0;
+            foreach ($videoIds as $videoId) {
+                $url = $bunny->welcomeVideoEmbedUrl($videoId);
+                if (! in_array($url, $playlist, true)) {
+                    $playlist[] = $url;
+                    ++$added;
+                }
+            }
+        } catch (\RuntimeException $exception) {
+            return $this->response->setStatusCode(422)->setJSON([
+                'error' => $exception->getMessage(),
+            ]);
+        }
+
+        if ($added === 0) {
+            return $this->response->setStatusCode(422)->setJSON([
+                'error' => 'Those videos are already in the booth playlist.',
+            ]);
+        }
+
+        $this->saveSetting('video_playlist', json_encode($playlist, JSON_UNESCAPED_SLASHES));
+        $this->saveSetting('welcome_video_url', $playlist[0]);
+
+        return $this->response->setJSON([
+            'success' => true,
+            'redirect' => site_url('admin/emergence-booth'),
+        ]);
     }
 
     public function removeVideo(int $index)

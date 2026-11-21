@@ -28,7 +28,9 @@ class AnalyticsController extends BaseController
             ->select('s.sessions_name, COUNT(*) AS viewer_count')
             ->join('tbl_conference_sessions s', 's.sessions_id = v.sessions_id', 'left')
             ->groupBy('v.sessions_id, s.sessions_name')->orderBy('viewer_count', 'DESC')->limit(10)->get()->getResultArray() : [];
-        $exhibitors = $db->tableExists('tbl_exhibitors') ? $db->table('tbl_exhibitors')->select('exhibitor_name, views, likes')->orderBy('views', 'DESC')->limit(10)->get()->getResultArray() : [];
+        $exhibitors = $db->tableExists('tbl_exhibitors')
+            ? $db->table('tbl_exhibitors')->select('company_name AS exhibitor_name, views, likes')->orderBy('views', 'DESC')->limit(10)->get()->getResultArray()
+            : [];
 
         return module_view('Admin', 'analytics/index', compact('users', 'attendees', 'registered2026', 'ratings', 'averageRating', 'uniqueSessionViewers', 'countries', 'sessions', 'viewedSessions', 'exhibitors'));
     }

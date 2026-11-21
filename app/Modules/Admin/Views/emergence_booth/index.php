@@ -23,7 +23,7 @@ $this->section('content');
     <section class="rounded-lg border border-gray-700 bg-gray-800 p-5">
       <h2 class="font-semibold text-gray-100">EPR Films playlist</h2><p class="mt-1 text-sm text-gray-400">Upload up to six Bunny Stream videos. They play on the attendee booth in the order listed below, then continuously loop back to the first video.</p>
       <?php $availableVideoSlots = max(0, 6 - count($videoPlaylist ?? [])); ?>
-      <?php if ($availableVideoSlots > 0): ?><form id="booth-video-upload-form" method="post" action="<?php echo site_url('admin/emergence-booth/video'); ?>" enctype="multipart/form-data" class="mt-4 space-y-3"><?php echo csrf_field(); ?><label class="block text-sm text-gray-300">Choose up to <?php echo $availableVideoSlots; ?> video<?php echo $availableVideoSlots === 1 ? '' : 's'; ?><input type="file" name="booth_videos[]" accept="video/mp4,video/webm,video/quicktime,.mp4,.m4v,.mov,.webm" multiple required data-max-videos="<?php echo $availableVideoSlots; ?>" class="mt-1 block w-full rounded border border-gray-700 bg-gray-900 p-2 text-sm text-gray-300"></label><p class="text-xs text-gray-500">Select multiple files at once. Each video can be up to 256 MB; they will play in the order selected.</p><div id="booth-video-upload-error" class="hidden rounded-lg border border-red-500/70 bg-red-950/35 p-3 text-sm text-red-100" role="alert"><strong class="block font-semibold">Upload could not be completed.</strong><span id="booth-video-upload-error-message" class="mt-1 block leading-5"></span></div><div id="booth-video-upload-progress" class="hidden" aria-live="polite"><div class="mb-1 flex justify-between text-xs text-gray-300"><span id="booth-video-upload-status">Uploading videos…</span><span id="booth-video-upload-percent">0%</span></div><div class="h-2 overflow-hidden rounded-full bg-gray-700"><div id="booth-video-upload-fill" class="h-full w-0 rounded-full bg-blue-500 transition-all duration-150" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div></div><button type="submit" class="rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-500">Add selected videos to Bunny playlist</button></form><?php else: ?><p class="mt-4 text-sm text-amber-300">The playlist is full. Remove a video below before adding another.</p><?php endif; ?>
+      <?php if ($availableVideoSlots > 0): ?><form id="booth-video-upload-form" method="post" action="<?php echo site_url('admin/emergence-booth/video'); ?>" data-bunny-credentials-url="<?php echo site_url('admin/emergence-booth/video/credentials'); ?>" data-bunny-save-url="<?php echo site_url('admin/emergence-booth/video/direct'); ?>" enctype="multipart/form-data" class="mt-4 space-y-3"><?php echo csrf_field(); ?><label class="block text-sm text-gray-300">Choose up to <?php echo $availableVideoSlots; ?> video<?php echo $availableVideoSlots === 1 ? '' : 's'; ?><input type="file" name="booth_videos[]" accept="video/mp4,video/webm,video/quicktime,.mp4,.m4v,.mov,.webm" multiple required data-max-videos="<?php echo $availableVideoSlots; ?>" data-max-video-bytes="536870912" class="mt-1 block w-full rounded border border-gray-700 bg-gray-900 p-2 text-sm text-gray-300"></label><p class="text-xs text-gray-500">Each video can be up to 512 MB. Videos upload directly to Bunny Stream, so they do not pass through this server. They will play in the order selected.</p><div id="booth-video-upload-error" class="hidden rounded-lg border border-red-500/70 bg-red-950/35 p-3 text-sm text-red-100" role="alert"><strong class="block font-semibold">Upload could not be completed.</strong><span id="booth-video-upload-error-message" class="mt-1 block leading-5"></span></div><div id="booth-video-upload-progress" class="hidden" aria-live="polite"><div class="mb-1 flex justify-between text-xs text-gray-300"><span id="booth-video-upload-status">Uploading videos…</span><span id="booth-video-upload-percent">0%</span></div><div class="h-2 overflow-hidden rounded-full bg-gray-700"><div id="booth-video-upload-fill" class="h-full w-0 rounded-full bg-blue-500 transition-all duration-150" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></div></div></div><button type="submit" class="rounded bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-500">Add selected videos to Bunny playlist</button></form><?php else: ?><p class="mt-4 text-sm text-amber-300">The playlist is full. Remove a video below before adding another.</p><?php endif; ?>
       <ol class="mt-4 space-y-2 text-sm text-gray-300"><?php foreach (($videoPlaylist ?? []) as $index => $url): ?><li class="flex flex-wrap items-center gap-2 rounded border border-gray-700 bg-gray-900 p-2"><span class="text-gray-500">#<?php echo (int) $index + 1; ?></span><a class="min-w-0 flex-1 truncate text-blue-400 hover:underline" target="_blank" rel="noopener" href="<?php echo esc($url); ?>">View Bunny video</a><form method="post" action="<?php echo site_url('admin/emergence-booth/video/' . $index . '/move'); ?>" class="flex gap-1"><?php echo csrf_field(); ?><button class="rounded border border-gray-600 px-2 py-1 text-xs text-gray-200 hover:border-blue-400 disabled:cursor-not-allowed disabled:opacity-40" type="submit" name="direction" value="up" <?php echo $index === 0 ? 'disabled' : ''; ?> aria-label="Move video <?php echo (int) $index + 1; ?> up">↑</button><button class="rounded border border-gray-600 px-2 py-1 text-xs text-gray-200 hover:border-blue-400 disabled:cursor-not-allowed disabled:opacity-40" type="submit" name="direction" value="down" <?php echo $index === count($videoPlaylist) - 1 ? 'disabled' : ''; ?> aria-label="Move video <?php echo (int) $index + 1; ?> down">↓</button></form><form method="post" action="<?php echo site_url('admin/emergence-booth/video/' . $index . '/delete'); ?>"><?php echo csrf_field(); ?><button class="text-xs text-red-400 hover:text-red-300" type="submit">Remove</button></form></li><?php endforeach; ?><?php if (empty($videoPlaylist)): ?><li class="text-gray-500">No videos queued yet.</li><?php endif; ?></ol>
     </section>
 
@@ -59,6 +59,7 @@ $this->section('content');
   <section class="mt-6 rounded-lg border border-gray-700 bg-gray-800 p-5"><h2 class="font-semibold text-gray-100">Callback requests</h2><div class="mt-4 overflow-x-auto"><table class="w-full text-left text-sm text-gray-300"><thead class="text-xs uppercase text-gray-500"><tr><th class="p-2">Attendee</th><th class="p-2">Topic / note</th><th class="p-2">Received</th><th class="p-2">Status</th></tr></thead><tbody><?php foreach (($callbacks ?? []) as $callback): ?><tr class="border-t border-gray-700"><td class="p-2"><?php echo esc(trim(($callback['firstname'] ?? '') . ' ' . ($callback['lastname'] ?? '')) ?: 'Attendee'); ?><br><span class="text-xs text-gray-500"><?php echo esc($callback['email'] ?? ''); ?><br><?php echo esc($callback['telephone'] ?? ''); ?></span></td><td class="p-2"><strong><?php echo esc($callback['topic']); ?></strong><br><?php echo nl2br(esc($callback['note'])); ?></td><td class="p-2 text-xs"><?php echo esc($callback['created_at']); ?></td><td class="p-2"><form method="post" action="<?php echo site_url('admin/emergence-booth/callbacks/' . $callback['callback_request_id']); ?>" class="flex gap-2"><?php echo csrf_field(); ?><select name="status" class="rounded border border-gray-700 bg-gray-900 p-1 text-xs"><option value="new" <?php echo $callback['status'] === 'new' ? 'selected' : ''; ?>>New</option><option value="in_progress" <?php echo $callback['status'] === 'in_progress' ? 'selected' : ''; ?>>In progress</option><option value="completed" <?php echo $callback['status'] === 'completed' ? 'selected' : ''; ?>>Completed</option></select><button class="text-xs text-blue-400">Save</button></form></td></tr><?php endforeach; ?></tbody></table></div></section>
 <?php endif; ?>
 
+<script src="https://cdn.jsdelivr.net/npm/tus-js-client@4.3.1/dist/tus.min.js"></script>
 <script>
 (() => {
   const form = document.getElementById('booth-video-upload-form');
@@ -72,7 +73,16 @@ $this->section('content');
   const errorMessage = document.getElementById('booth-video-upload-error-message');
   const fileInput = form.querySelector('input[type="file"]');
   const button = form.querySelector('button[type="submit"]');
+  const csrf = form.querySelector('input[name^="csrf"]');
+  const uploadKey = (file) => `epr-bunny-booth:${file.name}:${file.size}:${file.lastModified}`;
 
+  const setProgress = (label, value) => {
+    const percentage = Math.max(0, Math.min(100, Math.round(value)));
+    status.textContent = label;
+    percent.textContent = `${percentage}%`;
+    fill.style.width = `${percentage}%`;
+    fill.setAttribute('aria-valuenow', String(percentage));
+  };
   const enableButton = () => {
     button.disabled = false;
     button.classList.remove('cursor-not-allowed', 'opacity-60');
@@ -84,55 +94,87 @@ $this->section('content');
     enableButton();
     errorBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   };
+  const bunnyUpload = async (file, index, total) => {
+    const key = uploadKey(file);
+    const credentialsRequest = new FormData();
+    credentialsRequest.append('title', `Emergence Booth Video ${index + 1}`);
+    credentialsRequest.append('file_size', String(file.size));
+    credentialsRequest.append('resume_video_id', localStorage.getItem(key) || '');
+    if (csrf) credentialsRequest.append(csrf.name, csrf.value);
 
-  form.addEventListener('submit', (event) => {
+    setProgress(`Preparing video ${index + 1} of ${total} for Bunny Stream…`, (index / total) * 100);
+    const response = await fetch(form.dataset.bunnyCredentialsUrl, {
+      method: 'POST', body: credentialsRequest, credentials: 'same-origin', headers: {'X-Requested-With': 'XMLHttpRequest'},
+    });
+    const credentials = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(credentials.error || 'Bunny Stream could not prepare this upload.');
+    if (csrf && credentials.csrfHash) csrf.value = credentials.csrfHash;
+
+    localStorage.setItem(key, credentials.videoId);
+    return new Promise(async (resolve, reject) => {
+      const upload = new window.tus.Upload(file, {
+        endpoint: 'https://video.bunnycdn.com/tusupload',
+        retryDelays: [0, 3000, 5000, 10000, 20000, 60000],
+        headers: {
+          AuthorizationSignature: credentials.signature,
+          AuthorizationExpire: String(credentials.expirationTime),
+          VideoId: credentials.videoId,
+          LibraryId: credentials.libraryId,
+        },
+        metadata: {filetype: file.type || 'video/mp4', title: file.name},
+        onProgress: (uploaded, size) => {
+          const fileProgress = size > 0 ? uploaded / size : 0;
+          setProgress(`Uploading video ${index + 1} of ${total} directly to Bunny Stream…`, ((index + fileProgress) / total) * 100);
+        },
+        onError: (error) => reject(new Error(error.message || `Bunny Stream could not upload video ${index + 1}.`)),
+        onSuccess: () => {
+          localStorage.removeItem(key);
+          resolve(credentials.videoId);
+        },
+      });
+      try {
+        const previousUploads = await upload.findPreviousUploads();
+        if (previousUploads.length && credentials.videoId === localStorage.getItem(key)) upload.resumeFromPreviousUpload(previousUploads[0]);
+        upload.start();
+      } catch (error) {
+        reject(error);
+      }
+    });
+  };
+
+  form.addEventListener('submit', async (event) => {
     event.preventDefault();
-    const files = fileInput.files;
-    if (!files.length) {
-      showUploadError('Choose at least one MP4, M4V, MOV, or WebM video before uploading.');
-      return;
-    }
+    const files = Array.from(fileInput.files || []);
+    if (!files.length) return showUploadError('Choose at least one MP4, M4V, MOV, or WebM video before uploading.');
+    if (!window.tus) return showUploadError('The direct Bunny uploader could not load. Refresh the page and try again.');
     const availableSlots = Number(fileInput.dataset.maxVideos || 0);
-    if (availableSlots && files.length > availableSlots) {
-      showUploadError(`You selected ${files.length} videos, but this playlist has room for ${availableSlots}. Remove a selection and try again.`);
-      return;
-    }
+    const maxVideoBytes = Number(fileInput.dataset.maxVideoBytes || 0);
+    if (availableSlots && files.length > availableSlots) return showUploadError(`You selected ${files.length} videos, but this playlist has room for ${availableSlots}.`);
+    if (maxVideoBytes && files.some((file) => file.size > maxVideoBytes)) return showUploadError('Each booth video must be 512 MB or smaller.');
 
     errorBox.classList.add('hidden');
     progress.classList.remove('hidden');
     button.disabled = true;
     button.classList.add('cursor-not-allowed', 'opacity-60');
-    status.textContent = 'Uploading videos to the portal…';
-    percent.textContent = '0%';
-    fill.style.width = '0%';
-    fill.setAttribute('aria-valuenow', '0');
+    setProgress('Preparing secure Bunny uploads…', 0);
 
-    const request = new XMLHttpRequest();
-    request.open('POST', form.action);
-    request.upload.addEventListener('progress', (upload) => {
-      if (!upload.lengthComputable) return;
-      const value = Math.min(100, Math.round((upload.loaded / upload.total) * 100));
-      fill.style.width = `${value}%`;
-      fill.setAttribute('aria-valuenow', String(value));
-      percent.textContent = `${value}%`;
-      if (value === 100) status.textContent = 'Saving videos to Bunny Stream…';
-    });
-    request.addEventListener('load', () => {
-      if (request.status >= 200 && request.status < 400) {
-        status.textContent = 'Upload complete. Refreshing playlist…';
-        window.location.assign(request.responseURL || form.action);
-        return;
-      }
-      if (request.status === 413) {
-        showUploadError('The server rejected this upload because the selected file or combined upload is too large. Try a smaller video, or ask the server administrator to increase upload_max_filesize and post_max_size.');
-        return;
-      }
-      showUploadError('The server could not complete this upload. Please try again. If the problem continues, try one video at a time or contact technical support.');
-    });
-    request.addEventListener('error', () => {
-      showUploadError('Your connection was interrupted before the upload finished. Check your internet connection and try again.');
-    });
-    request.send(new FormData(form));
+    try {
+      const videoIds = [];
+      for (let index = 0; index < files.length; index += 1) videoIds.push(await bunnyUpload(files[index], index, files.length));
+
+      setProgress('Saving the Bunny videos to the booth playlist…', 100);
+      const saveRequest = new FormData();
+      videoIds.forEach((videoId) => saveRequest.append('video_ids[]', videoId));
+      if (csrf) saveRequest.append(csrf.name, csrf.value);
+      const response = await fetch(form.dataset.bunnySaveUrl, {
+        method: 'POST', body: saveRequest, credentials: 'same-origin', headers: {'X-Requested-With': 'XMLHttpRequest'},
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result.success) throw new Error(result.error || 'The Bunny uploads finished, but the playlist could not be saved.');
+      window.location.assign(result.redirect || window.location.href);
+    } catch (error) {
+      showUploadError(`${error.message || 'The Bunny upload could not be completed.'} Keep this page open and select the same video again to resume an interrupted upload.`);
+    }
   });
 })();
 </script>
