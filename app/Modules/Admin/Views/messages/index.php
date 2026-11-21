@@ -34,7 +34,7 @@
     <div id="selected-fields" class="mt-4 hidden rounded-lg border border-gray-700 bg-gray-900/50 p-4">
       <div class="mb-3 flex flex-wrap items-center justify-between gap-3">
         <div><span class="block text-sm font-medium text-gray-200">Select attendees</span><span class="text-xs text-gray-400">Tick one or more people to receive this message.</span></div>
-        <span id="selected-attendee-count" class="rounded-full bg-blue-950 px-3 py-1 text-xs font-medium text-blue-200">0 selected</span>
+        <div class="flex items-center gap-2"><span id="visible-attendee-count" class="text-xs text-gray-400">0 shown</span><span id="selected-attendee-count" class="rounded-full bg-blue-950 px-3 py-1 text-xs font-medium text-blue-200">0 selected</span></div>
       </div>
       <div class="mb-3 flex flex-wrap gap-2"><input id="attendee-search" type="search" class="min-w-[220px] flex-1 rounded border border-gray-700 bg-gray-900 p-2.5 text-sm text-gray-100" placeholder="Search by name, email, or country"><button id="select-visible-attendees" type="button" class="rounded border border-gray-600 px-3 py-2 text-xs font-medium text-gray-200 hover:bg-gray-700">Select visible</button><button id="clear-selected-attendees" type="button" class="rounded border border-gray-600 px-3 py-2 text-xs font-medium text-gray-200 hover:bg-gray-700">Clear selection</button></div>
       <div id="selected-attendees" role="group" aria-label="Select attendees" class="max-h-80 space-y-1 overflow-y-auto rounded border border-gray-700 bg-gray-950 p-2">
@@ -96,10 +96,23 @@
       const count = attendeeRows.filter(row => row.querySelector('input[type="checkbox"]').checked).length;
       selectedAttendeeCount.textContent = `${count} selected`;
     };
-    attendeeSearch.addEventListener('input', function () { const term = this.value.trim().toLowerCase(); attendeeRows.forEach(row => row.hidden = term !== '' && !row.dataset.search.includes(term)); });
+    const visibleAttendeeCount = document.getElementById('visible-attendee-count');
+    const applyAttendeeSearch = () => {
+      const term = attendeeSearch.value.trim().toLowerCase();
+      let visible = 0;
+      attendeeRows.forEach(row => {
+        const matches = term === '' || row.dataset.search.includes(term);
+        row.hidden = !matches;
+        if (matches) visible += 1;
+      });
+      visibleAttendeeCount.textContent = `${visible} shown`;
+    };
+    attendeeSearch.addEventListener('input', applyAttendeeSearch);
+    attendeeSearch.addEventListener('search', applyAttendeeSearch);
     document.getElementById('select-visible-attendees').addEventListener('click', () => { attendeeRows.filter(row => !row.hidden).forEach(row => { row.querySelector('input[type="checkbox"]').checked = true; }); updateSelectedAttendeeCount(); });
     document.getElementById('clear-selected-attendees').addEventListener('click', () => { attendeeRows.forEach(row => { row.querySelector('input[type="checkbox"]').checked = false; }); updateSelectedAttendeeCount(); });
     attendeeRows.forEach(row => row.querySelector('input[type="checkbox"]').addEventListener('change', updateSelectedAttendeeCount));
+    applyAttendeeSearch();
     updateSelectedAttendeeCount();
   </script>
 <?php endif; ?>
