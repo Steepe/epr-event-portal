@@ -25,12 +25,18 @@
           </tr>
           <tr>
             <td align="center" style="padding:10px 38px 30px;">
-              <a href="<?= esc($resetLink, 'attr') ?>" style="display:inline-block;padding:14px 26px;background:#771a7d;border-radius:6px;color:#ffffff;font-size:15px;font-weight:700;line-height:20px;text-decoration:none;">Reset password</a>
+              <a href="<?= esc($resetLink, 'attr') ?>" target="_blank" rel="noopener noreferrer" style="display:inline-block;padding:14px 26px;background:#771a7d;border-radius:6px;color:#ffffff;font-size:15px;font-weight:700;line-height:20px;text-decoration:none;">Reset password</a>
             </td>
           </tr>
           <tr>
             <td style="padding:0 38px 18px;font-size:14px;line-height:22px;color:#6d606f;">
               This secure link expires in <strong style="color:#4e4351;">one hour</strong> and can be used once.
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:0 38px 18px;font-size:13px;line-height:20px;color:#6d606f;">
+              If the button does not open, copy and paste this secure address into your browser:<br>
+              <a href="<?= esc($resetLink, 'attr') ?>" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin-top:7px;color:#771a7d;font-size:12px;line-height:18px;text-decoration:underline;word-break:break-all;overflow-wrap:anywhere;"><?= esc($resetLink) ?></a>
             </td>
           </tr>
           <tr>

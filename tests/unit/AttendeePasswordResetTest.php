@@ -56,6 +56,7 @@ final class AttendeePasswordResetTest extends CIUnitTestCase
         $this->assertSame(hash('sha256', $token), $record['token']);
         $this->assertTrue($this->resets->isValid($token));
         $this->assertStringContainsString('/attendees/reset-password?token=', html_entity_decode($this->body, ENT_QUOTES, 'UTF-8'));
+        $this->assertStringContainsString('If the button does not open, copy and paste this secure address', $this->body);
         $this->assertSame('html', $this->mailer->mailType);
         $this->resets->reset($token, 'NewPassword123', 'NewPassword123');
         $password = $this->connection->table('tbl_users')->get()->getRowArray()['password'];
