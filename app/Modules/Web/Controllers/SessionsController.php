@@ -12,6 +12,7 @@
 namespace App\Modules\Web\Controllers;
 
 use App\Controllers\BaseController;
+use App\Libraries\SessionViewerTracker;
 use CodeIgniter\Database\Exceptions\DataException;
 
 class SessionsController extends BaseController
@@ -41,6 +42,8 @@ class SessionsController extends BaseController
             if (! $sessionData) {
                 return redirect()->to(base_url('attendees/agenda'))->with('error', 'Session not found.');
             }
+
+            (new SessionViewerTracker($db))->record((int) $sessionId, $this->attendeeId());
 
             // 🔹 Fetch related speakers
             $speakers = $db->table('tbl_session_speakers as ss')

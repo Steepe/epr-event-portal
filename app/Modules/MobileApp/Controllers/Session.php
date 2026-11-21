@@ -10,6 +10,7 @@
 namespace App\Modules\MobileApp\Controllers;
 
 use App\Controllers\BaseController;
+use App\Libraries\SessionViewerTracker;
 use App\Modules\MobileApp\Models\SessionModel;
 use App\Modules\MobileApp\Models\SpeakersModel;
 
@@ -42,6 +43,7 @@ class Session extends BaseController
         $timezone = session('reg_country') === 'Nigeria' ? 'Africa/Lagos' : 'UTC';
 
         $db         = db_connect();
+        (new SessionViewerTracker($db))->record((int) $sessions_id, (int) session('user_id'));
         $user       = $db->table('tbl_users')->where('id', session('user_id'))->get()->getRowArray();
         $conference = $db->table('tbl_conferences')
             ->where('conference_id', $session['conference_id'] ?? 0)

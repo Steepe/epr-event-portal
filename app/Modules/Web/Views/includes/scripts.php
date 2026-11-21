@@ -12,6 +12,7 @@
 <script src="<?php echo asset_url('js/jquery.min.js');?>"></script>
 <script src="<?php echo asset_url('js/jquery.slimscroll.js');?>"></script>
 <script src="<?php echo asset_url('js/bootstrap.bundle.min.js');?>"></script>
+<script src="<?php echo asset_url('js/password-toggle.js');?>"></script>
 <script src="<?php // echo asset_url('js/toast.js');?>"></script>
 <script src="<?php //echo asset_url('js/signalr.js');?>"></script>
 <script src="<?php //echo asset_url('js/hira.js');?>"></script>

@@ -53,6 +53,7 @@ $mobileUnread = count(array_filter($mobileNotifs, static fn (array $item): bool 
 
 <div class="m-toast" id="mToast" role="status" aria-live="polite" hidden></div>
 <script src="<?= mobile_asset_url('js/mobile-app.js') ?>"></script>
+<script src="<?= asset_url('js/password-toggle.js') ?>"></script>
 <?= module_view('Web', 'includes/tawk') ?>
 </body>
 </html>

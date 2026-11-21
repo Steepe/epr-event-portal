@@ -128,6 +128,7 @@ $routes->group('admin', ['namespace' => 'App\Modules\Admin\Controllers'], functi
         $routes->get('messages', 'MessagesController::index');
         $routes->post('messages/send', 'MessagesController::send');
         $routes->get('messages/(:num)', 'MessagesController::view/$1');
+        $routes->get('analytics', 'AnalyticsController::index');
 
         // Country communities and manager messages
         $routes->get('communities', 'CommunitiesController::index');

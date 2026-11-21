@@ -18,6 +18,7 @@
       <label class="block text-sm text-gray-300"><span class="mb-1 block text-gray-400">Send to</span>
         <select name="recipient_type" id="recipient_type" class="w-full rounded border border-gray-700 bg-gray-900 p-2.5 text-gray-100" required>
           <option value="individual" <?php echo old('recipient_type') === 'individual' ? 'selected' : ''; ?>>One attendee</option>
+          <option value="selected" <?php echo old('recipient_type') === 'selected' ? 'selected' : ''; ?>>Selected attendees</option>
           <option value="filtered" <?php echo old('recipient_type') === 'filtered' ? 'selected' : ''; ?>>A filtered group</option>
           <option value="emergence_2026" <?php echo old('recipient_type') === 'emergence_2026' ? 'selected' : ''; ?>>All Emergence 2026 registrants</option>
           <option value="all" <?php echo old('recipient_type') === 'all' ? 'selected' : ''; ?>>Every portal attendee</option>
@@ -27,6 +28,7 @@
     </div>
 
     <div id="individual-fields" class="mt-4"><label class="block text-sm text-gray-300"><span class="mb-1 block text-gray-400">Attendee email address</span><input name="recipient_email" type="email" value="<?php echo esc(old('recipient_email')); ?>" class="w-full rounded border border-gray-700 bg-gray-900 p-2.5 text-gray-100" placeholder="name@example.com"></label></div>
+    <div id="selected-fields" class="mt-4 hidden"><label class="block text-sm text-gray-300"><span class="mb-1 block text-gray-400">Select attendees</span><input id="attendee-search" type="search" class="mb-2 w-full rounded border border-gray-700 bg-gray-900 p-2.5 text-gray-100" placeholder="Search by name, email, or country"><select id="selected-attendees" name="selected_user_ids[]" multiple size="12" class="w-full rounded border border-gray-700 bg-gray-900 p-2.5 text-gray-100"><?php foreach (($attendees ?? []) as $attendee): ?><option value="<?php echo (int) $attendee['attendee_id']; ?>" data-search="<?php echo esc(strtolower(trim(($attendee['firstname'] ?? '') . ' ' . ($attendee['lastname'] ?? '') . ' ' . ($attendee['email'] ?? '') . ' ' . ($attendee['country'] ?? ''))), 'attr'); ?>"><?php echo esc(trim(($attendee['firstname'] ?? '') . ' ' . ($attendee['lastname'] ?? '')) ?: $attendee['email']); ?> · <?php echo esc($attendee['email']); ?><?php echo !empty($attendee['country']) ? ' · ' . esc($attendee['country']) : ''; ?></option><?php endforeach; ?></select></label><p class="mt-2 text-xs text-gray-400">Use Command/Ctrl-click to select more than one attendee.</p></div>
     <div id="filtered-fields" class="mt-4 hidden grid gap-4 md:grid-cols-2">
       <label class="block text-sm text-gray-300"><span class="mb-1 block text-gray-400">Email address contains</span><input name="email" type="search" value="<?php echo esc(old('email')); ?>" class="w-full rounded border border-gray-700 bg-gray-900 p-2.5 text-gray-100" placeholder="e.g. company.com"></label>
       <label class="block text-sm text-gray-300"><span class="mb-1 block text-gray-400">Country</span><select name="country" class="w-full rounded border border-gray-700 bg-gray-900 p-2.5 text-gray-100"><option value="">All countries</option><?php foreach (($countries ?? []) as $country): ?><option value="<?php echo esc($country); ?>" <?php echo old('country') === $country ? 'selected' : ''; ?>><?php echo esc($country); ?></option><?php endforeach; ?></select></label>
@@ -50,12 +52,14 @@
     const setRecipientFields = () => {
       const value = recipientType.value;
       document.getElementById('individual-fields').classList.toggle('hidden', value !== 'individual');
+      document.getElementById('selected-fields').classList.toggle('hidden', value !== 'selected');
       document.getElementById('filtered-fields').classList.toggle('hidden', value !== 'filtered');
       const confirmation = document.getElementById('all-confirmation');
       confirmation.classList.toggle('hidden', value !== 'all');
       confirmation.classList.toggle('flex', value === 'all');
     };
     recipientType.addEventListener('change', setRecipientFields); setRecipientFields();
+    document.getElementById('attendee-search').addEventListener('input', function () { const term = this.value.trim().toLowerCase(); document.querySelectorAll('#selected-attendees option').forEach(option => option.hidden = term !== '' && !option.dataset.search.includes(term)); });
   </script>
 <?php endif; ?>
 

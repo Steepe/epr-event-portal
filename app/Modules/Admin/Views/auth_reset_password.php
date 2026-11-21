@@ -37,5 +37,6 @@
         </button>
     </form>
 </div>
+<script src="<?php echo asset_url('js/password-toggle.js'); ?>"></script>
 </body>
 </html>

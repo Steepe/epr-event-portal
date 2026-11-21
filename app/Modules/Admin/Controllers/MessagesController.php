@@ -30,6 +30,7 @@ class MessagesController extends BaseController
         return module_view('Admin', 'messages/index', [
             'ready' => true,
             'countries' => $this->countries(),
+            'attendees' => $this->attendees(),
             'messages' => $messages,
         ]);
     }
@@ -43,7 +44,7 @@ class MessagesController extends BaseController
         $subject = $this->limitedPost('subject', 255);
         $body = $this->limitedPost('body', 10000);
         $recipientType = (string) $this->request->getPost('recipient_type');
-        $validTypes = ['individual', 'filtered', 'emergence_2026', 'all'];
+        $validTypes = ['individual', 'selected', 'filtered', 'emergence_2026', 'all'];
 
         if ($subject === '' || $body === '') {
             return redirect()->back()->withInput()->with('error', 'A subject and message are required.');
@@ -59,12 +60,16 @@ class MessagesController extends BaseController
             'recipient_email' => $this->limitedPost('recipient_email', 254),
             'email' => $this->limitedPost('email', 254),
             'country' => $this->limitedPost('country', 100),
+            'selected_user_ids' => array_values(array_unique(array_filter(array_map('intval', (array) $this->request->getPost('selected_user_ids')), static fn (int $id): bool => $id > 0))),
         ];
         if ($recipientType === 'individual' && ! filter_var($filters['recipient_email'], FILTER_VALIDATE_EMAIL)) {
             return redirect()->back()->withInput()->with('error', 'Enter the email address of the attendee to receive this message.');
         }
         if ($recipientType === 'filtered' && $filters['email'] === '' && $filters['country'] === '') {
             return redirect()->back()->withInput()->with('error', 'Add an email search or country filter before sending to a filtered group.');
+        }
+        if ($recipientType === 'selected' && $filters['selected_user_ids'] === []) {
+            return redirect()->back()->withInput()->with('error', 'Select at least one attendee.');
         }
 
         $recipients = $this->recipients($recipientType, $filters);
@@ -145,6 +150,8 @@ class MessagesController extends BaseController
 
         if ($type === 'individual') {
             $builder->where('u.email', $filters['recipient_email']);
+        } elseif ($type === 'selected') {
+            $builder->whereIn('a.attendee_id', $filters['selected_user_ids']);
         } elseif ($type === 'filtered') {
             if ($filters['email'] !== '') {
                 $builder->like('u.email', $filters['email']);
@@ -204,6 +211,17 @@ class MessagesController extends BaseController
             ->getResultArray();
 
         return array_column($rows, 'country');
+    }
+
+    private function attendees(): array
+    {
+        return db_connect()->table('tbl_attendees a')
+            ->select('a.attendee_id, a.firstname, a.lastname, a.country, u.email')
+            ->join('tbl_users u', 'u.id = a.attendee_id', 'inner')
+            ->where('u.email IS NOT NULL', null, false)
+            ->where("TRIM(u.email) <> ''", null, false)
+            ->orderBy('a.firstname', 'ASC')->orderBy('a.lastname', 'ASC')->orderBy('u.email', 'ASC')
+            ->get()->getResultArray();
     }
 
     private function limitedPost(string $key, int $length): string

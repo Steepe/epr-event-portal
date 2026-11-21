@@ -116,6 +116,10 @@ $isSuperadmin = $adminRole === 'superadmin';
            class="flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-700">
             <i class="bx bx-chat text-lg"></i> Messages
         </a>
+        <a href="<?php echo base_url('admin/analytics'); ?>"
+           class="flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-700">
+            <i class="bx bx-bar-chart-alt-2 text-lg"></i> Analytics
+        </a>
 
         <a href="<?php echo base_url('admin/store'); ?>"
            class="flex items-center gap-2 px-3 py-2 rounded hover:bg-gray-700">
@@ -160,6 +164,7 @@ $isSuperadmin = $adminRole === 'superadmin';
 <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/2.5.1/flowbite.min.js"></script>
 <!-- just before </body> -->
 <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js"></script>
+<script src="<?php echo asset_url('js/password-toggle.js'); ?>"></script>
 <script>
     window.setInterval(() => {
         fetch(<?php echo json_encode(site_url('admin/emergence-booth/presence')); ?>, {
