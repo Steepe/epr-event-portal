@@ -18,12 +18,8 @@ foreach ($notifications as $item) {
     $groups[$item['group']][] = $item;
 }
 $preferences = [
-    ['sessions', 'Session reminders', '15 minutes before saved sessions start', true],
-    ['messages', 'Direct messages', 'When an attendee or speaker messages you', true],
-    ['mentions', 'Mentions', 'When you are @mentioned in chat or posts', true],
-    ['connections', 'Connections & bookings', 'Requests, acceptances and 1:1 confirmations', true],
-    ['booths', 'Booth replies', 'When an exhibitor responds to you', false],
-    ['digest', 'Email digest', 'A summary every evening at 6 PM', true],
+    ['Connection requests', 'When another attendee asks to connect with you.'],
+    ['EPR Booth replies', 'When an EPR Booth team member replies to your message.'],
 ];
 ?>
 
@@ -72,13 +68,13 @@ $preferences = [
     </div>
 
     <div class="m-ngroup" style="margin-top:6px">
-        <span class="m-label">NOTIFY ME ABOUT</span>
+        <span class="m-label">YOU’LL BE NOTIFIED ABOUT</span>
         <div class="m-card m-card--clip">
-            <?php foreach ($preferences as [$key, $label, $description, $default]): ?>
-                <button class="m-pref <?= $default ? 'is-on' : '' ?>" type="button" data-pref="<?= $key ?>" aria-pressed="<?= $default ? 'true' : 'false' ?>">
+            <?php foreach ($preferences as [$label, $description]): ?>
+                <div class="m-pref is-on">
                     <span class="m-pref__copy"><b><?= esc($label) ?></b><small><?= esc($description) ?></small></span>
-                    <span class="m-switch"></span>
-                </button>
+                    <i class="fa fa-check" aria-label="Enabled"></i>
+                </div>
             <?php endforeach; ?>
         </div>
     </div>

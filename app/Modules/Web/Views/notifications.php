@@ -51,12 +51,8 @@ $filterCount = static function (string $filter) use ($pendingConnections, $notif
     return count(array_filter($notifications, static fn (array $item): bool => $item['cat'] === $filter));
 };
 $preferences = [
-    ['sessions', 'Session reminders', '15 minutes before saved sessions start'],
-    ['messages', 'Direct messages', 'When an attendee or speaker messages you'],
-    ['mentions', 'Mentions', 'When you are @mentioned in chat or posts'],
-    ['connections', 'Connections & bookings', 'Requests, acceptances and 1:1 confirmations'],
-    ['booths', 'Booth replies', 'When an exhibitor responds to you'],
-    ['email', 'Email digest', 'A summary every evening at 6 PM'],
+    ['Connection requests', 'When another attendee asks to connect with you.'],
+    ['EPR Booth replies', 'When an EPR Booth team member replies to your message.'],
 ];
 ?>
 
@@ -128,12 +124,12 @@ $preferences = [
             </section>
 
             <aside class="rc-notification-preferences">
-                <span class="rc-notification-prefs-title">NOTIFY ME ABOUT</span>
-                <?php foreach ($preferences as $index => [$key, $label, $description]): ?>
-                    <button type="button" class="rc-notification-preference" data-preference="<?php echo $key; ?>" aria-pressed="<?php echo in_array($index, [4, 6], true) ? 'false' : 'true'; ?>">
+                <span class="rc-notification-prefs-title">YOU’LL BE NOTIFIED ABOUT</span>
+                <?php foreach ($preferences as [$label, $description]): ?>
+                    <div class="rc-notification-preference">
                         <span><strong><?php echo esc($label); ?></strong><small><?php echo esc($description); ?></small></span>
-                        <span class="rc-notification-switch" aria-hidden="true"><span></span></span>
-                    </button>
+                        <i class="fa fa-check" aria-label="Enabled"></i>
+                    </div>
                 <?php endforeach; ?>
             </aside>
         </div>
@@ -191,11 +187,6 @@ document.addEventListener("DOMContentLoaded", () => {
             row.dataset.unread = unread ? "1" : "0";
             readToggle.textContent = unread ? "Mark read" : "Mark unread";
             updateSummary();
-            return;
-        }
-        const preference = event.target.closest(".rc-notification-preference");
-        if (preference) {
-            preference.setAttribute("aria-pressed", preference.getAttribute("aria-pressed") === "true" ? "false" : "true");
             return;
         }
         const button = event.target.closest("[data-connection-action]");

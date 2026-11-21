@@ -10,6 +10,11 @@
 
     <form class="m-glass m-register__form" id="RegistrationForm">
         <h1 class="m-register__title m-wide">Create your account</h1>
+        <div id="accountExistsNotice" class="m-alert m-wide" role="alert" hidden>
+            <b>An account already exists with this email.</b>
+            <span id="accountExistsMessage">Sign in to continue, or reset your password if you cannot remember it.</span>
+            <span><a href="<?= site_url('mobile/login') ?>">Sign in</a> <span aria-hidden="true">·</span> <a href="<?= site_url('mobile/forgot-password') ?>">Reset password</a></span>
+        </div>
         <input class="m-input" name="firstname" placeholder="Enter First Name" autocomplete="given-name" required>
         <input class="m-input" name="lastname" placeholder="Enter Last Name" autocomplete="family-name" required>
         <input class="m-input" type="email" name="email" placeholder="Enter Email" autocomplete="email" required>
@@ -40,10 +45,21 @@ document.addEventListener('DOMContentLoaded', function () {
     var form = document.getElementById('RegistrationForm');
     var password = document.getElementById('password');
     var confirm = document.getElementById('conf_password');
+    var email = form.elements.email;
+    var accountExistsNotice = document.getElementById('accountExistsNotice');
+    var accountExistsMessage = document.getElementById('accountExistsMessage');
+
+    function showAccountExists(message) {
+        accountExistsMessage.textContent = message || 'Sign in to continue, or reset your password if you cannot remember it.';
+        accountExistsNotice.hidden = false;
+        accountExistsNotice.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    email.addEventListener('input', function () { accountExistsNotice.hidden = true; });
 
     form.addEventListener('submit', async function (event) {
         event.preventDefault();
         if (password.value !== confirm.value) { EPR.toast('Passwords do not match.', true); return; }
+        accountExistsNotice.hidden = true;
 
         var button = form.querySelector('button[type="submit"]');
         button.disabled = true; button.textContent = 'Creating account...';
@@ -57,6 +73,8 @@ document.addEventListener('DOMContentLoaded', function () {
             if (result.status === 'success') {
                 EPR.toast('Registration successful. Redirecting to login...');
                 setTimeout(function () { window.location.href = <?= json_encode(site_url('mobile/login')) ?>; }, 1200);
+            } else if (response.status === 409) {
+                showAccountExists(result.message);
             } else {
                 EPR.toast(result.message || 'Registration failed. Please try again.', true);
             }

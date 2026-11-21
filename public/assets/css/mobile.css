@@ -282,6 +282,11 @@ body.m-app.is-locked { overflow: hidden; }
 .m-auth__support a:hover { text-decoration: underline; }
 .m-auth__note { color: #ddd; font-size: 13px; line-height: 1.5; }
 .m-alert { padding: 10px 12px; border: 1px solid rgba(239, 177, 30, .6); border-radius: 10px; background: rgba(239, 177, 30, .14); color: #fff4cc; font-size: 12px; line-height: 1.45; }
+.m-alert[hidden] { display: none; }
+.m-alert > b, .m-alert > span { display: block; }
+.m-alert > span + span { margin-top: 7px; }
+.m-alert a { color: #efb11e; font-weight: 700; text-decoration: none; }
+.m-alert a:hover { text-decoration: underline; }
 .m-status { min-height: 18px; color: var(--m-gold); font-size: 12px; text-align: center; }
 
 .m-register { display: flex; padding: 72px 20px 40px; flex-direction: column; gap: 22px; }
