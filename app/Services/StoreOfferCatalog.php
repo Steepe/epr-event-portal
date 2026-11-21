@@ -24,6 +24,9 @@ class StoreOfferCatalog
     private static function offer(string $type, ?array $product, array $entitledProductIds): array
     {
         $isReplay = $type === 'replay';
+        if (! $isReplay && $product !== null) {
+            $product = EmergenceStoreService::effectiveProduct($product);
+        }
         $fallbackAmount = $isReplay ? 9.99 : 19.99;
         $currency = strtoupper((string) ($product['currency'] ?? 'USD'));
         $amount = $product ? (float) ($product['price_amount'] ?? $fallbackAmount) : $fallbackAmount;

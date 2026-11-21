@@ -31,8 +31,21 @@ class EmergenceStoreService
         return $row ?: null;
     }
 
+    public static function effectiveProduct(array $product): array
+    {
+        // Existing coaching products were seeded as free before the paid offer launched.
+        if (($product['access_type'] ?? '') === 'coaching_interest'
+            && round((float) ($product['price_amount'] ?? 0), 2) === 0.0) {
+            $product['price_amount'] = 19.99;
+            $product['currency'] = 'USD';
+        }
+
+        return $product;
+    }
+
     public function quote(array $product, string $code = ''): array
     {
+        $product = self::effectiveProduct($product);
         $amount = round((float) $product['price_amount'], 2);
         $coupon = null;
         $code = strtoupper(trim($code));
