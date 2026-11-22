@@ -7,7 +7,7 @@ use CodeIgniter\Database\BaseConnection;
 
 final class AttendeeDirectoryService
 {
-    private const PAGE_SIZE = 60;
+    private const PAGE_SIZE = 24;
 
     /** @return array{attendees: array, total: int, all_count: int, online_count: int, page: int, per_page: int, has_more: bool} */
     public function page(int $currentUserId, string $search = '', string $letter = '', bool $onlineOnly = false, int $page = 1): array

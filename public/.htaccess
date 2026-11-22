@@ -1,6 +1,11 @@
 # Disable directory browsing
 Options -Indexes
 
+# Compress text responses, including the attendee directory and JSON APIs.
+<IfModule mod_deflate.c>
+	AddOutputFilterByType DEFLATE text/html text/plain text/css text/javascript application/javascript application/json application/xml text/xml
+</IfModule>
+
 # ----------------------------------------------------------------------
 # Rewrite engine
 # ----------------------------------------------------------------------

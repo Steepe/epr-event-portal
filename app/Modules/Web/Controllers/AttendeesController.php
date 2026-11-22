@@ -42,7 +42,7 @@ class AttendeesController extends BaseController
                 'all_count' => 0,
                 'online_count' => 0,
                 'page' => 1,
-                'per_page' => 60,
+                'per_page' => 24,
                 'has_more' => false,
             ];
         }
