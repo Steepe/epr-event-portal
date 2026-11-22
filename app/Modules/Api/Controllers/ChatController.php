@@ -81,12 +81,17 @@ class ChatController extends BaseController
         try {
             $db = db_connect();
             $this->ensureChatTable($db);
+            $afterId = max(0, (int) $this->request->getGet('after'));
             $messages = $db->table('tbl_session_chats')
                 ->where('session_id', $sessionId)
-                ->where('id >', max(0, (int) $this->request->getGet('after')))
-                ->orderBy('id', 'ASC')
+                ->where('id >', $afterId)
+                ->orderBy('id', $afterId ? 'ASC' : 'DESC')
+                ->limit($afterId ? 250 : 100)
                 ->get()
                 ->getResultArray();
+            if ($afterId === 0) {
+                $messages = array_reverse($messages);
+            }
         } catch (\Throwable $e) {
             log_message('error', '[ChatController] Unable to load chat messages: ' . $e->getMessage());
             return $this->failServerError('Unable to load chat messages.');

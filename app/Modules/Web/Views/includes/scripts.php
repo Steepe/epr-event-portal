@@ -31,6 +31,29 @@
         let reconnectTimer = null;
         let reconnectDelay = 2000;
         let pollingTimer = null;
+        let pollingStartTimer = null;
+        const sessionSubscriptions = new Set();
+        const eventListeners = new Set();
+        const statusListeners = new Set();
+        let connected = false;
+        function notifyStatus() {
+            statusListeners.forEach(function(listener) { listener(connected); });
+        }
+        window.EPRRealtime = {
+            subscribeSession: function(sessionId) {
+                const id = Number(sessionId);
+                if (!id) return;
+                sessionSubscriptions.add(id);
+                if (connected && socket && socket.readyState === WebSocket.OPEN) {
+                    socket.send(JSON.stringify({ type: "subscribe_session", session_id: id }));
+                }
+            },
+            onEvent: function(listener) { eventListeners.add(listener); },
+            onStatus: function(listener) {
+                statusListeners.add(listener);
+                listener(connected);
+            }
+        };
         const receivedConnectionIds = new Set();
         document.querySelectorAll("[data-connection-id]").forEach(function(row) {
             const connectionId = Number(row.dataset.connectionId || 0);
@@ -167,21 +190,23 @@
         }
 
         function startPolling() {
-            if (pollingTimer || !pendingConnectionsUrl) {
+            if (pollingTimer || pollingStartTimer || !pendingConnectionsUrl) {
                 return;
             }
 
-            pollPendingConnections();
-            pollingTimer = window.setInterval(pollPendingConnections, 20000);
+            // Spread fallback requests when many attendees open the same session.
+            pollingStartTimer = window.setTimeout(function() {
+                pollingStartTimer = null;
+                pollPendingConnections();
+                pollingTimer = window.setInterval(pollPendingConnections, 20000);
+            }, Math.random() * 5000);
         }
 
         function stopPolling() {
-            if (!pollingTimer) {
-                return;
-            }
-
             window.clearInterval(pollingTimer);
+            window.clearTimeout(pollingStartTimer);
             pollingTimer = null;
+            pollingStartTimer = null;
         }
 
         function connectRealtime() {
@@ -213,17 +238,26 @@
                 openedAt = Date.now();
                 stopPolling();
                 socket.send(JSON.stringify({ type: "register", user_id: userId, token: wsToken, expires: wsExpires }));
+                sessionSubscriptions.forEach(function(id) {
+                    socket.send(JSON.stringify({ type: "subscribe_session", session_id: id }));
+                });
+                connected = true;
+                notifyStatus();
             });
 
             socket.addEventListener("message", function(message) {
                 try {
-                    handleRealtimeEvent(JSON.parse(message.data));
+                    const event = JSON.parse(message.data);
+                    handleRealtimeEvent(event);
+                    eventListeners.forEach(function(listener) { listener(event); });
                 } catch (error) {
                 }
             });
 
             socket.addEventListener("close", function() {
                 socket = null;
+                connected = false;
+                notifyStatus();
                 startPolling();
                 reconnectDelay = openedAt && Date.now() - openedAt >= 30000 ? 2000 : Math.min(reconnectDelay * 2, 60000);
                 window.clearTimeout(reconnectTimer);
@@ -305,8 +339,10 @@
             });
         }
 
-        heartbeat();
-        window.setInterval(heartbeat, 60000);
+        window.setTimeout(function() {
+            heartbeat();
+            window.setInterval(heartbeat, 60000);
+        }, Math.random() * 10000);
         document.addEventListener("visibilitychange", function() {
             if (document.visibilityState === "visible") {
                 heartbeat();

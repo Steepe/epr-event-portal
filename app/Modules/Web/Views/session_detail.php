@@ -183,10 +183,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const onlineCountUrl = <?php echo json_encode(base_url('attendees/sessions/' . $chatSessionId . '/online')); ?>;
     const renderedMessageIds = new Set();
     let latestMessageId = 0;
-    let chatSocket = null;
     let chatPollingTimer = null;
-    let chatReconnectTimer = null;
-    let chatReconnectDelay = 2000;
 
     const ratingStars = Array.from(document.querySelectorAll("#rateSession [data-star]"));
     const ratingStatus = document.getElementById("ratingStatus");
@@ -343,71 +340,24 @@ document.addEventListener("DOMContentLoaded", () => {
         chatPollingTimer = null;
     }
 
-    function connectSessionChat() {
-        const realtime = window.EPR_PORTAL_REALTIME || {};
-        const wsUrl = realtime.wsUrl || "";
-        const token = realtime.wsToken || "";
-        const expires = Number(realtime.wsExpires || 0);
-        const userId = Number(realtime.userId || 0);
-
-        if (!sessionId || !wsUrl || !token || !expires || expires <= Date.now() / 1000 || !userId || !("WebSocket" in window)) {
-            startChatPolling();
-            return;
-        }
-        if (document.hidden || (chatSocket && chatSocket.readyState !== WebSocket.CLOSED)) return;
-
-        let openedAt = 0;
-        try {
-            const socket = new WebSocket(wsUrl);
-            chatSocket = socket;
-
-            socket.addEventListener("open", function() {
-                if (chatSocket !== socket) return;
-                openedAt = Date.now();
-                socket.send(JSON.stringify({ type: "register", user_id: userId, token: token, expires: expires }));
-                socket.send(JSON.stringify({ type: "subscribe_session", session_id: sessionId }));
+    const realtime = window.EPRRealtime;
+    if (sessionId && realtime) {
+        realtime.subscribeSession(sessionId);
+        realtime.onEvent(function(payload) {
+            if (payload.type === "session_chat" && Number(payload.session_id) === sessionId && payload.message) {
+                appendMessage(payload.message);
+            }
+        });
+        realtime.onStatus(function(connected) {
+            if (connected) {
                 loadMessages().finally(stopChatPolling);
-            });
-
-            socket.addEventListener("message", function(event) {
-                try {
-                    const payload = JSON.parse(event.data);
-                    if (payload.type === "session_chat" && Number(payload.session_id) === sessionId && payload.message) {
-                        appendMessage(payload.message);
-                    }
-                } catch (error) {
-                    // A non-chat realtime event is handled by the shared portal socket.
-                }
-            });
-
-            socket.addEventListener("close", function() {
-                if (chatSocket !== socket) return;
-                chatSocket = null;
+            } else {
                 startChatPolling();
-                chatReconnectDelay = openedAt && Date.now() - openedAt >= 30000 ? 2000 : Math.min(chatReconnectDelay * 2, 60000);
-                window.clearTimeout(chatReconnectTimer);
-                if (!document.hidden && expires > Date.now() / 1000) {
-                    chatReconnectTimer = window.setTimeout(connectSessionChat, chatReconnectDelay + Math.random() * 1000);
-                }
-            });
-
-            socket.addEventListener("error", function() {
-                socket.close();
-            });
-        } catch (error) {
-            startChatPolling();
-            window.clearTimeout(chatReconnectTimer);
-            chatReconnectTimer = window.setTimeout(connectSessionChat, chatReconnectDelay + Math.random() * 1000);
-            chatReconnectDelay = Math.min(chatReconnectDelay * 2, 60000);
-        }
+            }
+        });
+    } else {
+        startChatPolling();
     }
-
-    document.addEventListener("visibilitychange", function() {
-        if (!document.hidden && (!chatSocket || chatSocket.readyState === WebSocket.CLOSED)) {
-            window.clearTimeout(chatReconnectTimer);
-            connectSessionChat();
-        }
-    });
 
     function sendMessage() {
         const text = input.value.trim();
@@ -483,11 +433,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     loadMessages();
-    startChatPolling();
-    connectSessionChat();
-    window.addEventListener("beforeunload", function() {
-        if (chatSocket) chatSocket.close();
-    });
 });
 </script>
 </body>
