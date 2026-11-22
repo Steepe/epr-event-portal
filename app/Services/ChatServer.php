@@ -26,6 +26,7 @@ class ChatServer implements MessageComponentInterface
     protected array $connectionUsers = [];
     protected array $sessionConnections = [];
     protected array $connectionSessions = [];
+    private array $pendingRegistration = [];
     private ?\Redis $redis = null;
     private string $queue = 'portal_socket_events';
 
@@ -37,13 +38,20 @@ class ChatServer implements MessageComponentInterface
             $loop->addPeriodicTimer(0.5, function (): void {
                 $this->drainRealtimeQueue();
             });
+            $loop->addPeriodicTimer(5, function (): void {
+                foreach ($this->pendingRegistration as [$connection, $openedAt]) {
+                    if ($openedAt <= time() - 10) {
+                        $connection->close();
+                    }
+                }
+            });
         }
     }
 
     public function onOpen(ConnectionInterface $conn)
     {
         $this->clients->attach($conn);
-        echo "Connection opened ({$conn->resourceId})\n";
+        $this->pendingRegistration[$conn->resourceId] = [$conn, time()];
     }
 
     public function onMessage(ConnectionInterface $from, $msg)
@@ -68,7 +76,7 @@ class ChatServer implements MessageComponentInterface
 
                 $this->connections[$userId][$from->resourceId] = $from;
                 $this->connectionUsers[$from->resourceId] = $userId;
-                echo "Registered user {$userId} ({$from->resourceId})\n";
+                unset($this->pendingRegistration[$from->resourceId]);
 
                 $this->markUserOnline($userId, $from->resourceId);
                 break;
@@ -91,6 +99,7 @@ class ChatServer implements MessageComponentInterface
     public function onClose(ConnectionInterface $conn)
     {
         $this->clients->detach($conn);
+        unset($this->pendingRegistration[$conn->resourceId]);
 
         $userId = $this->connectionUsers[$conn->resourceId] ?? null;
         if ($userId !== null) {
@@ -101,7 +110,6 @@ class ChatServer implements MessageComponentInterface
                 $this->markUserOffline((int) $userId);
             }
 
-            echo "User {$userId} disconnected\n";
         }
 
         foreach (array_keys($this->connectionSessions[$conn->resourceId] ?? []) as $sessionId) {
