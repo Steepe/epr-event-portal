@@ -33,7 +33,24 @@ class RealtimeServe extends BaseCommand
             return;
         }
 
+        // The event/ev/uv loops can serve thousands of sockets, but the CLI
+        // process still needs enough file descriptors for those connections.
+        if ((extension_loaded('event') || extension_loaded('ev') || extension_loaded('uv'))
+            && function_exists('posix_getrlimit') && function_exists('posix_setrlimit')) {
+            $limits = posix_getrlimit();
+            $soft = (int) ($limits['soft openfiles'] ?? 0);
+            $hard = $limits['hard openfiles'] ?? 0;
+            $hardValue = $hard === 'unlimited' ? POSIX_RLIMIT_INFINITY : (int) $hard;
+            $target = $hard === 'unlimited' ? 8192 : min(8192, $hardValue);
+            if ($target > $soft && ! @posix_setrlimit(POSIX_RLIMIT_NOFILE, $target, $hardValue)) {
+                CLI::write('Unable to raise the WebSocket open-file limit.', 'yellow');
+            }
+        }
+
         $loop = LoopFactory::create();
+        if ($loop instanceof \React\EventLoop\StreamSelectLoop) {
+            CLI::write('Warning: stream_select limits this process to about 1,024 sockets. Install ext-event, ext-ev, or ext-uv for large events.', 'yellow');
+        }
         $socket = new SocketServer($host . ':' . $port, $loop);
         $server = new IoServer(
             new HttpServer(new WsServer(new ChatServer($loop))),
