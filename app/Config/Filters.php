@@ -25,6 +25,7 @@ class Filters extends BaseFilters
         'forcehttps'    => ForceHTTPS::class,
         'pagecache'     => PageCache::class,
         'performance'   => PerformanceMetrics::class,
+        'compresshtml'  => \App\Filters\CompressHtml::class,
 
         // ✅ Your custom filters
         'apiauth'       => \App\Filters\ApiAuth::class,
@@ -46,6 +47,7 @@ class Filters extends BaseFilters
             'pagecache',
             'performance',
             'toolbar',
+            'compresshtml',
         ],
     ];
 
