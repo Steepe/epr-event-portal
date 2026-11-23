@@ -31,6 +31,38 @@ class EmergenceStoreService
         return $row ?: null;
     }
 
+    public function replaySessionsUrl(array $product, bool $mobile = false): string
+    {
+        $db = db_connect();
+        $conferenceId = 0;
+        if ($db->fieldExists('replay_product_id', 'tbl_conference_sessions')) {
+            $session = $db->table('tbl_conference_sessions')
+                ->select('conference_id')
+                ->where('replay_product_id', (int) $product['product_id'])
+                ->orderBy('event_date', 'DESC')->orderBy('sessions_id', 'DESC')
+                ->get(1)->getRowArray();
+            $conferenceId = (int) ($session['conference_id'] ?? 0);
+        }
+        if ($conferenceId < 1 && preg_match('/\b20\d{2}\b/', (string) ($product['name'] ?? '') . ' ' . (string) ($product['slug'] ?? ''), $match)) {
+            $conference = $db->table('tbl_conferences')->select('conference_id')
+                ->where('year', (int) $match[0])->orderBy('conference_id', 'DESC')->get(1)->getRowArray();
+            $conferenceId = (int) ($conference['conference_id'] ?? 0);
+        }
+        if ($conferenceId < 1) {
+            $conferenceId = (int) session('live-conference-id');
+        }
+        if ($conferenceId < 1) {
+            $conference = $db->table('tbl_conferences')->select('conference_id')
+                ->orderBy('conference_id', 'DESC')->get(1)->getRowArray();
+            $conferenceId = (int) ($conference['conference_id'] ?? 0);
+        }
+
+        if ($conferenceId < 1) {
+            return site_url($mobile ? 'mobile/home' : 'attendees/home');
+        }
+        return site_url(($mobile ? 'mobile/agenda/' : 'attendees/agenda/') . $conferenceId);
+    }
+
     public static function effectiveProduct(array $product): array
     {
         // Existing coaching products were seeded as free before the paid offer launched.
@@ -72,7 +104,8 @@ class EmergenceStoreService
         $quote = $this->quote($product, $couponCode);
         if ($quote['amount'] <= 0) {
             $this->grantFreeEntitlement($product, $userId, $quote['coupon']);
-            return site_url('attendees/store/success?free=1&product=' . (int) $product['product_id']);
+            $destination = $successUrl !== null ? (strstr($successUrl, '?', true) ?: $successUrl) : site_url('attendees/store/success');
+            return $destination . '?free=1&product=' . (int) $product['product_id'];
         }
 
         $db = db_connect();
@@ -93,7 +126,7 @@ class EmergenceStoreService
         $minorAmount = (int) round($quote['amount'] * $this->minorUnitMultiplier($quote['currency']));
         $params = [
             'mode' => 'payment',
-            'success_url' => $successUrl ?: site_url('attendees/store/success?session_id={CHECKOUT_SESSION_ID}'),
+            'success_url' => $successUrl ?: site_url('attendees/store/success?product=' . (int) $product['product_id'] . '&session_id={CHECKOUT_SESSION_ID}'),
             'cancel_url' => $cancelUrl ?: site_url('attendees/store?cancelled=1'),
             'client_reference_id' => $reference,
             'metadata[order_ref]' => $reference,
@@ -256,7 +289,9 @@ class EmergenceStoreService
 
             $name = trim((string) ($recipient['firstname'] ?? '')) ?: 'there';
             $amount = strtoupper((string) $order['currency']) . ' ' . number_format((float) $order['amount'], 2);
-            $accessUrl = site_url('attendees/store');
+            $accessUrl = ($product['access_type'] ?? '') === 'replays'
+                ? $this->replaySessionsUrl($product)
+                : site_url('attendees/store');
             $email = service('email');
             $email->clear(true);
             $email->setFrom(env('email.fromEmail') ?: 'no-reply@eprglobal.com', env('email.fromName') ?: 'EPR Global Events');

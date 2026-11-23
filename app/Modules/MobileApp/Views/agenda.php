@@ -14,6 +14,9 @@ $activeDate      = isset($sessionsByDate[$today]) ? $today : array_key_first($se
 ?>
 
 <div class="m-screen m-screen--20">
+    <?php if ($notice = session()->getFlashdata('success')): ?>
+        <div class="m-card" role="status" style="margin-bottom:16px;padding:12px 14px;color:#e9fff0;background:#194b2a;border:1px solid #64a97b"><?= esc($notice) ?></div>
+    <?php endif; ?>
     <div class="m-head">
         <span class="m-kicker"><?= esc($conferenceLabel) ?></span>
         <h1 class="m-title">Agenda</h1>

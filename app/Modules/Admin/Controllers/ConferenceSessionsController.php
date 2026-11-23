@@ -13,6 +13,7 @@ use App\Controllers\BaseController;
 use App\Modules\Admin\Models\ConferenceSessionsModel;
 use App\Modules\Admin\Models\ConferencesModel;
 use App\Services\BunnyStreamService;
+use App\Services\SessionReplayService;
 use CodeIgniter\Exceptions\PageNotFoundException;
 
 class ConferenceSessionsController extends BaseController
@@ -134,7 +135,7 @@ class ConferenceSessionsController extends BaseController
         }
         $replayData = $this->replayData();
         if ($replayData === null) {
-            return redirect()->back()->withInput()->with('error', 'Enter a valid Bunny Stream embed URL and choose a replay product.');
+            return redirect()->back()->withInput()->with('error', 'Enter a valid Bunny Stream play or embed URL and choose a replay product.');
         }
 
         // Insert session
@@ -250,7 +251,7 @@ class ConferenceSessionsController extends BaseController
         }
         $replayData = $this->replayData();
         if ($replayData === null) {
-            return redirect()->back()->withInput()->with('error', 'Enter a valid Bunny Stream embed URL and choose a replay product.');
+            return redirect()->back()->withInput()->with('error', 'Enter a valid Bunny Stream play or embed URL and choose a replay product.');
         }
 
         $data = [
@@ -472,7 +473,8 @@ class ConferenceSessionsController extends BaseController
         if ($url === '') {
             return ['replay_bunny_embed_url' => null, 'replay_product_id' => null];
         }
-        if (! preg_match('~^https://iframe\.mediadelivery\.net/embed/[0-9]+/[a-fA-F0-9-]+(?:\?[^\s]*)?$~', $url)) {
+        $url = SessionReplayService::normaliseBunnyEmbedUrl($url);
+        if ($url === null) {
             return null;
         }
         $productId = filter_var($this->request->getPost('replay_product_id'), FILTER_VALIDATE_INT);

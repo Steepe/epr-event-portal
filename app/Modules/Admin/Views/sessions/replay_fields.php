@@ -12,9 +12,9 @@
         <p class="mt-1 text-xs text-gray-500">The file uploads directly from this browser to Bunny Stream. Keep this tab open until the progress reaches 100%.</p>
       </div>
       <div class="md:col-span-2">
-        <label class="block text-sm text-gray-300 mb-2" for="replay_bunny_embed_url">Bunny Stream replay embed URL</label>
-        <input id="replay_bunny_embed_url" type="url" name="replay_bunny_embed_url" value="<?php echo esc($session['replay_bunny_embed_url'] ?? '', 'attr'); ?>" placeholder="https://iframe.mediadelivery.net/embed/798024/video-id" class="w-full p-2 rounded bg-gray-900 border border-gray-700 text-gray-200">
-        <p class="mt-1 text-xs text-gray-500">Download the recording from Livepush, upload it to Bunny Stream, then paste Bunny's embed URL here. Clear this field to remove the replay.</p>
+        <label class="block text-sm text-gray-300 mb-2" for="replay_bunny_embed_url">Bunny Stream replay URL</label>
+        <input id="replay_bunny_embed_url" type="url" name="replay_bunny_embed_url" value="<?php echo esc($session['replay_bunny_embed_url'] ?? '', 'attr'); ?>" placeholder="https://iframe.mediadelivery.net/play/542640/video-id" class="w-full p-2 rounded bg-gray-900 border border-gray-700 text-gray-200">
+        <p class="mt-1 text-xs text-gray-500">Paste a Bunny play or embed link. It will be saved as an iframe embed link. Clear this field to remove the replay.</p>
       </div>
       <div>
         <label class="block text-sm text-gray-300 mb-2" for="replay_product_id">Replay access product</label>

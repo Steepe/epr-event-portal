@@ -10,6 +10,9 @@ $selectedAgendaDay = isset($sessionsByDate[$requestedAgendaDay]) ? $requestedAge
 
 <main class="rc-page rc-page-center" data-screen-label="Agenda">
     <div class="rc-container" style="gap:24px;min-height:0">
+        <?php if ($notice = session()->getFlashdata('success')): ?>
+            <div role="status" style="padding:12px 16px;border-radius:10px;border:1px solid rgba(130,220,162,.5);background:rgba(20,75,42,.8);color:#e9fff0"><?php echo esc($notice); ?></div>
+        <?php endif; ?>
         <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap">
             <div class="rc-title-stack">
                 <span class="rc-kicker">Accelerate 2026</span>

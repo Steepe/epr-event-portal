@@ -44,7 +44,17 @@ class StoreController extends BaseController
             $productId = (int) ($order['product_id'] ?? 0);
         }
         $hasAccess = $productId > 0 && $store->ready() && $store->hasAccess((int) session('user_id'), $productId);
-        return module_view('Web', 'store/success', ['hasAccess' => $hasAccess, 'product' => $productId > 0 ? $store->product($productId) : null]);
+        $product = $productId > 0 ? $store->product($productId) : null;
+        $isReplay = ($product['access_type'] ?? '') === 'replays';
+        if ($isReplay && $hasAccess) {
+            return redirect()->to($store->replaySessionsUrl($product))
+                ->with('success', 'Your replay access is ready. Choose a session to watch.');
+        }
+        return module_view('Web', 'store/success', [
+            'hasAccess' => $hasAccess,
+            'product' => $product,
+            'isReplay' => $isReplay,
+        ]);
     }
 
     public function replayLibrary(int $productId)

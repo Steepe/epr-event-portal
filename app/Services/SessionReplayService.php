@@ -7,6 +7,16 @@ use DateTimeZone;
 
 class SessionReplayService
 {
+    public static function normaliseBunnyEmbedUrl(string $url): ?string
+    {
+        $url = trim($url);
+        if (! preg_match('~\Ahttps://iframe\.mediadelivery\.net/(?:play|embed)/([0-9]+)/([a-f0-9-]{16,64})(\?[^#\s]*)?\z~i', $url, $matches)) {
+            return null;
+        }
+
+        return 'https://iframe.mediadelivery.net/embed/' . $matches[1] . '/' . strtolower($matches[2]) . ($matches[3] ?? '');
+    }
+
     public function isPublished(array $session): bool
     {
         if (trim((string) ($session['replay_bunny_embed_url'] ?? '')) === ''

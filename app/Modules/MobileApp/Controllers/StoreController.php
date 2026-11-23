@@ -18,7 +18,7 @@ class StoreController extends BaseController
 
         return module_view('MobileApp', 'store', [
             'ready' => $store->ready(),
-            'offers' => StoreOfferCatalog::offers($products, $entitledProductIds),
+            'offers' => StoreOfferCatalog::offers($products, $entitledProductIds, true),
         ]);
     }
 
@@ -35,7 +35,7 @@ class StoreController extends BaseController
         }
 
         try {
-            $successUrl = site_url('mobile/store/success') . '?session_id={CHECKOUT_SESSION_ID}';
+            $successUrl = site_url('mobile/store/success') . '?product=' . $productId . '&session_id={CHECKOUT_SESSION_ID}';
             $cancelUrl = site_url('mobile/store') . '?cancelled=1';
             $url = $store->createCheckout($product, (int) session('user_id'), '', $successUrl, $cancelUrl);
 
@@ -56,10 +56,16 @@ class StoreController extends BaseController
 
         $product = $productId > 0 ? $store->product($productId) : null;
         $hasAccess = $productId > 0 && $store->ready() && $store->hasAccess((int) session('user_id'), $productId);
+        $isReplay = ($product['access_type'] ?? '') === 'replays';
+        if ($isReplay && $hasAccess) {
+            return redirect()->to($store->replaySessionsUrl($product, true))
+                ->with('success', 'Your replay access is ready. Choose a session to watch.');
+        }
 
         return module_view('MobileApp', 'store_success', [
             'hasAccess' => $hasAccess,
             'product' => $product,
+            'isReplay' => $isReplay,
         ]);
     }
 

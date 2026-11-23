@@ -10,18 +10,18 @@ namespace App\Services;
  */
 class StoreOfferCatalog
 {
-    public static function offers(array $products, array $entitledProductIds = []): array
+    public static function offers(array $products, array $entitledProductIds = [], bool $mobile = false): array
     {
         $replay = self::findReplayProduct($products);
         $blueprint = self::findBlueprintProduct($products, $replay);
 
         return [
-            self::offer('blueprint', $blueprint, $entitledProductIds),
-            self::offer('replay', $replay, $entitledProductIds),
+            self::offer('blueprint', $blueprint, $entitledProductIds, $mobile),
+            self::offer('replay', $replay, $entitledProductIds, $mobile),
         ];
     }
 
-    private static function offer(string $type, ?array $product, array $entitledProductIds): array
+    private static function offer(string $type, ?array $product, array $entitledProductIds, bool $mobile): array
     {
         $isReplay = $type === 'replay';
         if (! $isReplay && $product !== null) {
@@ -36,7 +36,7 @@ class StoreOfferCatalog
         $accessUrl = '';
 
         if ($owned && ($product['access_type'] ?? '') === 'replays') {
-            $accessUrl = site_url('attendees/store/replays/' . $productId);
+            $accessUrl = (new EmergenceStoreService())->replaySessionsUrl($product, $mobile);
         } elseif ($owned && ($product['access_type'] ?? '') === 'external' && ! empty($product['access_url'])) {
             $accessUrl = (string) $product['access_url'];
         }
