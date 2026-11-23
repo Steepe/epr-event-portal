@@ -31,6 +31,8 @@ class ConferenceSessionsModel extends Model
         'zoom_meeting_number',
         'zoom_passcode',
         'zoom_is_webinar',
+        'replay_bunny_embed_url',
+        'replay_product_id',
         'workbook',
         'tags',
     ];

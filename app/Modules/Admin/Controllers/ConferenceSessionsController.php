@@ -12,6 +12,7 @@ namespace App\Modules\Admin\Controllers;
 use App\Controllers\BaseController;
 use App\Modules\Admin\Models\ConferenceSessionsModel;
 use App\Modules\Admin\Models\ConferencesModel;
+use App\Services\BunnyStreamService;
 use CodeIgniter\Exceptions\PageNotFoundException;
 
 class ConferenceSessionsController extends BaseController
@@ -96,6 +97,8 @@ class ConferenceSessionsController extends BaseController
             'conference' => $conference,
             'speakers'   => $speakers,
             'isLive'     => $isLive,
+            'replayFieldsReady' => $this->replayFieldsReady(),
+            'replayProducts' => $this->replayProducts(),
             'sessionDateRange' => $this->sessionDateRange($conference),
             'pageTitle'  => 'Add Session to ' . $conference['title']
         ]);
@@ -129,6 +132,10 @@ class ConferenceSessionsController extends BaseController
         if ($streamData === null) {
             return redirect()->back()->withInput()->with('error', 'Enter a valid Zoom meeting number for a Zoom session.');
         }
+        $replayData = $this->replayData();
+        if ($replayData === null) {
+            return redirect()->back()->withInput()->with('error', 'Enter a valid Bunny Stream embed URL and choose a replay product.');
+        }
 
         // Insert session
         $data = [
@@ -140,6 +147,7 @@ class ConferenceSessionsController extends BaseController
             'access_level'  => $this->request->getPost('access_level'),
             'description'   => $this->request->getPost('description'),
             ...$streamData,
+            ...$replayData,
             'workbook'      => $workbookPath,
             'tags'          => $this->request->getPost('tags'),
         ];
@@ -206,6 +214,8 @@ class ConferenceSessionsController extends BaseController
             'speakers'         => $speakers,
             'assignedSpeakers' => $assignedSpeakers,
             'isLive'           => $isLive,
+            'replayFieldsReady' => $this->replayFieldsReady(),
+            'replayProducts' => $this->replayProducts(),
             'sessionDateRange' => $this->sessionDateRange($conference),
             'pageTitle'        => 'Edit Session - ' . $conference['title']
         ]);
@@ -238,6 +248,10 @@ class ConferenceSessionsController extends BaseController
         if ($streamData === null) {
             return redirect()->back()->withInput()->with('error', 'Enter a valid Zoom meeting number for a Zoom session.');
         }
+        $replayData = $this->replayData();
+        if ($replayData === null) {
+            return redirect()->back()->withInput()->with('error', 'Enter a valid Bunny Stream embed URL and choose a replay product.');
+        }
 
         $data = [
             'sessions_name' => $this->request->getPost('sessions_name'),
@@ -247,6 +261,7 @@ class ConferenceSessionsController extends BaseController
             'access_level'  => $this->request->getPost('access_level'),
             'description'   => $this->request->getPost('description'),
             ...$streamData,
+            ...$replayData,
             'workbook'      => $workbookPath,
             'tags'          => $this->request->getPost('tags'),
         ];
@@ -422,5 +437,71 @@ class ConferenceSessionsController extends BaseController
             'zoom_passcode'        => mb_substr(trim((string) $this->request->getPost('zoom_passcode')), 0, 255),
             'zoom_is_webinar'      => $this->request->getPost('zoom_is_webinar') ? 1 : 0,
         ];
+    }
+
+    private function replayFieldsReady(): bool
+    {
+        $db = db_connect();
+        return $db->fieldExists('replay_bunny_embed_url', 'tbl_conference_sessions')
+            && $db->fieldExists('replay_product_id', 'tbl_conference_sessions');
+    }
+
+    private function replayProducts(): array
+    {
+        $db = db_connect();
+        if (! $db->tableExists('tbl_store_products')) {
+            return [];
+        }
+        return $db->table('tbl_store_products')->where('access_type', 'replays')->orderBy('name')->get()->getResultArray();
+    }
+
+    private function replayData(): ?array
+    {
+        $url = trim((string) $this->request->getPost('replay_bunny_embed_url'));
+        $videoId = trim((string) $this->request->getPost('replay_video_id'));
+        if (! $this->replayFieldsReady()) {
+            return $url === '' && $videoId === '' ? [] : null;
+        }
+        if ($videoId !== '') {
+            try {
+                $url = (new BunnyStreamService())->welcomeVideoEmbedUrl($videoId);
+            } catch (\RuntimeException) {
+                return null;
+            }
+        }
+        if ($url === '') {
+            return ['replay_bunny_embed_url' => null, 'replay_product_id' => null];
+        }
+        if (! preg_match('~^https://iframe\.mediadelivery\.net/embed/[0-9]+/[a-fA-F0-9-]+(?:\?[^\s]*)?$~', $url)) {
+            return null;
+        }
+        $productId = filter_var($this->request->getPost('replay_product_id'), FILTER_VALIDATE_INT);
+        if ($productId === false || $productId < 1) {
+            return null;
+        }
+        $validProduct = db_connect()->table('tbl_store_products')
+            ->where('product_id', $productId)->where('access_type', 'replays')->countAllResults() > 0;
+        return $validProduct ? ['replay_bunny_embed_url' => $url, 'replay_product_id' => $productId] : null;
+    }
+
+    public function replayVideoCredentials(): \CodeIgniter\HTTP\ResponseInterface
+    {
+        $title = trim((string) $this->request->getPost('title'));
+        if ($title === '') {
+            return $this->response->setStatusCode(422)->setJSON(['error' => 'Enter the session name before uploading its replay.', 'csrfHash' => csrf_hash()]);
+        }
+        if (! $this->replayFieldsReady()) {
+            return $this->response->setStatusCode(503)->setJSON(['error' => 'The session replay migration has not run yet.', 'csrfHash' => csrf_hash()]);
+        }
+        try {
+            $credentials = (new BunnyStreamService())->prepareDirectUpload(
+                $title . ' replay',
+                (string) $this->request->getPost('resume_video_id')
+            );
+            $credentials['csrfHash'] = csrf_hash();
+            return $this->response->setJSON($credentials);
+        } catch (\RuntimeException $exception) {
+            return $this->response->setStatusCode(502)->setJSON(['error' => $exception->getMessage(), 'csrfHash' => csrf_hash()]);
+        }
     }
 }

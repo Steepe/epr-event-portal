@@ -13,6 +13,7 @@ namespace App\Modules\Web\Controllers;
 
 use App\Controllers\BaseController;
 use App\Libraries\SessionViewerTracker;
+use App\Services\SessionReplayService;
 use CodeIgniter\Database\Exceptions\DataException;
 
 class SessionsController extends BaseController
@@ -63,6 +64,7 @@ class SessionsController extends BaseController
             // ✅ Prepare view data
             $data = [
                 'session'    => $sessionData,
+                'replay'     => (new SessionReplayService())->state($sessionData, $this->attendeeId()),
                 'speakers'   => $speakers,
                 'sponsors'   => $sponsors,
                 'online_attendee_count' => $this->onlineAttendeeCount($db),

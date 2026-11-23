@@ -2,6 +2,7 @@
 <?php
 $sessionsByDate = $sessionsByDate ?? [];
 $isPremium      = (int) ($premium ?? 0) === 1;
+$replayService  = new \App\Services\SessionReplayService();
 $utc            = new DateTimeZone('UTC');
 $confTitle      = trim((string) ($conference['title'] ?? 'Past Conference'));
 $confYear       = (int) ($conference['year'] ?? 0);
@@ -35,8 +36,9 @@ $firstDate = array_key_first($sessionsByDate);
                         $start    = new DateTime($item['event_date'] . ' ' . $item['start_time'], $utc);
                         $end      = new DateTime($item['event_date'] . ' ' . $item['end_time'], $utc);
                         $vimeo    = preg_replace('/\D/', '', (string) ($item['vimeo_id'] ?? ''));
-                        $access   = (int) ($item['access_level'] ?? 1) !== 2 || $isPremium;
-                        $kind     = ! $access ? 'locked' : ($vimeo !== '' ? 'rec' : 'soon');
+                        $hasReplay = $replayService->isPublished($item);
+                        $access   = $hasReplay || (int) ($item['access_level'] ?? 1) !== 2 || $isPremium;
+                        $kind     = $hasReplay ? 'session-replay' : (! $access ? 'locked' : ($vimeo !== '' ? 'rec' : 'soon'));
                         $speakers = !empty($item['speakers']) ? implode(', ', array_filter(array_column($item['speakers'], 'speaker_name'))) : '';
                         ?>
                         <a class="m-agenda__row" href="<?= $kind === 'locked' ? site_url('mobile/upgrade') : site_url('mobile/session/' . (int) $item['sessions_id']) ?>"
@@ -50,7 +52,9 @@ $firstDate = array_key_first($sessionsByDate);
                             <div class="m-agenda__body">
                                 <span class="m-agenda__name"><?= esc($item['sessions_name']) ?></span>
                                 <span class="m-agenda__speakers">Speakers: <?= esc($speakers !== '' ? $speakers : 'TBA') ?></span>
-                                <?php if ($kind === 'rec'): ?>
+                                <?php if ($kind === 'session-replay'): ?>
+                                    <span class="m-action m-action--rec"><i class="fa fa-play" aria-hidden="true"></i>Watch replay</span>
+                                <?php elseif ($kind === 'rec'): ?>
                                     <span class="m-action m-action--rec"><i class="fa fa-play" aria-hidden="true"></i>Watch Recording</span>
                                 <?php elseif ($kind === 'soon'): ?>
                                     <span class="m-action"><i class="fa fa-clock-o" aria-hidden="true"></i>Coming Soon</span>
@@ -95,7 +99,7 @@ document.addEventListener('DOMContentLoaded', function () {
         var row = event.target.closest('[data-past]');
         if (!row) return;
         var kind = row.getAttribute('data-past');
-        if (kind === 'locked') return;
+        if (kind === 'locked' || kind === 'session-replay') return;
         event.preventDefault();
         if (kind === 'soon') { EPR.toast('This recording is coming soon.'); return; }
         source = row.getAttribute('data-video');

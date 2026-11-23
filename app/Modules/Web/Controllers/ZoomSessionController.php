@@ -3,6 +3,7 @@
 namespace App\Modules\Web\Controllers;
 
 use App\Controllers\BaseController;
+use App\Services\SessionReplayService;
 use CodeIgniter\Exceptions\PageNotFoundException;
 
 class ZoomSessionController extends BaseController
@@ -107,7 +108,8 @@ class ZoomSessionController extends BaseController
 
         $canAccess = (session('plan') ?? 1) >= ($session['access_level'] ?? 1);
         $meetingNumber = (string) ($session['zoom_meeting_number'] ?? '');
-        if (! $canAccess || ($session['stream_provider'] ?? 'livepush') !== 'zoom' || ! preg_match('/^\d{9,16}$/', $meetingNumber)) {
+        if (! $canAccess || (new SessionReplayService())->isPublished($session)
+            || ($session['stream_provider'] ?? 'livepush') !== 'zoom' || ! preg_match('/^\d{9,16}$/', $meetingNumber)) {
             return null;
         }
 

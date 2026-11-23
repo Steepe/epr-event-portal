@@ -187,7 +187,33 @@ class EmergenceStoreService
 
     public function videos(int $productId): array
     {
-        return db_connect()->table('tbl_store_product_videos')->where('product_id', $productId)->where('is_active', 1)->orderBy('sort_order')->orderBy('video_id')->get()->getResultArray();
+        $db = db_connect();
+        $videos = [];
+        if ($db->fieldExists('replay_bunny_embed_url', 'tbl_conference_sessions')
+            && $db->fieldExists('replay_product_id', 'tbl_conference_sessions')) {
+            $sessions = $db->table('tbl_conference_sessions')
+                ->where('replay_product_id', $productId)
+                ->where('replay_bunny_embed_url IS NOT NULL', null, false)
+                ->orderBy('event_date')->orderBy('start_time')->get()->getResultArray();
+            $replays = new SessionReplayService();
+            foreach ($sessions as $session) {
+                if ($replays->isPublished($session)) {
+                    $videos[] = [
+                        'sessions_id' => (int) $session['sessions_id'],
+                        'title' => $session['sessions_name'],
+                        'bunny_embed_url' => $session['replay_bunny_embed_url'],
+                    ];
+                }
+            }
+        }
+        // Keep earlier store-library entries visible to existing purchasers.
+        $sessionUrls = array_column($videos, 'bunny_embed_url');
+        foreach ($db->table('tbl_store_product_videos')->where('product_id', $productId)->where('is_active', 1)->orderBy('sort_order')->orderBy('video_id')->get()->getResultArray() as $video) {
+            if (! in_array($video['bunny_embed_url'], $sessionUrls, true)) {
+                $videos[] = $video;
+            }
+        }
+        return $videos;
     }
 
     public function grantEntitlement(int $userId, int $productId, ?int $orderId = null, ?int $adminId = null, string $notes = ''): void

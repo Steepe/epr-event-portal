@@ -67,6 +67,9 @@ $this->section('content');
             <span class="px-2 py-1 rounded bg-gray-700">
               <?php echo ($session['access_level'] == 1) ? 'Free' : 'Paid'; ?>
             </span>
+            <?php if (! empty($session['replay_bunny_embed_url'])): ?>
+              <span class="px-2 py-1 rounded bg-purple-900 text-purple-100">Replay configured</span>
+            <?php endif; ?>
             <span class="px-2 py-1 rounded bg-gray-700">
               <?php echo (($session['stream_provider'] ?? 'livepush') === 'zoom') ? 'Zoom interactive' : 'Livepush broadcast'; ?>
             </span>

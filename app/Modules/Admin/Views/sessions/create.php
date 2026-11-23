@@ -39,7 +39,7 @@ $this->section('content');
 
   <form method="post" enctype="multipart/form-data"
         action="<?php echo site_url('admin/conferences/' . $conference['conference_id'] . '/sessions/store'); ?>"
-        class="space-y-6">
+        class="space-y-6" data-session-replay-upload data-replay-credentials-url="<?php echo esc(site_url('admin/conferences/sessions/replay/credentials'), 'attr'); ?>">
     <?php echo csrf_field(); ?>
 
     <div class="grid md:grid-cols-2 gap-6">
@@ -126,6 +126,8 @@ $this->section('content');
       </div>
     </div>
 
+    <?php echo module_view('Admin', 'sessions/replay_fields', ['session' => [], 'replayFieldsReady' => $replayFieldsReady, 'replayProducts' => $replayProducts]); ?>
+
     <div>
       <label class="block text-sm text-gray-400 mb-2">Tags</label>
       <input type="text" name="tags"
@@ -194,5 +196,7 @@ $this->section('content');
     sync();
   });
 </script>
+
+<?php echo module_view('Admin', 'sessions/replay_uploader'); ?>
 
 <?php $this->endSection(); ?>

@@ -5,6 +5,7 @@ foreach (($sessions ?? []) as $item) {
     $sessionsByDate[$item['event_date']][] = $item;
 }
 $isPremium       = (int) ($premium ?? 0) === 1;
+$replayService   = new \App\Services\SessionReplayService();
 $conferenceLabel = trim(($conference['title'] ?? 'Accelerate') . ' ' . ($conference['year'] ?? ''));
 $utc             = new DateTimeZone('UTC');
 $now             = new DateTime('now', $utc);
@@ -35,7 +36,8 @@ $activeDate      = isset($sessionsByDate[$today]) ? $today : array_key_first($se
                         $end      = new DateTime($item['event_date'] . ' ' . $item['end_time'], $utc);
                         $live     = $now >= $start && $now < $end;
                         $done     = $now >= $end;
-                        $locked   = (int) ($item['access_level'] ?? 1) === 2 && ! $isPremium;
+                        $hasReplay = $replayService->isPublished($item);
+                        $locked   = ! $hasReplay && (int) ($item['access_level'] ?? 1) === 2 && ! $isPremium;
                         $speakers = !empty($item['speakers']) ? implode(', ', array_filter(array_column($item['speakers'], 'speaker_name'))) : '';
                         $url      = $locked ? site_url('mobile/upgrade') : site_url('mobile/session/' . $item['sessions_id']);
                         ?>
@@ -47,11 +49,13 @@ $activeDate      = isset($sessionsByDate[$today]) ? $today : array_key_first($se
                             </div>
                             <div class="m-agenda__rail"><span class="m-agenda__dot"></span></div>
                             <div class="m-agenda__body">
-                                <div class="m-agenda__flags"><?php if ($live): ?><span class="m-live">LIVE</span><?php endif; ?><?php if ($locked): ?><span class="m-paid"><i class="fa fa-lock" aria-hidden="true"></i>Paid session</span><?php endif; ?></div>
+                                <div class="m-agenda__flags"><?php if ($hasReplay): ?><span class="m-paid">REPLAY</span><?php elseif ($live): ?><span class="m-live">LIVE</span><?php endif; ?><?php if ($locked): ?><span class="m-paid"><i class="fa fa-lock" aria-hidden="true"></i>Paid session</span><?php endif; ?></div>
                                 <span class="m-agenda__name"><?= esc($item['sessions_name']) ?></span>
                                 <span class="m-agenda__speakers">Speakers: <?= esc($speakers !== '' ? $speakers : 'TBA') ?></span>
                                 <?php if ($locked): ?>
                                     <span class="m-action m-action--locked"><i class="fa fa-unlock-alt" aria-hidden="true"></i>Unlock</span>
+                                <?php elseif ($hasReplay): ?>
+                                    <span class="m-action m-action--rec"><i class="fa fa-play" aria-hidden="true"></i>Watch replay</span>
                                 <?php elseif ($live): ?>
                                     <span class="m-action m-action--live"><i class="fa fa-play" aria-hidden="true"></i>Join live</span>
                                 <?php else: ?>

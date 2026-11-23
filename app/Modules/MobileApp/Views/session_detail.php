@@ -2,10 +2,12 @@
 $event           = $session ?? [];
 $sessionSpeakers = array_values(array_filter($speakers ?? [], static fn ($speaker): bool => !empty($speaker['speaker_name'])));
 $conferenceId    = (int) ($event['conference_id'] ?? session('live-conference-id'));
+$replayState     = $replay ?? ['published' => false, 'url' => '', 'product_id' => 0];
+$isReplay        = (bool) $replayState['published'];
 $isLiveConf      = ($conference['status'] ?? 'live') === 'live';
 $agendaUrl       = $isLiveConf ? site_url('mobile/agenda/' . $conferenceId) : site_url('mobile/pastConference/' . $conferenceId);
 
-echo module_view('MobileApp', 'includes/header', ['shell' => 'tabbed', 'back' => $agendaUrl, 'activeTab' => $isLiveConf ? 'agenda' : 'explore', 'title' => $event['sessions_name'] ?? 'Session', 'screenLabel' => 'Live Session']);
+echo module_view('MobileApp', 'includes/header', ['shell' => 'tabbed', 'back' => $agendaUrl, 'activeTab' => $isLiveConf ? 'agenda' : 'explore', 'title' => $event['sessions_name'] ?? 'Session', 'screenLabel' => $isReplay ? 'Session replay' : 'Live Session']);
 
 $utc       = new DateTimeZone('UTC');
 $hasTimes  = !empty($event['event_date']) && !empty($event['start_time']) && !empty($event['end_time']);
@@ -15,13 +17,15 @@ $now       = new DateTime('now', $utc);
 $isLiveNow = $start && $end && $now >= $start && $now < $end;
 $dateLong  = !empty($event['event_date']) ? date('F j, Y', strtotime($event['event_date'])) : '';
 
-$canAccess = (int) ($event['access_level'] ?? 1) !== 2 || (int) ($premium ?? 0) === 1;
+$canAccess = $isReplay ? $replayState['url'] !== '' : ((int) ($event['access_level'] ?? 1) !== 2 || (int) ($premium ?? 0) === 1);
 $streamProvider = ($event['stream_provider'] ?? 'livepush') === 'zoom' ? 'zoom' : 'livepush';
 $livepushId = trim((string) ($event['livepush_id'] ?? ''));
 $vimeoId    = trim((string) ($event['vimeo_id'] ?? ''));
 $videoSrc  = '';
 $zoomJoinUrl = '';
-if ($streamProvider === 'zoom' && preg_match('/^\d{9,16}$/', (string) ($event['zoom_meeting_number'] ?? ''))) {
+if ($isReplay) {
+    $videoSrc = $replayState['url'];
+} elseif ($streamProvider === 'zoom' && preg_match('/^\d{9,16}$/', (string) ($event['zoom_meeting_number'] ?? ''))) {
     $zoomJoinUrl = site_url('attendees/sessions/' . (int) ($event['sessions_id'] ?? 0) . '/zoom');
 } elseif ($isLiveConf && preg_match('/^[A-Za-z0-9_-]+$/', $livepushId)) {
     $videoSrc = 'https://watch.livepush.io/live/' . rawurlencode($livepushId);
@@ -50,7 +54,7 @@ $chatRealtimeAuth = \App\Services\RealtimeToken::issue((int) (session('user_id')
         <?php if ($start && $end): ?>
             <div class="m-session__meta">
                 <span class="m-mono" data-local-time data-date="<?= esc($event['event_date'], 'attr') ?>" data-start="<?= esc($event['start_time'], 'attr') ?>" data-end="<?= esc($event['end_time'], 'attr') ?>"><span data-lt-start><?= esc($start->format('g:i A')) ?></span>&nbsp;–&nbsp;<span data-lt-end><?= esc($end->format('g:i A')) ?></span>&nbsp;·&nbsp;<span data-lt-zone>GMT</span></span>
-                <?php if ($isLiveNow): ?><span><i class="fa fa-eye" aria-hidden="true"></i>Live now</span><?php endif; ?>
+                <?php if ($isReplay): ?><span>Replay</span><?php elseif ($isLiveNow): ?><span><i class="fa fa-eye" aria-hidden="true"></i>Live now</span><?php endif; ?>
             </div>
         <?php endif; ?>
     </div>
@@ -60,9 +64,11 @@ $chatRealtimeAuth = \App\Services\RealtimeToken::issue((int) (session('user_id')
             <iframe src="<?= esc($zoomJoinUrl !== '' ? $zoomJoinUrl : $videoSrc, 'attr') ?>" title="<?= esc($event['sessions_name'] ?? 'Session video', 'attr') ?>" allow="<?= $zoomJoinUrl !== '' ? 'camera; microphone; display-capture; fullscreen; autoplay; clipboard-write' : 'autoplay; fullscreen; picture-in-picture' ?>" allowfullscreen></iframe>
         <?php else: ?>
             <img class="m-video__speaker" src="<?= esc($leadPhoto, 'attr') ?>" alt="" onerror="this.onerror=null;this.src='<?= mobile_asset_url('images/user.png') ?>'">
-            <?php if ($isLiveNow): ?><div class="m-video__tag" style="padding:0;background:transparent"><span class="m-live m-live--sq">LIVE</span></div><?php endif; ?>
+            <?php if ($isLiveNow && ! $isReplay): ?><div class="m-video__tag" style="padding:0;background:transparent"><span class="m-live m-live--sq">LIVE</span></div><?php endif; ?>
             <div class="m-video__lead">
-                <?php if (! $canAccess): ?>
+                <?php if ($isReplay && ! $canAccess): ?>
+                    <b><i class="fa fa-lock" aria-hidden="true"></i> Session replay</b><span>Purchase replay access to watch this recording.</span>
+                <?php elseif (! $canAccess): ?>
                     <b><i class="fa fa-lock" aria-hidden="true"></i> Paid session</b><span>Upgrade to Premium Access to watch.</span>
                 <?php elseif ($lead): ?>
                     <b><?= esc($lead['speaker_name']) ?></b><span><?= esc($leadRole !== '' ? $leadRole : 'Video will appear here when the session starts.') ?></span>
@@ -74,7 +80,7 @@ $chatRealtimeAuth = \App\Services\RealtimeToken::issue((int) (session('user_id')
     </div>
 
     <?php if (! $canAccess): ?>
-        <a class="m-btn m-btn--plain" href="<?= site_url('mobile/upgrade') ?>"><i class="fa fa-unlock-alt" aria-hidden="true"></i>Unlock this session</a>
+        <a class="m-btn m-btn--plain" href="<?= $isReplay ? site_url('mobile/store') : site_url('mobile/upgrade') ?>"><i class="fa fa-unlock-alt" aria-hidden="true"></i><?= $isReplay ? 'Get replay access' : 'Unlock this session' ?></a>
     <?php endif; ?>
 
     <div class="m-session__tools">

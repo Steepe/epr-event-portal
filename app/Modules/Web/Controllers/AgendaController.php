@@ -75,6 +75,8 @@ class AgendaController extends BaseController
                         'access_level'  => $row['access_level'],
                         'description'   => $row['description'],
                         'livepush_id'   => $row['livepush_id'] ?? null,
+                        'replay_bunny_embed_url' => $row['replay_bunny_embed_url'] ?? null,
+                        'replay_product_id' => $row['replay_product_id'] ?? null,
                         'workbook'      => $row['workbook'],
                         'tags'          => $row['tags'],
                         'speakers'      => [],

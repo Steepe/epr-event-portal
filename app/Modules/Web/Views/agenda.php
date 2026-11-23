@@ -3,6 +3,7 @@ echo module_view('Web', 'includes/header');
 echo module_view('Web', 'includes/topbar');
 
 $userPremium = (int) ($premium ?? 0);
+$replayService = new \App\Services\SessionReplayService();
 $requestedAgendaDay = (string) service('request')->getGet('day');
 $selectedAgendaDay = isset($sessionsByDate[$requestedAgendaDay]) ? $requestedAgendaDay : array_key_first($sessionsByDate ?? []);
 ?>
@@ -44,7 +45,8 @@ $selectedAgendaDay = isset($sessionsByDate[$requestedAgendaDay]) ? $requestedAge
                             $start = (new DateTime($s['event_date'] . ' ' . $s['start_time'], new DateTimeZone('UTC')))->format('g:i A');
                             $end = (new DateTime($s['event_date'] . ' ' . $s['end_time'], new DateTimeZone('UTC')))->format('g:i A');
                             $isPaidSession = (int) ($s['access_level'] ?? 1) === 2;
-                            $canAccess = ! $isPaidSession || $userPremium === 1;
+                            $hasReplay = $replayService->isPublished($s);
+                            $canAccess = $hasReplay || ! $isPaidSession || $userPremium === 1;
                             $speakerList = [];
                             if (!empty($s['speakers'])) {
                                 $speakerList = array_map(static fn($sp) => esc($sp['name']), $s['speakers']);
@@ -68,7 +70,9 @@ $selectedAgendaDay = isset($sessionsByDate[$requestedAgendaDay]) ? $requestedAge
                                         <?php if ($status === 'live'): ?>
                                             <span style="display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.16em;padding:3px 8px;border-radius:999px;background:#d8198e"><span style="width:6px;height:6px;border-radius:50%;background:#fff"></span>LIVE</span>
                                         <?php endif; ?>
-                                        <?php if ($isPaidSession && ! $canAccess): ?>
+                                        <?php if ($hasReplay): ?>
+                                            <span style="font-size:11px;color:#efb11e">REPLAY</span>
+                                        <?php elseif ($isPaidSession && ! $canAccess): ?>
                                             <span style="display:flex;align-items:center;gap:6px;font-size:11px;font-weight:500;color:#efb11e"><i class="fa fa-lock" aria-hidden="true"></i>Paid session</span>
                                         <?php endif; ?>
                                     </div>
@@ -76,7 +80,7 @@ $selectedAgendaDay = isset($sessionsByDate[$requestedAgendaDay]) ? $requestedAge
                                 </div>
 
                                 <?php if ($canAccess): ?>
-                                    <a href="<?php echo base_url('attendees/sessions/' . $s['sessions_id']); ?>" class="rc-session-action">View Session</a>
+                                    <a href="<?php echo base_url('attendees/sessions/' . $s['sessions_id']); ?>" class="rc-session-action"><?php echo $hasReplay ? 'Watch Replay' : 'View Session'; ?></a>
                                 <?php else: ?>
                                     <a href="<?php echo base_url('attendees/upgrade/' . (int) ($conference_id ?? 0)); ?>" class="rc-session-unlock"><i class="fa fa-unlock-alt" aria-hidden="true"></i>Unlock</a>
                                 <?php endif; ?>

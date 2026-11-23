@@ -11,6 +11,7 @@ namespace App\Modules\MobileApp\Controllers;
 
 use App\Controllers\BaseController;
 use App\Libraries\SessionViewerTracker;
+use App\Services\SessionReplayService;
 use App\Modules\MobileApp\Models\SessionModel;
 use App\Modules\MobileApp\Models\SpeakersModel;
 
@@ -51,6 +52,7 @@ class Session extends BaseController
 
         return module_view('MobileApp', 'session_detail', [
             'session'    => $session,
+            'replay'     => (new SessionReplayService())->state($session, (int) session('user_id')),
             'speakers'   => $speakers,
             'timezone'   => $timezone,
             'conference' => $conference,
