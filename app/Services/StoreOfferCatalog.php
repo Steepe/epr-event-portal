@@ -52,14 +52,18 @@ class StoreOfferCatalog
         ];
 
         if ($isReplay) {
+            $freeViewing = $amount <= 0;
             return $common + [
                 'eyebrow' => 'CONFERENCE REPLAY PASS',
                 'title' => 'Emergence 2026 Replay',
-                'description' => "Keep today's insights working for you long after the conference ends.",
-                'price_label' => "TODAY'S REPLAY PRICE",
+                'description' => $freeViewing
+                    ? 'Watch free while replay access is $0. Permanent access requires a purchase when the price changes.'
+                    : 'Purchase once and revisit every replay whenever you like.',
+                'price_label' => 'REPLAY ACCESS',
                 'full_price' => '$19.99',
-                'offer_label' => 'ONE DAY ONLY · NOV 21',
-                'button_label' => 'GET THE REPLAY',
+                'offer_label' => $freeViewing ? 'TEMPORARY FREE VIEWING' : 'PERMANENT ACCESS AFTER PURCHASE',
+                'button_label' => $freeViewing ? 'WATCH REPLAYS' : 'BUY REPLAY ACCESS',
+                'access_label' => 'WATCH REPLAYS',
                 'benefit_heading' => 'WHY GET THE REPLAY',
                 'benefits' => [
                     ['Never miss a session', 'Catch anything you missed live or had to leave early.'],
@@ -69,7 +73,7 @@ class StoreOfferCatalog
                     ['Revisit when stuck', 'Return to the right session when progress stalls.'],
                     ['Fuel your 2027 goals', 'Rewatch at key moments, like planning and reviews.'],
                     ['Explore every Track Lab', 'Learn from all four tracks, not just the one you joined.'],
-                    ['Six months of access', 'Keep coming back as your plan moves forward.'],
+                    ['Permanent access after purchase', 'Return to your replays whenever you need them.'],
                 ],
             ];
         }
@@ -91,7 +95,7 @@ class StoreOfferCatalog
                 ['Your top goals for 2027', 'Choose up to three goals and map each with SYSTEM.'],
                 ['A sequenced 90-day plan', 'Milestones, 30-day priorities and weekly routines.'],
                 ['Your written Blueprint', 'Your full plan, trackers and 7, 30 and 90-day reviews.'],
-                ['6 months of replays', 'Rewatch every keynote, panel and track lab at your pace.'],
+                ['Tools for continued execution', 'Use your plan and review checkpoints after the coaching session.'],
             ],
         ];
     }

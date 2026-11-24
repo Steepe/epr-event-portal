@@ -13,7 +13,7 @@ class StoreController extends BaseController
     {
         $store = new EmergenceStoreService();
         $products = $store->ready() ? $store->activeProducts() : [];
-        $entitledProductIds = $store->ready() ? $this->entitledProductIds((int) session('user_id')) : [];
+        $entitledProductIds = $store->ready() ? $store->accessibleProductIds($products, (int) session('user_id')) : [];
 
         return module_view('Web', 'store/index', [
             'ready' => $store->ready(),
@@ -27,6 +27,10 @@ class StoreController extends BaseController
         if (! $store->ready()) return redirect()->to(site_url('attendees/store'))->with('error', 'The store is being prepared. Please try again shortly.');
         $product = $store->product($productId);
         if (! $product || empty($product['is_active'])) throw PageNotFoundException::forPageNotFound();
+        if (($product['access_type'] ?? '') === 'replays'
+            && $store->hasReplayAccess((int) session('user_id'), $productId, $product)) {
+            return redirect()->to($store->replaySessionsUrl($product));
+        }
         try {
             $url = $store->createCheckout($product, (int) session('user_id'), (string) $this->request->getPost('coupon_code'));
             return redirect()->to($url);
@@ -43,12 +47,18 @@ class StoreController extends BaseController
             $order = db_connect()->table('tbl_store_orders')->where('stripe_session_id', $sessionId)->get()->getRowArray();
             $productId = (int) ($order['product_id'] ?? 0);
         }
-        $hasAccess = $productId > 0 && $store->ready() && $store->hasAccess((int) session('user_id'), $productId);
         $product = $productId > 0 ? $store->product($productId) : null;
         $isReplay = ($product['access_type'] ?? '') === 'replays';
+        $hasAccess = $productId > 0 && $store->ready() && ($isReplay
+            ? $store->hasReplayAccess((int) session('user_id'), $productId, $product)
+            : $store->hasAccess((int) session('user_id'), $productId));
         if ($isReplay && $hasAccess) {
             return redirect()->to($store->replaySessionsUrl($product))
                 ->with('success', 'Your replay access is ready. Choose a session to watch.');
+        }
+        if ($isReplay && $this->request->getGet('free')) {
+            return redirect()->to(site_url('attendees/store'))
+                ->with('error', 'Free replay viewing has ended. Purchase access to keep watching.');
         }
         return module_view('Web', 'store/success', [
             'hasAccess' => $hasAccess,
@@ -62,7 +72,7 @@ class StoreController extends BaseController
         $store = new EmergenceStoreService();
         $product = $store->product($productId);
         if (! $product || ($product['access_type'] ?? '') !== 'replays') throw PageNotFoundException::forPageNotFound();
-        if (! $store->hasAccess((int) session('user_id'), $productId)) {
+        if (! $store->hasReplayAccess((int) session('user_id'), $productId, $product)) {
             return redirect()->to(site_url('attendees/store'))->with('error', 'Purchase replay access to watch these videos.');
         }
         return module_view('Web', 'store/replays', ['product' => $product, 'videos' => $store->videos($productId)]);
@@ -88,9 +98,4 @@ class StoreController extends BaseController
         }
     }
 
-    private function entitledProductIds(int $userId): array
-    {
-        if ($userId < 1) return [];
-        return array_map('intval', array_column(db_connect()->table('tbl_store_entitlements')->select('product_id')->where('user_id', $userId)->where('status', 'active')->get()->getResultArray(), 'product_id'));
-    }
 }

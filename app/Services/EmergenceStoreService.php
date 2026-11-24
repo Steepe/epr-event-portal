@@ -97,15 +97,19 @@ class EmergenceStoreService
 
     public function createCheckout(array $product, int $userId, string $couponCode = '', ?string $successUrl = null, ?string $cancelUrl = null): string
     {
+        $quote = $this->quote($product, $couponCode);
+        if ($quote['amount'] <= 0) {
+            // Free replay viewing follows the current price; it must not survive a later price increase.
+            if (($product['access_type'] ?? '') !== 'replays' || (float) $product['price_amount'] > 0) {
+                $this->grantFreeEntitlement($product, $userId, $quote['coupon']);
+            }
+            $destination = $successUrl !== null ? (strstr($successUrl, '?', true) ?: $successUrl) : site_url('attendees/store/success');
+            return $destination . '?free=1&product=' . (int) $product['product_id'];
+        }
+
         $secret = trim((string) env('stripe.secretKey'));
         if ($secret === '') {
             throw new RuntimeException('Stripe is not configured yet. Please contact EPR Global.');
-        }
-        $quote = $this->quote($product, $couponCode);
-        if ($quote['amount'] <= 0) {
-            $this->grantFreeEntitlement($product, $userId, $quote['coupon']);
-            $destination = $successUrl !== null ? (strstr($successUrl, '?', true) ?: $successUrl) : site_url('attendees/store/success');
-            return $destination . '?free=1&product=' . (int) $product['product_id'];
         }
 
         $db = db_connect();
@@ -218,6 +222,64 @@ class EmergenceStoreService
         return db_connect()->table('tbl_store_entitlements')->where('user_id', $userId)->where('product_id', $productId)->where('status', 'active')->countAllResults() > 0;
     }
 
+    public function hasReplayAccess(int $userId, int $productId, ?array $product = null): bool
+    {
+        if ($userId < 1 || $productId < 1) {
+            return false;
+        }
+
+        $product ??= $this->product($productId);
+        if (! $product || (int) $product['product_id'] !== $productId || ($product['access_type'] ?? '') !== 'replays') {
+            return false;
+        }
+
+        if (! empty($product['is_active']) && (float) $product['price_amount'] <= 0) {
+            return true;
+        }
+
+        $db = db_connect();
+        $entitlement = $db->table('tbl_store_entitlements')
+            ->where('user_id', $userId)->where('product_id', $productId)->where('status', 'active')
+            ->get()->getRowArray();
+        if (! $entitlement) {
+            return false;
+        }
+
+        if (! empty($entitlement['granted_by_admin_id']) || ($entitlement['notes'] ?? '') === 'full-discount-replay-coupon') {
+            return true;
+        }
+
+        // Earlier $0 checkouts issued entitlements. Only a real paid order makes one permanent.
+        return $db->table('tbl_store_orders')
+            ->where('user_id', $userId)->where('product_id', $productId)
+            ->where('status', 'paid')->where('amount >', 0)
+            ->countAllResults() > 0;
+    }
+
+    public function accessibleProductIds(array $products, int $userId): array
+    {
+        if ($userId < 1) {
+            return [];
+        }
+
+        $ids = array_map('intval', array_column(db_connect()->table('tbl_store_entitlements')
+            ->select('product_id')->where('user_id', $userId)->where('status', 'active')
+            ->get()->getResultArray(), 'product_id'));
+
+        foreach ($products as $product) {
+            if (($product['access_type'] ?? '') !== 'replays') {
+                continue;
+            }
+            $productId = (int) $product['product_id'];
+            $ids = array_values(array_diff($ids, [$productId]));
+            if ($this->hasReplayAccess($userId, $productId, $product)) {
+                $ids[] = $productId;
+            }
+        }
+
+        return $ids;
+    }
+
     public function videos(int $productId): array
     {
         $db = db_connect();
@@ -269,7 +331,8 @@ class EmergenceStoreService
 
     private function grantFreeEntitlement(array $product, int $userId, ?array $coupon): void
     {
-        $this->grantEntitlement($userId, (int) $product['product_id']);
+        $notes = ($product['access_type'] ?? '') === 'replays' && $coupon ? 'full-discount-replay-coupon' : '';
+        $this->grantEntitlement($userId, (int) $product['product_id'], null, null, $notes);
         if ($coupon) {
             db_connect()->table('tbl_store_coupons')->where('coupon_id', $coupon['coupon_id'])->set('redemption_count', 'redemption_count + 1', false)->update();
         }

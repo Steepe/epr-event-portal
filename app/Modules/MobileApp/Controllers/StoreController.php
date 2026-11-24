@@ -14,7 +14,7 @@ class StoreController extends BaseController
         $store = new EmergenceStoreService();
 
         $products = $store->ready() ? $store->activeProducts() : [];
-        $entitledProductIds = $store->ready() ? $this->entitledProductIds((int) session('user_id')) : [];
+        $entitledProductIds = $store->ready() ? $store->accessibleProductIds($products, (int) session('user_id')) : [];
 
         return module_view('MobileApp', 'store', [
             'ready' => $store->ready(),
@@ -32,6 +32,10 @@ class StoreController extends BaseController
         $product = $store->product($productId);
         if (! $product || empty($product['is_active'])) {
             throw PageNotFoundException::forPageNotFound();
+        }
+        if (($product['access_type'] ?? '') === 'replays'
+            && $store->hasReplayAccess((int) session('user_id'), $productId, $product)) {
+            return redirect()->to($store->replaySessionsUrl($product, true));
         }
 
         try {
@@ -55,11 +59,17 @@ class StoreController extends BaseController
         }
 
         $product = $productId > 0 ? $store->product($productId) : null;
-        $hasAccess = $productId > 0 && $store->ready() && $store->hasAccess((int) session('user_id'), $productId);
         $isReplay = ($product['access_type'] ?? '') === 'replays';
+        $hasAccess = $productId > 0 && $store->ready() && ($isReplay
+            ? $store->hasReplayAccess((int) session('user_id'), $productId, $product)
+            : $store->hasAccess((int) session('user_id'), $productId));
         if ($isReplay && $hasAccess) {
             return redirect()->to($store->replaySessionsUrl($product, true))
                 ->with('success', 'Your replay access is ready. Choose a session to watch.');
+        }
+        if ($isReplay && $this->request->getGet('free')) {
+            return redirect()->to(site_url('mobile/store'))
+                ->with('error', 'Free replay viewing has ended. Purchase access to keep watching.');
         }
 
         return module_view('MobileApp', 'store_success', [
@@ -76,7 +86,7 @@ class StoreController extends BaseController
         if (! $product || ($product['access_type'] ?? '') !== 'replays') {
             throw PageNotFoundException::forPageNotFound();
         }
-        if (! $store->hasAccess((int) session('user_id'), $productId)) {
+        if (! $store->hasReplayAccess((int) session('user_id'), $productId, $product)) {
             return redirect()->to(site_url('mobile/store'))->with('error', 'Purchase replay access to watch these videos.');
         }
 
@@ -86,15 +96,4 @@ class StoreController extends BaseController
         ]);
     }
 
-    private function entitledProductIds(int $userId): array
-    {
-        if ($userId < 1) {
-            return [];
-        }
-
-        return array_map('intval', array_column(
-            db_connect()->table('tbl_store_entitlements')->select('product_id')->where('user_id', $userId)->where('status', 'active')->get()->getResultArray(),
-            'product_id'
-        ));
-    }
 }

@@ -7,6 +7,9 @@ use DateTimeZone;
 
 class SessionReplayService
 {
+    private array $accessCache = [];
+    private ?bool $storeReady = null;
+
     public static function normaliseBunnyEmbedUrl(string $url): ?string
     {
         $url = trim($url);
@@ -45,8 +48,13 @@ class SessionReplayService
         }
 
         $productId = (int) $session['replay_product_id'];
-        $store = new EmergenceStoreService();
-        $hasAccess = $userId > 0 && $store->ready() && $store->hasAccess($userId, $productId);
+        $cacheKey = $userId . ':' . $productId;
+        if (! array_key_exists($cacheKey, $this->accessCache)) {
+            $store = new EmergenceStoreService();
+            $this->storeReady ??= $store->ready();
+            $this->accessCache[$cacheKey] = $userId > 0 && $this->storeReady && $store->hasReplayAccess($userId, $productId);
+        }
+        $hasAccess = $this->accessCache[$cacheKey];
 
         return [
             'published' => true,
